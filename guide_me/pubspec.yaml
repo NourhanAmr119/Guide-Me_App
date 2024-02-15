@@ -80,6 +80,9 @@ flutter:
     - assets/sharm_el_sheikh.jpg 
     - assets/marsa_matrouh.jpg
     - assets/marsa_alam.jpg
+    - assets/egyptian_museum.jpg
+    - assets/citadel_of_saladin.jpg
+    - assets/khan_al-khalily.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

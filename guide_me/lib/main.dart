@@ -163,7 +163,7 @@ Widget _buildCard(String title, String imagePath) {
       // Navigate to another page here
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => city_page(title: title, imagePath: imagePath)),
+        MaterialPageRoute(builder: (context) => city_page(title:title)),
       );
     },
     child: Stack(
@@ -297,4 +297,4 @@ final List<String> imagePaths = [
   'assets/sharm_el_sheikh.jpg',
   'assets/marsa_matrouh.jpg',
   'assets/marsa_alam.jpg',
-];
+];     
