@@ -71,6 +71,7 @@ flutter:
   assets:
     - assets/background_image.jpg
     - assets/cairo.jpg
+    - assets/Cairo-Egypt.jpg
     - assets/giza.jpg
     - assets/alexandria.jpg 
     - assets/hurghada.jpg
@@ -83,6 +84,13 @@ flutter:
     - assets/egyptian_museum.jpg
     - assets/citadel_of_saladin.jpg
     - assets/khan_al-khalily.jpg
+    - assets/Steigenberger.jpg
+    - assets/The_Nile_Ritz_Carlton.png
+    - assets/Kadoura.png
+    - assets/Riche.jpg
+    - assets/Pier_88.png
+    - assets/Azhar_Park.jpg
+    - assets/Dream_Park.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

@@ -287,7 +287,7 @@ final List<String> titles = [
 ];
 
 final List<String> imagePaths = [
-  'assets/cairo.jpg',
+  'assets/Cairo-Egypt.jpg',
   'assets/giza.jpg',
   'assets/alexandria.jpg',
   'assets/hurghada.jpg',

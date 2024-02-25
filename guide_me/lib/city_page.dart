@@ -61,63 +61,8 @@ class city_page extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 20),
-                Row(
-                  children: [
-                    SizedBox(width: 8),
-                    Text(
-                      'Hi, There',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.black,
-                      ),
-                    ),
-                    IconText(
-                      icon: Icons.waving_hand,
-                      color: Colors.yellow,
-                      size: 18,
-                    ),
-                  ],
-                ),
-                SizedBox(height: 1),
-                Container(
-                  margin: EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    'Welcome to $title',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 10),
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: EdgeInsets.symmetric(horizontal: 10),
-                  child: Row(
-                    children: [
-                      Icon(Icons.search, color: Colors.grey),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: TextField(
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Search',
-                            hintStyle: TextStyle(color: Colors.grey),
-                          ),
-                          style: TextStyle(color: Colors.black),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 10),
                 Text(
-                  'Top Places In $title',
+                  'Top Historical Places in $title',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -125,6 +70,7 @@ class city_page extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 20),
+                // Historical Places Slider
                 SizedBox(
                   height: 220,
                   child: ListView(
@@ -156,6 +102,67 @@ class city_page extends StatelessWidget {
                         placeName: 'Khan el-Khalili',
                         locationIcon: Icons.location_on,
                         rating: 4.8,
+                        locationName: 'Islamic Cairo',
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Entertainment Places',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                SizedBox(height: 20),
+                // Entertainment Places Slider
+                SizedBox(
+                  height: 220,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      _buildEntertainmentPlaceCard(
+                        imageUrl: 'assets/The_Nile_Ritz_Carlton.png',
+                        placeName: 'The-Nile-Ritz-Carlton',
+                        locationIcon: Icons.location_on,
+                        rating: 4.3,
+                        locationName: '6th of October City',
+                      ),
+                      _buildEntertainmentPlaceCard(
+                        imageUrl: 'assets/Dream_Park.jpg',
+                        placeName: 'Dream Park',
+                        locationIcon: Icons.location_on,
+                        rating: 4.5,
+                        locationName: '6th of October City',
+                      ),
+                      _buildEntertainmentPlaceCard(
+                        imageUrl: 'assets/Pier_88.png',
+                        placeName: 'Pier 88 Restaurant',
+                        locationIcon: Icons.location_on,
+                        rating: 4.2,
+                        locationName: 'Zamalek',
+                      ),
+                      _buildEntertainmentPlaceCard(
+                        imageUrl: 'assets/Steigenberger.jpg',
+                        placeName: 'Steigenberger Hotel',
+                        locationIcon: Icons.location_on,
+                        rating: 4.6,
+                        locationName: 'New Cairo',
+                      ),
+                      _buildEntertainmentPlaceCard(
+                        imageUrl: 'assets/Azhar_Park.jpg',
+                        placeName: 'Al-Azhar Park',
+                        locationIcon: Icons.location_on,
+                        rating: 4.7,
+                        locationName: 'Islamic Cairo',
+                      ),
+                      _buildEntertainmentPlaceCard(
+                        imageUrl: 'assets/Kadoura.png',
+                        placeName: 'Kadoura Restaurant',
+                        locationIcon: Icons.location_on,
+                        rating: 4.7,
                         locationName: 'Islamic Cairo',
                       ),
                     ],
@@ -210,15 +217,29 @@ class city_page extends StatelessWidget {
     double size = 24,
     required Color color,
   }) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          icon,
-          size: size,
-          color: color,
-        ),
-      ],
+    return Icon(
+      icon,
+      size: size,
+      color: color,
+    );
+  }
+
+  Widget _buildEntertainmentPlaceCard({
+    required String imageUrl,
+    required String placeName,
+    required IconData locationIcon,
+    required double rating,
+    required String locationName,
+  }) {
+    return Container(
+      width: 180, // Adjust the width as needed
+      child: CardWidget(
+        imageUrl: imageUrl,
+        placeName: placeName,
+        locationIcon: locationIcon,
+        rating: rating,
+        locationName: locationName,
+      ),
     );
   }
 }
@@ -261,28 +282,18 @@ class CardWidget extends StatelessWidget {
             SizedBox(height: 8),
             Text(
               placeName,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.black),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
             ),
             SizedBox(height: 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 5,
-                (index) {
-                  if (index < rating) {
-                    return Icon(
-                      Icons.star,
-                      color: Colors.yellow,
-                      size: 15,
-                    );
-                  } else {
-                    return Icon(
-                      Icons.star,
-                      color: Colors.grey,
-                      size: 15,
-                    );
-                  }
-                },
+                    (index) => Icon(
+                  index < rating ? Icons.star : Icons.star_border,
+                  color: Colors.amber,
+                  size: 15,
+                ),
               ),
             ),
             SizedBox(height: 4),
@@ -302,4 +313,4 @@ class CardWidget extends StatelessWidget {
       ),
     );
   }
-}    
+}
