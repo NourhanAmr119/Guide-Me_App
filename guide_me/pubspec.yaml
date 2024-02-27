@@ -70,8 +70,8 @@ flutter:
 
   assets:
     - assets/background_image.jpg
+    - assets/cairo_tower.jpg
     - assets/cairo.jpg
-    - assets/Cairo-Egypt.jpg
     - assets/giza.jpg
     - assets/alexandria.jpg 
     - assets/hurghada.jpg
