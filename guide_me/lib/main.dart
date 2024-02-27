@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:guide_me/city_page.dart';
+// import 'package:guide_me/favorite_page.dart';
 
 void main() {
   runApp(const MyApp());

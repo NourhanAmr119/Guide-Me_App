@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:guide_me/main.dart';
+import 'package:guide_me/favorite_page.dart';
 
 class city_page extends StatefulWidget {
   final String title;
@@ -335,7 +336,7 @@ class _CityPageState extends State<city_page> {
               IconButton(
                 icon: Icon(
                   Icons.favorite,
-                  color: favoritePlaces.isNotEmpty ? Colors.red : Colors.white,
+                  color: Colors.white,
                 ),
                 onPressed: () {
                   Navigator.push(
@@ -484,35 +485,12 @@ class CardWidget extends StatelessWidget {
             child: IconButton(
               icon: Icon(
                 isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: isFavorite ? Colors.red : Colors.grey,
+                color: isFavorite ? Colors.white : Colors.grey,
               ),
               onPressed: onFavoriteToggle,
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class favorite_page extends StatelessWidget {
-  final List<String> favoritePlaces;
-
-  const favorite_page({Key? key, required this.favoritePlaces}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Favorite Places'),
-      ),
-      body: ListView.builder(
-        itemCount: favoritePlaces.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(favoritePlaces[index]),
-          );
-        },
       ),
     );
   }
