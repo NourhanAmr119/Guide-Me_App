@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:guide_me/main.dart';
 import 'package:guide_me/favorite_page.dart';
@@ -53,6 +55,7 @@ class _CityPageState extends State<city_page> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -383,7 +386,8 @@ class _CityPageState extends State<city_page> {
   }) {
     return Container(
       width: 180, // Adjust the width as needed
-      child: CardWidget(
+      child:
+      CardWidget(
         imageUrl: imageUrl,
         placeName: placeName,
         locationIcon: locationIcon,
@@ -420,15 +424,22 @@ class CardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      margin: EdgeInsets.symmetric(vertical: 25, horizontal: 10),
-      color: Colors.white,
-      child: Stack(
-        children: [
-          Column(
+    var width=MediaQuery.of(context).size.width;
+    return  LayoutBuilder(builder: (ctx,constraint)
+
+    {  log(constraint.maxHeight.toString());
+       log(constraint.minHeight.toString());
+       log(constraint.maxWidth.toString());
+       log(constraint.minWidth.toString());
+      return Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        margin: EdgeInsets.symmetric(vertical: 25, horizontal: 10),
+        color: Colors.white,
+        child: Stack(
+          children: [ width < 600
+              ? Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
@@ -443,7 +454,9 @@ class CardWidget extends StatelessWidget {
               Flexible(
                 child: Text(
                   placeName,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                  style: TextStyle(fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 2,
                   textAlign: TextAlign.center,
@@ -454,11 +467,66 @@ class CardWidget extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
                   5,
-                  (index) => Icon(
-                    index < rating ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
-                    size: 15,
+                      (index) =>
+                      Icon(
+                        index < rating ? Icons.star : Icons.star_border,
+                        color: Colors.amber,
+                        size: 15,
+                      ),
+                ),
+              ),
+              SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(locationIcon, size: 16, color: Colors.blue),
+                  SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      locationName,
+                      style: TextStyle(fontSize: 14, color: Colors.blue),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
                   ),
+                ],
+              ),
+            ],
+          )
+              : Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                height: 130,
+                width: double.infinity,
+                child: Image.asset(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              SizedBox(height: 8),
+              Flexible(
+                child: Text(
+                  placeName,
+                  style: TextStyle(fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  5,
+                      (index) =>
+                      Icon(
+                        index < rating ? Icons.star : Icons.star_border,
+                        color: Colors.amber,
+                        size: 15,
+                      ),
                 ),
               ),
               SizedBox(height: 4),
@@ -479,19 +547,21 @@ class CardWidget extends StatelessWidget {
               ),
             ],
           ),
-          Positioned(
-            top: 8,
-            right: 8,
-            child: IconButton(
-              icon: Icon(
-                isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: isFavorite ? Colors.white : Colors.grey,
+            Positioned(
+              top: 8,
+              right: 8,
+              child: IconButton(
+                icon: Icon(
+                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: isFavorite ? Colors.white : Colors.grey,
+                ),
+                onPressed: onFavoriteToggle,
               ),
-              onPressed: onFavoriteToggle,
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+      );
+    },
     );
-  }
+    }
 }
