@@ -95,20 +95,7 @@ class _CityPageState extends State<city_page> {
             ),
             onPressed: () {},
           ),
-          IconButton(
-            icon: Icon(
-              Icons.favorite,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => favorite_page(favoritePlaces: favoritePlaces),
-                ),
-              );
-            },
-          ),
+
         ],
       ),
       body: CustomScrollView(
@@ -425,143 +412,138 @@ class CardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var width=MediaQuery.of(context).size.width;
-    return  LayoutBuilder(builder: (ctx,constraint)
 
-    {  log(constraint.maxHeight.toString());
-       log(constraint.minHeight.toString());
-       log(constraint.maxWidth.toString());
-       log(constraint.minWidth.toString());
-      return Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        margin: EdgeInsets.symmetric(vertical: 25, horizontal: 10),
-        color: Colors.white,
-        child: Stack(
-          children: [ width < 600
-              ? Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                height: 130,
-                width: double.infinity,
-                child: Image.asset(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                ),
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      margin: EdgeInsets.symmetric(vertical: 25, horizontal: 10),
+      color: Colors.white,
+      child: Stack(
+        children: [ width < 600
+            ? Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              height: 130,
+              width: double.infinity,
+              child: Image.asset(
+                imageUrl,
+                fit: BoxFit.cover,
               ),
-              SizedBox(height: 8),
-              Flexible(
-                child: Text(
-                  placeName,
-                  style: TextStyle(fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                ),
+            ),
+            SizedBox(height: 8),
+            Flexible(
+              child: Text(
+                placeName,
+                style: TextStyle(fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+                textAlign: TextAlign.center,
               ),
-              SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  5,
-                      (index) =>
-                      Icon(
-                        index < rating ? Icons.star : Icons.star_border,
-                        color: Colors.amber,
-                        size: 15,
-                      ),
-                ),
-              ),
-              SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(locationIcon, size: 16, color: Colors.blue),
-                  SizedBox(width: 4),
-                  Flexible(
-                    child: Text(
-                      locationName,
-                      style: TextStyle(fontSize: 14, color: Colors.blue),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
+            ),
+            SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                5,
+                    (index) =>
+                    Icon(
+                      index < rating ? Icons.star : Icons.star_border,
+                      color: Colors.amber,
+                      size: 15,
                     ),
+              ),
+            ),
+            SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(locationIcon, size: 16, color: Colors.blue),
+                SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    locationName,
+                    style: TextStyle(fontSize: 14, color: Colors.blue),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
-                ],
-              ),
-            ],
-          )
-              : Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                height: 130,
-                width: double.infinity,
-                child: Image.asset(
-                  imageUrl,
-                  fit: BoxFit.cover,
                 ),
+              ],
+            ),
+          ],
+        )
+            : Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              height: 130,
+              width: double.infinity,
+              child: Image.asset(
+                imageUrl,
+                fit: BoxFit.cover,
               ),
-              SizedBox(height: 8),
-              Flexible(
-                child: Text(
-                  placeName,
-                  style: TextStyle(fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                ),
+            ),
+            SizedBox(height: 8),
+            Flexible(
+              child: Text(
+                placeName,
+                style: TextStyle(fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+                textAlign: TextAlign.center,
               ),
-              SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  5,
-                      (index) =>
-                      Icon(
-                        index < rating ? Icons.star : Icons.star_border,
-                        color: Colors.amber,
-                        size: 15,
-                      ),
-                ),
-              ),
-              SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(locationIcon, size: 16, color: Colors.blue),
-                  SizedBox(width: 4),
-                  Flexible(
-                    child: Text(
-                      locationName,
-                      style: TextStyle(fontSize: 14, color: Colors.blue),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
+            ),
+            SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                5,
+                    (index) =>
+                    Icon(
+                      index < rating ? Icons.star : Icons.star_border,
+                      color: Colors.amber,
+                      size: 15,
                     ),
+              ),
+            ),
+            SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(locationIcon, size: 16, color: Colors.blue),
+                SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    locationName,
+                    style: TextStyle(fontSize: 14, color: Colors.blue),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
-                ],
-              ),
-            ],
-          ),
-            Positioned(
-              top: 8,
-              right: 8,
-              child: IconButton(
-                icon: Icon(
-                  isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: isFavorite ? Colors.white : Colors.grey,
                 ),
-                onPressed: onFavoriteToggle,
-              ),
+              ],
             ),
           ],
         ),
-      );
-    },
+          Positioned(
+            top: 8,
+            right: 8,
+            child: IconButton(
+              icon: Icon(
+                isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: isFavorite ? Colors.white : Colors.grey,
+              ),
+              onPressed: onFavoriteToggle,
+            ),
+          ),
+        ],
+      ),
     );
-    }
+
+
+  }
 }
