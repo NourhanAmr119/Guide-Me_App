@@ -57,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _fetchCities() async {
-    final response = await http.get(Uri.parse('http://guideme2.somee.com/api/City/AllCities'));
+    final response = await http.get(Uri.parse('http://guide-me.somee.com/api/City/AllCities'));
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       setState(() {
@@ -358,7 +358,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
   }
 
   Future<List<Map<String, dynamic>>> _fetchSearchResults(String query) async {
-    final response = await http.get(Uri.parse('http://guideme2.somee.com/api/City/SearchCity/$query'));
+    final response = await http.get(Uri.parse('http://guide-me.somee.com/api/City/SearchCity/$query'));
     if (response.statusCode == 200) {
       // Decode the response body
       final responseBody = json.decode(response.body);

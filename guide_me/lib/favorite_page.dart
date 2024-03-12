@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 class favorite_page extends StatefulWidget {
   final List<String> favoritePlaces;
 
@@ -27,20 +28,20 @@ class _FavoritePageState extends State<favorite_page> {
       appBar: AppBar(
         title: Text('Favorite Places'),
         backgroundColor:
-            const Color.fromARGB(255, 21, 82, 113), // Set app bar color
+        const Color.fromARGB(255, 21, 82, 113), // Set app bar color
       ),
       body: Container(
         color: const Color.fromARGB(255, 21, 82, 113), // Set background color
         child: widget.favoritePlaces.isEmpty
             ? Center(
-                child: Text('No favorite places yet!'),
-              )
+          child: Text('No favorite places yet!'),
+        )
             : ListView.builder(
-                itemCount: widget.favoritePlaces.length,
-                itemBuilder: (context, index) {
-                  return buildFavoriteCard(context, index);
-                },
-              ),
+          itemCount: widget.favoritePlaces.length,
+          itemBuilder: (context, index) {
+            return buildFavoriteCard(context, index);
+          },
+        ),
       ),
       bottomNavigationBar: BottomAppBar(
         elevation: 0,
