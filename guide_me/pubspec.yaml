@@ -30,12 +30,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: ^0.13.3  
+  http: ^0.13.3 
+  google_fonts: ^6.2.1 
 
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
+
 
 dev_dependencies:
   flutter_test:
@@ -71,26 +73,6 @@ flutter:
 
   assets:
     - assets/background_image.jpg
-    - assets/cairo_tower.jpg
-    - assets/cairo.jpg
-    - assets/giza.jpg
-    - assets/alexandria.jpg 
-    - assets/hurghada.jpg
-    - assets/luxor.jpg
-    - assets/aswan.jpg
-    - assets/sinai.jpg
-    - assets/sharm_el_sheikh.jpg 
-    - assets/marsa_matrouh.jpg
-    - assets/marsa_alam.jpg
-    - assets/egyptian_museum.jpg
-    - assets/citadel_of_saladin.jpg
-    - assets/khan_al-khalily.jpg
-    - assets/Steigenberger.jpg
-    - assets/The_Nile_Ritz_Carlton.png
-    - assets/Kadoura.png
-    - assets/Riche.jpg
-    - assets/Pier_88.png
-    - assets/Azhar_Park.jpg
     - assets/Dream_Park.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see

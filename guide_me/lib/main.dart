@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'sign_in.dart'; // Import your SignInPage widget
+import 'start_screen.dart'; // Import your StartScreen widget
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
           onPrimary: Colors.white,
         ),
       ),
-      home: const sign_in(), // Set the SignInPage as the home page
+      home: const StartScreen(), // Set the StartScreen as the home page
     );
   }
 }

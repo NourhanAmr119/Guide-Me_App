@@ -76,7 +76,7 @@ class _sign_inState extends State<sign_in> {
               children: <Widget>[
                 SizedBox(height: 10),
                 Text(
-                  'Guid Me',
+                  'Guide Me',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,

@@ -14,6 +14,7 @@ class city_page extends StatefulWidget {
 
 class _CityPageState extends State<city_page> {
   List<dynamic> places = [];
+  // ignore: unused_field
   int _currentIndex = 0;
   ScrollController _scrollController = ScrollController();
   bool _showAppbarColor = false;

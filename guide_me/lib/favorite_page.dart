@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+// ignore: unused_import
 import 'package:http/http.dart' as http;
+// ignore: unused_import
 import 'dart:convert';
 class favorite_page extends StatefulWidget {
   final List<String> favoritePlaces;
