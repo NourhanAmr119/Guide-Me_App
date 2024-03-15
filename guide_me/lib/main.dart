@@ -1,26 +1,19 @@
 import 'package:flutter/material.dart';
-import 'start_screen.dart'; // Import your StartScreen widget
+import 'sign_in.dart'; // Import your sign_in.dart file
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'Guide Me',
       theme: ThemeData(
-        primaryColor: const Color.fromARGB(255, 21, 82, 113),
-        colorScheme: const ColorScheme.dark().copyWith(
-          primary: const Color(0xFF372949),
-          onPrimary: Colors.white,
-        ),
+        primarySwatch: Colors.blue,
       ),
-      home: const StartScreen(), // Set the StartScreen as the home page
+      home: sign_in(), // Use your sign_in class as the home widget
     );
   }
 }
