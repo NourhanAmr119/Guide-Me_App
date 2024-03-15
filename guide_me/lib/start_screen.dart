@@ -14,7 +14,7 @@ class StartScreen extends StatelessWidget {
         children: [
           // Background image
           Image.asset(
-            'assets/background_image.jpg',  
+            'assets/background_image.jpg',
             fit: BoxFit.cover,
           ),
           Center(
@@ -26,38 +26,54 @@ class StartScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.shrikhand(
                     textStyle: TextStyle(
-                      fontSize: 48,  
+                      fontSize: 48,
                       fontWeight: FontWeight.bold,
                       color: Color.fromARGB(255, 229, 233, 154),
                       height: 1.5, // Adjust line height as needed
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => sign_in()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white, backgroundColor: const Color.fromARGB(255, 35, 110, 172), // Text color
+                SizedBox(height: 120), // Increased space between the text and the button
+                SizedBox(
+                  width: 200, // Set a fixed width for the buttons
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => sign_in()),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Color.fromARGB(255, 229, 233, 154), // Text color matching the Tour Guide text color
+                      backgroundColor: const Color.fromARGB(255, 35, 110, 172), // Button color
+                      padding: EdgeInsets.symmetric(vertical: 10), // Vertical padding
+                    ),
+                    child: Text(
+                      'Sign In',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold), // Font size and bold text
+                    ),
                   ),
-                  child: Text('Sign In'),
                 ),
-                SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () {
-                     Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SignUpPage()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white, backgroundColor:  const Color.fromARGB(255, 35, 110, 172), // Text color
+                SizedBox(height: 30), // Space between the buttons
+                SizedBox(
+                  width: 200, // Set a fixed width for the buttons
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SignUpPage()),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Color.fromARGB(255, 229, 233, 154), // Text color matching the Tour Guide text color
+                      backgroundColor: const Color.fromARGB(255, 35, 110, 172), // Button color
+                      padding: EdgeInsets.symmetric(vertical: 10), // Vertical padding
+                    ),
+                    child: Text(
+                      'Sign Up',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold), // Font size and bold text
+                    ),
                   ),
-                  child: Text('Sign Up'),
                 ),
               ],
             ),

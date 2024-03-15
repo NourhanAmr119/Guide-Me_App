@@ -15,25 +15,30 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController _languageController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _isObscure = true;
 
-  @override
-  void initState() {
-    super.initState();
-    // Autofocus on the username field when the page loads
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(context).requestFocus(FocusNode());
-    });
-  }
+  Map<String, bool> _errorStatus = {
+    'username': false,
+    'email': false,
+    'password': false,
+    'confirmPassword': false,
+    'language': false,
+  };
 
   void _togglePasswordVisibility() {
     setState(() {
       _isObscure = !_isObscure;
+    });
+  }
+
+  void _updateErrorStatus(String field, bool isValid) {
+    setState(() {
+      _errorStatus[field] = isValid;
     });
   }
 
@@ -70,7 +75,8 @@ class _SignUpPageState extends State<SignUpPage> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => home_page(title: 'Home Page'), // Provide a title here
+          builder: (context) =>
+              home_page(title: 'Home Page'), // Provide a title here
         ),
       );
     }
@@ -90,8 +96,7 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(
-                16.0, 60.0, 16.0, MediaQuery.of(context).viewInsets.bottom + 20),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -112,9 +117,14 @@ class _SignUpPageState extends State<SignUpPage> {
                       buildTextField(
                         controller: _usernameController,
                         labelText: 'Username',
-                        prefixIcon: Icons.account_circle,
+                        prefixIcon: Icons.person,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your username';
+                          }
+                          return null;
+                        },
                       ),
-                      SizedBox(height: 20),
                       buildTextField(
                         controller: _emailController,
                         labelText: 'Email',
@@ -124,42 +134,50 @@ class _SignUpPageState extends State<SignUpPage> {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your email';
                           }
+                          if (!RegExp(r"^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$")
+                              .hasMatch(value)) {
+                            return 'Please enter a valid email';
+                          }
                           return null;
                         },
                       ),
-                      SizedBox(height: 20),
                       buildTextField(
                         controller: _passwordController,
                         labelText: 'Password',
                         prefixIcon: Icons.lock,
                         isPassword: true,
+                        toggleVisibility: _togglePasswordVisibility,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your password';
                           }
+                          if (value.length < 8) {
+                            return 'Password should be at least 8 characters';
+                          }
+                          if (!value.contains(RegExp(r'[a-zA-Z]'))) {
+                            return 'Password must contain at least one letter';
+                          }
+                          if (!value.contains(RegExp(r'[0-9]'))) {
+                            return 'Password must contain at least one digit';
+                          }
+                          if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+                            return 'Password must contain at least one special character';
+                          }
                           return null;
                         },
-                        toggleVisibility: _togglePasswordVisibility,
-                        isObscure: _isObscure,
                       ),
-                      SizedBox(height: 20),
                       buildTextField(
                         controller: _confirmPasswordController,
                         labelText: 'Confirm Password',
                         prefixIcon: Icons.lock,
                         isPassword: true,
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please confirm your password';
-                          } else if (value != _passwordController.text) {
+                          if (value != _passwordController.text) {
                             return 'Passwords do not match';
                           }
                           return null;
                         },
-                        toggleVisibility: _togglePasswordVisibility,
-                        isObscure: _isObscure,
                       ),
-                      SizedBox(height: 20),
                       buildTextField(
                         controller: _languageController,
                         labelText: 'Language',
@@ -171,28 +189,29 @@ class _SignUpPageState extends State<SignUpPage> {
                           return null;
                         },
                       ),
-                      SizedBox(height: 40),
-                      ElevatedButton(
-                        onPressed: _isLoading
-                            ? null
-                            : () {
-                                if (_formKey.currentState!.validate()) {
-                                  _signUp();
-                                }
-                              },
-                        child: _isLoading
-                            ? CircularProgressIndicator()
-                            : Text('Sign Up'),
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.all(15.0), backgroundColor: Color.fromARGB(255, 39, 84, 105),
-                          minimumSize: Size(120, 0), // Change button color here
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25), // Change border radius here
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 40), // Add spacing at the bottom
                     ],
+                  ),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      _signUp(); // Call _signUp() method here
+                    }
+                  },
+                  child: _isLoading
+                      ? CircularProgressIndicator()
+                      : Text(
+                    'Sign Up',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color.fromARGB(230, 58, 106, 128),
+                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    minimumSize: Size(80, 0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25.0),
+                    ),
                   ),
                 ),
               ],
@@ -212,37 +231,66 @@ class _SignUpPageState extends State<SignUpPage> {
     Function? toggleVisibility,
     bool isObscure = true,
     String? Function(String?)? validator,
+    String hintText = 'Required',
   }) {
+    String fieldHintText = 'Enter your $labelText'; // Generate field-specific hint text
+
+    // Create a FocusNode for the TextField
+    FocusNode focusNode = FocusNode();
+
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(230, 58, 106, 128),
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(25.0),
       ),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        obscureText: isPassword ? isObscure : false,
-        validator: validator,
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-          labelText: labelText,
-          labelStyle: TextStyle(fontSize: 14),
-          prefixIcon: Icon(prefixIcon),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(25.0),
-            borderSide: BorderSide(color:  Color.fromARGB(255, 39, 84, 105)), // Change border color here
+      child: Focus(
+        onFocusChange: (hasFocus) {
+          // Check if the field lost focus and is empty
+          if (!hasFocus && controller.text.isEmpty) {
+            setState(() {
+              _errorStatus[controller.toString()] = true;
+            });
+          }
+        },
+        child: TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          obscureText: isPassword ? _isObscure : false,
+          onChanged: (value) {
+            setState(() {
+              _errorStatus[controller.toString()] = validator!(value) != null;
+            });
+          },
+          decoration: InputDecoration(
+            contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+            labelText: labelText,
+            labelStyle: TextStyle(fontSize: 14),
+            prefixIcon: Icon(prefixIcon),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(25.0),
+            ),
+            errorText: _errorStatus[controller.toString()] ?? false
+                ? validator!(controller.text)
+                : null,
+            errorStyle: TextStyle(color: Colors.red),
+            errorBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.red),
+              borderRadius: BorderRadius.circular(25.0),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.red),
+              borderRadius: BorderRadius.circular(25.0),
+            ),
+            suffixIcon: isPassword
+                ? IconButton(
+              icon: Icon(_isObscure ? Icons.visibility : Icons.visibility_off),
+              onPressed: toggleVisibility as void Function()?,
+            )
+                : null,
+            hintText: fieldHintText, // Use field-specific hint text
+            hintStyle: TextStyle(color: Colors.grey),
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(25.0),
-            borderSide: BorderSide(color:  Color.fromARGB(255, 39, 84, 105)), // Change focused border color here
-          ),
-          suffixIcon: isPassword
-              ? IconButton(
-                  icon: Icon(isObscure ? Icons.visibility : Icons.visibility_off),
-                  onPressed: toggleVisibility as void Function()?,
-                )
-              : null,
         ),
       ),
     );
