@@ -206,11 +206,10 @@ class _SignUpPageState extends State<SignUpPage> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(230, 58, 106, 128),
-                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                    minimumSize: Size(80, 0),
+                    padding: EdgeInsets.all(15.0), backgroundColor: Color.fromARGB(255, 39, 84, 105),
+                    minimumSize: Size(120, 0), // Change button color here
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25.0),
+                      borderRadius: BorderRadius.circular(25), // Change border radius here
                     ),
                   ),
                 ),

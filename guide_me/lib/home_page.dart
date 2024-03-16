@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'city_page.dart';
-import 'favorite_page.dart'; // Import the FavoritePage widget
+import 'favorite_page.dart';
 import 'package:http/http.dart' as http;
 
 class home_page extends StatefulWidget {

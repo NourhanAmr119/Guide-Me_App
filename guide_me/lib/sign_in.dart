@@ -3,53 +3,53 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'home_page.dart';
 
-class sign_in extends StatefulWidget {
-  const sign_in({Key? key}) : super(key: key);
+class SignInPage extends StatefulWidget {
+  const SignInPage({Key? key}) : super(key: key);
 
   @override
-  _SignInState createState() => _SignInState();
+  _SignInPageState createState() => _SignInPageState();
 }
 
-class _SignInState extends State<sign_in> {
-  final TextEditingController _emailController = TextEditingController();
+class _SignInPageState extends State<SignInPage> {
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
-  bool _is_loading = false;
-  bool _is_obscure = true;
+  bool _isLoading = false;
+  bool _isObscure = true;
 
-  Map<String, bool> _error_status = {
-    'email': false,
+  Map<String, bool> _errorStatus = {
+    'username': false,
     'password': false,
   };
 
-  void _toggle_password_visibility() {
+  void _togglePasswordVisibility() {
     setState(() {
-      _is_obscure = !_is_obscure;
+      _isObscure = !_isObscure;
     });
   }
 
-  Future<void> _sign_in() async {
+  Future<void> _signIn() async {
     setState(() {
-      _is_loading = true;
+      _isLoading = true;
     });
 
-    final String email = _emailController.text;
+    final String username = _usernameController.text;
     final String password = _passwordController.text;
 
     final response = await http.post(
-      Uri.parse('http://guide-me.somee.com/api/Tourist/login'),
+      Uri.parse('http://guide-me.somee.com/api/Tourist/signin'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<String, String>{
-        'email': email,
+        'username': username,
         'password': password,
       }),
     );
 
     setState(() {
-      _is_loading = false;
+      _isLoading = false;
     });
 
     if (response.statusCode == 200) {
@@ -89,41 +89,55 @@ class _SignInState extends State<sign_in> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 150),
+                SizedBox(height: 20),
                 Form(
                   key: _formKey,
                   child: Column(
                     children: [
-                      build_text_field(
-                        controller: _emailController,
-                        label_text: 'Email',
-                        prefix_icon: Icons.email,
-                        keyboard_type: TextInputType.emailAddress,
+                      buildTextField(
+                        controller: _usernameController,
+                        labelText: 'Username',
+                        prefixIcon: Icons.person,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your username';
+                          }
+                          return null;
+                        },
                       ),
-                      SizedBox(height: 70),
-                      build_text_field(
+                      buildTextField(
                         controller: _passwordController,
-                        label_text: 'Password',
-                        prefix_icon: Icons.lock,
-                        is_password: true,
-                        toggle_visibility: _toggle_password_visibility,
+                        labelText: 'Password',
+                        prefixIcon: Icons.lock,
+                        isPassword: true,
+                        toggleVisibility: _togglePasswordVisibility,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your password';
+                          }
+                          return null;
+                        },
                       ),
                     ],
                   ),
                 ),
-                SizedBox(height: 100),
+                SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      _sign_in();
+                      _signIn(); // Call _signIn() method here
                     }
                   },
-                  child: _is_loading
+                  child: _isLoading
                       ? CircularProgressIndicator()
-                      : Text('Sign In'),
+                      : Text(
+                    'Sign In',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.all(15.0),
-                    minimumSize: Size(120, 0),
+                    backgroundColor: Color.fromARGB(230, 58, 106, 128),
+                    padding: EdgeInsets.fromLTRB(5,10,5,10),
+                    // minimumSize: Size(80, 0),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25.0),
                     ),
@@ -137,63 +151,75 @@ class _SignInState extends State<sign_in> {
     );
   }
 
-  Widget build_text_field({
+  Widget buildTextField({
     required TextEditingController controller,
-    required String label_text,
-    required IconData prefix_icon,
-    TextInputType keyboard_type = TextInputType.text,
-    bool is_password = false,
-    Function? toggle_visibility,
+    required String labelText,
+    required IconData prefixIcon,
+    TextInputType keyboardType = TextInputType.text,
+    bool isPassword = false,
+    Function? toggleVisibility,
+    bool isObscure = true,
+    String? Function(String?)? validator,
+    String hintText = 'Required',
   }) {
-    String field_hint_text = 'Enter your $label_text'; // Generate field-specific hint text
+    String fieldHintText = 'Enter your $labelText'; // Generate field-specific hint text
 
-    return Focus(
-      onFocusChange: (has_focus) {
-        // Check if the field lost focus and is empty
-        if (!has_focus && controller.text.isEmpty) {
-          setState(() {
-            _error_status[controller.toString()] = true;
-          });
-        }
-      },
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboard_type,
-        obscureText: is_password ? _is_obscure : false,
-        onChanged: (value) {
-          setState(() {
-            _error_status[controller.toString()] = false;
-          });
+    // Create a FocusNode for the TextField
+    FocusNode focusNode = FocusNode();
+
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(25.0),
+      ),
+      child: Focus(
+        onFocusChange: (hasFocus) {
+          // Check if the field lost focus and is empty
+          if (!hasFocus && controller.text.isEmpty) {
+            setState(() {
+              _errorStatus[controller.toString()] = true;
+            });
+          }
         },
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-          labelText: label_text,
-          labelStyle: TextStyle(fontSize: 14),
-          prefixIcon: Icon(prefix_icon),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(25.0),
+        child: TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          obscureText: isPassword ? _isObscure : false,
+          onChanged: (value) {
+            setState(() {
+              _errorStatus[controller.toString()] = validator!(value) != null;
+            });
+          },
+          decoration: InputDecoration(
+            contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+            labelText: labelText,
+            labelStyle: TextStyle(fontSize: 14),
+            prefixIcon: Icon(prefixIcon),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(25.0),
+            ),
+            errorText: _errorStatus[controller.toString()] ?? false
+                ? validator!(controller.text)
+                : null,
+            errorStyle: TextStyle(color: Colors.red),
+            errorBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.red),
+              borderRadius: BorderRadius.circular(25.0),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.red),
+              borderRadius: BorderRadius.circular(25.0),
+            ),
+            suffixIcon: isPassword
+                ? IconButton(
+              icon: Icon(_isObscure ? Icons.visibility : Icons.visibility_off),
+              onPressed: toggleVisibility as void Function()?,
+            )
+                : null,
+            hintText: fieldHintText, // Use field-specific hint text
+            hintStyle: TextStyle(color: Colors.grey),
           ),
-          errorText: _error_status[controller.toString()] ?? false
-              ? 'Please enter your $label_text'
-              : null,
-          errorStyle: TextStyle(color: Colors.red),
-          errorBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.red),
-            borderRadius: BorderRadius.circular(25.0),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.red),
-            borderRadius: BorderRadius.circular(25.0),
-          ),
-          suffixIcon: is_password
-              ? IconButton(
-            icon: Icon(
-                _is_obscure ? Icons.visibility : Icons.visibility_off),
-            onPressed: toggle_visibility as void Function()?,
-          )
-              : null,
-          hintText: field_hint_text, // Use field-specific hint text
-          hintStyle: TextStyle(color: Colors.grey),
         ),
       ),
     );

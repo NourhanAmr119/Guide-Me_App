@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:guide_me/home_page.dart';
-import 'start_screen.dart'; // Import your StartScreen widget
+import 'home_page.dart';
+import 'start_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
           onPrimary: Colors.white,
         ),
       ),
-      home: const home_page(title: 'Home page'), // Set the StartScreen as the home page
+      home: const  home_page(title: 'Home Page'),
     );
   }
 }
