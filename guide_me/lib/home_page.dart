@@ -3,27 +3,29 @@ import 'package:flutter/material.dart';
 import 'city_page.dart';
 import 'favorite_page.dart';
 import 'package:http/http.dart' as http;
+import 'sign_in.dart';
 
-class home_page extends StatefulWidget {
-  const home_page({Key? key, required this.title}) : super(key: key);
+class HomePage extends StatefulWidget {
+  final String token;
 
-  final String title;
+
+  const HomePage({Key? key, required this.token}) : super(key: key);
 
   @override
-  _home_pageState createState() => _home_pageState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _home_pageState extends State<home_page> {
+class _HomePageState extends State<HomePage> {
   final ScrollController _scrollController = ScrollController();
   bool _showAppbarColor = false;
   List<Map<String, dynamic>> cities = [];
-  List<String> favoritePlaces = []; // Create a list of favorite places
+  List<String> favoritePlaces = [];
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    _fetchCities(); // Fetch cities when the widget initializes
+    _fetchCities();
   }
 
   @override
@@ -33,7 +35,12 @@ class _home_pageState extends State<home_page> {
   }
 
   void _fetchCities() async {
-    final response = await http.get(Uri.parse('http://guide-me.somee.com/api/City/AllCities'));
+    final response = await http.get(
+      Uri.parse('http://guide-me.somee.com/api/City/AllCities'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+      },
+    );
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       setState(() {
@@ -71,7 +78,7 @@ class _home_pageState extends State<home_page> {
             ? Theme.of(context).primaryColor
             : Colors.transparent,
         title: Text(
-          widget.title,
+          'Guide Me', // Use a static title or any other dynamic content
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -84,7 +91,7 @@ class _home_pageState extends State<home_page> {
             onPressed: () {
               showSearch<String>(
                 context: context,
-                delegate: CustomSearchDelegate(context: context), // Pass context here
+                delegate: CustomSearchDelegate(context: context),
               );
             },
           ),
@@ -141,7 +148,7 @@ class _home_pageState extends State<home_page> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => favorite_page(favoritePlaces: favoritePlaces), // Pass the list of favorite places
+                      builder: (context) => favorite_page(favoritePlaces: favoritePlaces),
                     ),
                   );
                 },
@@ -164,7 +171,6 @@ class _home_pageState extends State<home_page> {
   Widget _buildCard(BuildContext context, String title, String? imagePath) {
     return GestureDetector(
       onTap: () {
-        // Navigate to city page here
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -189,7 +195,7 @@ class _home_pageState extends State<home_page> {
                     imagePath,
                     fit: BoxFit.cover,
                   )
-                      : Container(), // Use a placeholder or empty container if imagePath is null
+                      : Container(),
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: Padding(

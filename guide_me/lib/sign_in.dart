@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'home_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'home_page.dart'; // Ensure this import points to your actual HomePage widget
+import 'token.dart'; // Import the TokenHelper class
 
 class SignInPage extends StatefulWidget {
   const SignInPage({Key? key}) : super(key: key);
@@ -18,17 +20,6 @@ class _SignInPageState extends State<SignInPage> {
   bool _isLoading = false;
   bool _isObscure = true;
 
-  Map<String, bool> _errorStatus = {
-    'username': false,
-    'password': false,
-  };
-
-  void _togglePasswordVisibility() {
-    setState(() {
-      _isObscure = !_isObscure;
-    });
-  }
-
   Future<void> _signIn() async {
     setState(() {
       _isLoading = true;
@@ -37,29 +28,67 @@ class _SignInPageState extends State<SignInPage> {
     final String username = _usernameController.text;
     final String password = _passwordController.text;
 
-    final response = await http.post(
-      Uri.parse('http://guide-me.somee.com/api/Tourist/signin'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'username': username,
-        'password': password,
-      }),
-    );
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    if (response.statusCode == 200) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => home_page(title: 'Home Page'), // Provide a title here
-        ),
+    try {
+      final response = await http.post(
+        Uri.parse('http://guide-me.somee.com/api/Tourist/signin'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          'username': username,
+          'password': password,
+        }),
       );
+
+      if (response.statusCode == 200) {
+        // Save token and its expiry to shared preferences
+        final responseData = jsonDecode(response.body);
+        final token = responseData['token'];
+        final expiry = responseData['expiry'];
+        await _saveTokenAndExpiry(token, expiry);
+
+        // Navigate to HomePage on successful sign-in
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomePage(token: token)));
+      } else if (response.statusCode == 401) {
+        // Check if the response is plain text (e.g., "User does not Exist")
+        _showErrorDialog(context, response.body);
+      } else {
+        // Handle other statuses
+        _showErrorDialog(context, 'Unexpected error occurred. Please try again later.');
+      }
+    } catch (e) {
+      _showErrorDialog(context, 'An error occurred. Please check your internet connection and try again.');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
+  }
+
+  Future<void> _saveTokenAndExpiry(String token, String expiry) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', token);
+    await prefs.setString('token_expiry', expiry);
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Dismiss the dialog
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -110,7 +139,6 @@ class _SignInPageState extends State<SignInPage> {
                         labelText: 'Password',
                         prefixIcon: Icons.lock,
                         isPassword: true,
-                        toggleVisibility: _togglePasswordVisibility,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your password';
@@ -136,8 +164,7 @@ class _SignInPageState extends State<SignInPage> {
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color.fromARGB(230, 58, 106, 128),
-                    padding: EdgeInsets.fromLTRB(5,10,5,10),
-                    // minimumSize: Size(80, 0),
+                    padding: EdgeInsets.fromLTRB(5, 10, 5, 10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25.0),
                     ),
@@ -157,15 +184,10 @@ class _SignInPageState extends State<SignInPage> {
     required IconData prefixIcon,
     TextInputType keyboardType = TextInputType.text,
     bool isPassword = false,
-    Function? toggleVisibility,
-    bool isObscure = true,
     String? Function(String?)? validator,
     String hintText = 'Required',
   }) {
-    String fieldHintText = 'Enter your $labelText'; // Generate field-specific hint text
-
-    // Create a FocusNode for the TextField
-    FocusNode focusNode = FocusNode();
+    String fieldHintText = 'Enter your $labelText';
 
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10),
@@ -173,53 +195,21 @@ class _SignInPageState extends State<SignInPage> {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(25.0),
       ),
-      child: Focus(
-        onFocusChange: (hasFocus) {
-          // Check if the field lost focus and is empty
-          if (!hasFocus && controller.text.isEmpty) {
-            setState(() {
-              _errorStatus[controller.toString()] = true;
-            });
-          }
-        },
-        child: TextField(
-          controller: controller,
-          keyboardType: keyboardType,
-          obscureText: isPassword ? _isObscure : false,
-          onChanged: (value) {
-            setState(() {
-              _errorStatus[controller.toString()] = validator!(value) != null;
-            });
-          },
-          decoration: InputDecoration(
-            contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-            labelText: labelText,
-            labelStyle: TextStyle(fontSize: 14),
-            prefixIcon: Icon(prefixIcon),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(25.0),
-            ),
-            errorText: _errorStatus[controller.toString()] ?? false
-                ? validator!(controller.text)
-                : null,
-            errorStyle: TextStyle(color: Colors.red),
-            errorBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.red),
-              borderRadius: BorderRadius.circular(25.0),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.red),
-              borderRadius: BorderRadius.circular(25.0),
-            ),
-            suffixIcon: isPassword
-                ? IconButton(
-              icon: Icon(_isObscure ? Icons.visibility : Icons.visibility_off),
-              onPressed: toggleVisibility as void Function()?,
-            )
-                : null,
-            hintText: fieldHintText, // Use field-specific hint text
-            hintStyle: TextStyle(color: Colors.grey),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        obscureText: isPassword ? _isObscure : false,
+        onChanged: (value) {},
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          labelText: labelText,
+          labelStyle: TextStyle(fontSize: 14),
+          prefixIcon: Icon(prefixIcon),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(25.0),
           ),
+          hintText: fieldHintText,
+          hintStyle: TextStyle(color: Colors.grey),
         ),
       ),
     );

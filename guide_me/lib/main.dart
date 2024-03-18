@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'start_screen.dart';
+import 'sign_in.dart';
+import 'sign_up.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,7 +23,8 @@ class MyApp extends StatelessWidget {
           onPrimary: Colors.white,
         ),
       ),
-      home: const  home_page(title: 'Home Page'),
+      home: const SignInPage(), // Change this line
     );
   }
 }
+
