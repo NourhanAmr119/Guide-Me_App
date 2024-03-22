@@ -23,8 +23,11 @@ class MyApp extends StatelessWidget {
           onPrimary: Colors.white,
         ),
       ),
-      home: const SignInPage(), // Change this line
+      home: const StartScreen(),
+      // Define your app's routes
+      routes: {
+        '/sign_up': (context) => SignUpPage(),
+      },
     );
   }
 }
-

@@ -1,13 +1,11 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'city_page.dart';
 import 'favorite_page.dart';
-import 'package:http/http.dart' as http;
-import 'sign_in.dart';
 
 class HomePage extends StatefulWidget {
   final String token;
-
 
   const HomePage({Key? key, required this.token}) : super(key: key);
 
@@ -74,11 +72,9 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: _showAppbarColor
-            ? Theme.of(context).primaryColor
-            : Colors.transparent,
+        backgroundColor: _showAppbarColor ? Theme.of(context).primaryColor : Colors.transparent,
         title: Text(
-          'Guide Me', // Use a static title or any other dynamic content
+          'Guide Me',
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -91,7 +87,7 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               showSearch<String>(
                 context: context,
-                delegate: CustomSearchDelegate(context: context),
+                delegate: CustomSearchDelegate(context: context, token: widget.token),
               );
             },
           ),
@@ -174,7 +170,7 @@ class _HomePageState extends State<HomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => city_page(title: title),
+            builder: (context) => CityPage(title: title, token: widget.token),
           ),
         );
       },
@@ -222,9 +218,10 @@ class _HomePageState extends State<HomePage> {
 }
 
 class CustomSearchDelegate extends SearchDelegate<String> {
-  final BuildContext context; // Add context variable
+  final BuildContext context;
+  final String token;
 
-  CustomSearchDelegate({required this.context}); // Constructor
+  CustomSearchDelegate({required this.context, required this.token});
 
   @override
   ThemeData appBarTheme(BuildContext context) {
@@ -263,113 +260,95 @@ class CustomSearchDelegate extends SearchDelegate<String> {
   }
 
   @override
-  // Adjustments within CustomSearchDelegate
-
-  @override
   Widget buildResults(BuildContext context) {
-    return _buildSearchResults(context); // Adjusted to use a new method for building results
+    return _buildSearchResults(context);
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return _buildSearchResults(context); // Adjusted to use a new method for building suggestions
+    return _buildSearchResults(context);
   }
 
   Widget _buildSearchResults(BuildContext context) {
     return FutureBuilder<List<Map<String, dynamic>>>(
-      future: _fetchSearchResults(query),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-          final results = snapshot.data!;
-          return GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, // Number of columns
-              childAspectRatio: 0.8, // Aspect ratio of each grid card
-              crossAxisSpacing: 10, // Horizontal spacing between cards
-              mainAxisSpacing: 10, // Vertical spacing between cards
+        future: _fetchSearchResults(query),
+    builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+    return const Center(child: CircularProgressIndicator());
+    } else if (snapshot.hasError) {
+    return Center(child: Text('Error: ${snapshot.error}'));
+    } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+      final results = snapshot.data!;
+      return GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.8,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+        ),
+        itemCount: results.length,
+        itemBuilder: (context, index) {
+          final city = results[index];
+          return GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CityPage(title: city['name'], token: token),
+              ),
             ),
-            itemCount: results.length,
-            itemBuilder: (context, index) {
-              final city = results[index];
-              return GestureDetector(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => city_page(title: city['name']), // Make sure CityPage exists
+            child: Card(
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Expanded(
+                    child: city['imagePath'] != null
+                        ? Image.network(
+                      city['imagePath'],
+                      fit: BoxFit.cover,
+                    )
+                        : const Placeholder(),
                   ),
-                ),
-                child: Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      Expanded(
-                        child: city['imagePath'] != null
-                            ? Image.network(
-                          city['imagePath'],
-                          fit: BoxFit.cover,
-                        )
-                            : const Placeholder(), // Placeholder in case of null image
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      city['name'],
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          city['name'],
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 16, // Adjust font size as desired
-                            fontWeight: FontWeight.bold, // Make the title bold
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              );
-            },
+                ],
+              ),
+            ),
           );
-        } else {
-          return const Center(child: Text('No results found.'));
-        }
-      },
+        },
+      );
+    } else {
+      return const Center(child: Text('No results found.'));
+    }
+    },
     );
   }
 
   Future<List<Map<String, dynamic>>> _fetchSearchResults(String query) async {
-    final response = await http.get(Uri.parse('http://guide-me.somee.com/api/City/SearchCity/$query'));
-    if (response.statusCode == 200) {
-      // Decode the response body
-      final responseBody = json.decode(response.body);
+    final response = await http.get(
+      Uri.parse('http://guide-me.somee.com/api/City/SearchCity/$query'),
+    );
 
-      // Check if the decoded response body is a list
-      if (responseBody is List) {
-        // If it is a list, map each item to a Map<String, dynamic> and return
-        return responseBody.map<Map<String, dynamic>>((city) => {
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map<Map<String, dynamic>>((city) {
+        return {
           'id': city['id'],
           'name': city['name'],
           'imagePath': city['cityImage'],
-        }).toList();
-      } else if (responseBody is Map) {
-        // If the response body is a map, treat it as a single city object
-        // Wrap the single city object into a list and return
-        return [
-          {
-            'id': responseBody['id'],
-            'name': responseBody['name'],
-            'imagePath': responseBody['cityImage'],
-          }
-        ];
-      } else {
-        // If the response body is neither a List nor a Map, throw an exception
-        throw Exception('Unexpected response format: ${response.body}');
-      }
+        };
+      }).toList();
     } else {
-      // If the status code is not 200, throw an exception
-      throw Exception('Failed to fetch search results: ${response.statusCode}');
+      throw Exception('Failed to fetch search results');
     }
   }
 }
