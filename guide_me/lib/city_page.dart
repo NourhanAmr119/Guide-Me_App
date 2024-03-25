@@ -159,14 +159,17 @@ class _CityPageState extends State<CityPage> {
       body: jsonEncode(body),
     );
 
-    if (response.statusCode != 200) {
+    if (response.statusCode == 200) {
+      print('Favorite place added successfully');
+    } else {
       print('Failed to update favorite place: ${response.statusCode}');
     }
   }
 
+
   String decodeToken(String token) {
     Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
-    return decodedToken['name'];
+    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
   }
 
   @override
