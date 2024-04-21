@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'favorite_page.dart';
 import 'package:jwt_decode/jwt_decode.dart';
+import 'favorite_page.dart'; // Import FavoritePage if not imported already
+import 'place_page.dart'; // Import PlacePage
 
-class CityPage extends StatefulWidget {
+class city_page extends StatefulWidget {
   final String title;
-  final String token; // Add token field
+  final String token;
 
-  const CityPage({Key? key, required this.title, required this.token})
+  const city_page({Key? key, required this.title, required this.token})
       : super(key: key);
 
   @override
   _CityPageState createState() => _CityPageState();
 }
 
-class _CityPageState extends State<CityPage> {
+class _CityPageState extends State<city_page> {
   List<dynamic> places = [];
   int _currentIndex = 0;
   ScrollController _scrollController = ScrollController();
@@ -26,7 +27,7 @@ class _CityPageState extends State<CityPage> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    fetchData(widget.title); // Pass the city name here
+    fetchData(widget.title);
   }
 
   Future<void> fetchData(String cityName) async {
@@ -67,73 +68,82 @@ class _CityPageState extends State<CityPage> {
       if (place['category'] == category) {
         bool isFavorite = favoritePlaces.contains(place['name']);
         cards.add(
-          SizedBox(
-            height: 250, // Specify the desired height for all cards
-            child: Card(
-              elevation: 5,
-              margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15.0),
-              ),
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15.0),
-                      child: Image.network(
-                        place['media'][0]['mediaContent'],
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    child: IconButton(
-                      icon: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? Colors.white : Colors.white,
-                      ),
-                      onPressed: () async {
-                        setState(() {
-                          if (isFavorite) {
-                            favoritePlaces.remove(place['name']);
-                          } else {
-                            favoritePlaces.add(place['name']);
-                          }
-                        });
+          GestureDetector(
+            onTap: () async {
 
-                        // Update favorite place on the server
-                        await updateFavoritePlace(place['name'], isFavorite);
-                      },
-                    ),
-                  ),
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(15.0),
-                          bottomRight: Radius.circular(15.0),
+              // Navigate to place page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => place_page(place: place),
+                ),
+              );
+            },
+            child: SizedBox(
+              height: 250,
+              child: Card(
+                elevation: 5,
+                margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15.0),
+                        child: Image.network(
+                          place['media'][0]['mediaContent'],
+                          fit: BoxFit.cover,
                         ),
-                        color: Colors.black54
-                            .withOpacity(_showAppbarColor ? 0.5 : 0.8),
                       ),
-                      child: Text(
-                        place['name'],
-                        style: const TextStyle(
+                    ),
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: IconButton(
+                        icon: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
                           color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
                         ),
-                        textAlign: TextAlign.center,
+                        onPressed: () async {
+                          setState(() {
+                            if (isFavorite) {
+                              favoritePlaces.remove(place['name']);
+                            } else {
+                              favoritePlaces.add(place['name']);
+                            }
+                          });
+                          await updateFavoritePlace(place['name'], !isFavorite);
+                        },
                       ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(15.0),
+                            bottomRight: Radius.circular(15.0),
+                          ),
+                          color: Colors.black54.withOpacity(_showAppbarColor ? 0.5 : 0.8),
+                        ),
+                        child: Text(
+                          place['name'],
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -151,7 +161,7 @@ class _CityPageState extends State<CityPage> {
     };
 
     final response = await http.post(
-      Uri.parse('http://guide-me.somee.com/api/TouristFavourites/AddFvoritePlace'),
+      Uri.parse('http://guide-me.somee.com/api/TouristFavourites/${isFavorite ? "AddFvoritePlace" : "DeleteFavoritePlace" }'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Content-Type': 'application/json',
@@ -160,7 +170,7 @@ class _CityPageState extends State<CityPage> {
     );
 
     if (response.statusCode == 200) {
-      print('Favorite place added successfully');
+      print(isFavorite ? 'Favorite place added successfully' : 'Favorite place removed successfully');
     } else {
       print('Failed to update favorite place: ${response.statusCode}');
     }
@@ -169,117 +179,115 @@ class _CityPageState extends State<CityPage> {
 
   String decodeToken(String token) {
     Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
-    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
+    print('Decoded token: $decodedToken');
+    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ?? '';
   }
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-        length: 3,
-        child: Scaffold(
+      length: 3,
+      child: Scaffold(
         extendBodyBehindAppBar: true,
         appBar: AppBar(
-        backgroundColor: _showAppbarColor
-        ? Color.fromARGB(255, 21, 82, 113)
-        : Colors.transparent,
-    elevation: 0.0,
-    centerTitle: true,
-    title: Text(
-    widget.title,
-    style: const TextStyle(color: Colors.white, fontSize: 25),
-    ),
-    leading: IconButton(
-    icon: const Icon(Icons.lightbulb_outline, color: Colors.white),
-    onPressed: () {},
-    ),
-    actions: [
-    IconButton(
-    icon: const Icon(Icons.qr_code, color: Colors.white),
-    onPressed: () {},
-    ),
-    ],
-    bottom: const TabBar(
-    tabs: [
-    Tab(text: 'Historical'),
-    Tab(text: 'Entertainment'),
-    Tab(text: 'Religious'),
-    ],
-    ),
-    ),
-    body: Container(
-    decoration: const BoxDecoration(
-    image: DecorationImage(
-    image: AssetImage('assets/background_image.jpg'),
-    fit: BoxFit.cover,
-    ),
-    ),
-    child: NotificationListener<ScrollNotification>(
-    onNotification: (scrollNotification) {
-    _onScroll();
-    return true;
-    },
-    child: TabBarView(
-    children: [
-    ListView(
-    controller: _scrollController,
-    children: buildCategoryCards('Historical'),
-    ),
-    ListView(
-    controller: _scrollController,
-    children: buildCategoryCards('Entertainment'),
-    ),
-    ListView(
-    controller: _scrollController,
-    children: buildCategoryCards('Religious'),
-    ),
-    ],
-    ),
-    ),
-    ),
-    bottomNavigationBar: BottomAppBar(
-    elevation: 0,
-    color: const Color.fromARGB(255, 21, 82, 113),
-    child: Container(
-    height: 60,
-    padding: const EdgeInsets.symmetric(horizontal: 20),
-    child: Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-    IconButton(
-    icon: const Icon(Icons.home),
-    onPressed: () {
-    Navigator.pop(
-    context); // Navigate back to the previous screen
-    },
-    ),IconButton(
-        icon: const Icon(Icons.favorite),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  favorite_page(favoritePlaces: favoritePlaces),
+          backgroundColor: _showAppbarColor ? Color.fromARGB(255, 21, 82, 113) : Colors.transparent,
+          elevation: 0.0,
+          centerTitle: true,
+          title: Text(
+            widget.title,
+            style: const TextStyle(color: Colors.white, fontSize: 25),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.lightbulb_outline, color: Colors.white),
+            onPressed: () {},
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.qr_code, color: Colors.white),
+              onPressed: () {},
             ),
-          );
-        },
-      ),
-      IconButton(
-        icon: const Icon(Icons.history),
-        onPressed: () {
-          // Navigate to history page
-        },
-      ),
-      IconButton(
-        icon: const Icon(Icons.account_circle),
-        onPressed: () {
-          // Navigate to account page
-        },
-      ),
-    ],
-    ),
-    ),
-    ),
+          ],
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Historical'),
+              Tab(text: 'Entertainment'),
+              Tab(text: 'Religious'),
+            ],
+          ),
         ),
+        body: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/background_image.jpg'),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (scrollNotification) {
+              _onScroll();
+              return true;
+            },
+            child: TabBarView(
+              children: [
+                ListView(
+                  controller: _scrollController,
+                  children: buildCategoryCards('Historical'),
+                ),
+                ListView(
+                  controller: _scrollController,
+                  children: buildCategoryCards('Entertainment'),
+                ),
+                ListView(
+                  controller: _scrollController,
+                  children: buildCategoryCards('Religious'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        bottomNavigationBar: BottomAppBar(
+          elevation: 0,
+          color: const Color.fromARGB(255, 21, 82, 113),
+          child: Container(
+            height: 60,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.home),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.favorite),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => favorite_page(authToken: widget.token),  // Corrected line
+                      ),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.history),
+                  onPressed: () {
+                    // Navigate to history page
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.account_circle),
+                  onPressed: () {
+                    // Navigate to account page
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

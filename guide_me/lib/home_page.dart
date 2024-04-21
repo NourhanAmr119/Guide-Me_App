@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'city_page.dart';
 import 'favorite_page.dart';
+import 'history.dart';
 
 class HomePage extends StatefulWidget {
   final String token;
@@ -144,14 +145,21 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => favorite_page(favoritePlaces: favoritePlaces),
+                      builder: (context) => favorite_page(authToken: widget.token),  // Corrected line
                     ),
                   );
                 },
               ),
               IconButton(
                 icon: const Icon(Icons.history),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => history(token: widget.token),
+                    ),
+                  );
+                },
               ),
               IconButton(
                 icon: const Icon(Icons.account_circle),
@@ -170,7 +178,7 @@ class _HomePageState extends State<HomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => CityPage(title: title, token: widget.token),
+            builder: (context) => city_page(title: title, token: widget.token),
           ),
         );
       },
@@ -271,65 +279,65 @@ class CustomSearchDelegate extends SearchDelegate<String> {
 
   Widget _buildSearchResults(BuildContext context) {
     return FutureBuilder<List<Map<String, dynamic>>>(
-        future: _fetchSearchResults(query),
-    builder: (context, snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-    return const Center(child: CircularProgressIndicator());
-    } else if (snapshot.hasError) {
-    return Center(child: Text('Error: ${snapshot.error}'));
-    } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-      final results = snapshot.data!;
-      return GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.8,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-        ),
-        itemCount: results.length,
-        itemBuilder: (context, index) {
-          final city = results[index];
-          return GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => CityPage(title: city['name'], token: token),
-              ),
+      future: _fetchSearchResults(query),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+          final results = snapshot.data!;
+          return GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.8,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
             ),
-            child: Card(
-              clipBehavior: Clip.antiAlias,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Expanded(
-                    child: city['imagePath'] != null
-                        ? Image.network(
-                      city['imagePath'],
-                      fit: BoxFit.cover,
-                    )
-                        : const Placeholder(),
+            itemCount: results.length,
+            itemBuilder: (context, index) {
+              final city = results[index];
+              return GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => city_page(title: city['name'], token: token),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      city['name'],
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                ),
+                child: Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Expanded(
+                        child: city['imagePath'] != null
+                            ? Image.network(
+                          city['imagePath'],
+                          fit: BoxFit.cover,
+                        )
+                            : const Placeholder(),
                       ),
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          city['name'],
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           );
-        },
-      );
-    } else {
-      return const Center(child: Text('No results found.'));
-    }
-    },
+        } else {
+          return const Center(child: Text('No results found.'));
+        }
+      },
     );
   }
 
