@@ -12,7 +12,16 @@ class place_page extends StatelessWidget {
         title: Text(place['name']),
       ),
       body: Center(
-        child: Text('Place details go here'),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Place details go here'),
+            SizedBox(height: 20),
+            // Display additional details of the place
+            Text('Category: ${place['category']}'),
+            // Add more information as needed
+          ],
+        ),
       ),
     );
   }

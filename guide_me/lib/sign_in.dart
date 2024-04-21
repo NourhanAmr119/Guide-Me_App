@@ -172,7 +172,7 @@ class _SignInPageState extends State<SignInPage> {
         final token = responseData['token'];
 
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => HomePage(token: token)),
+          MaterialPageRoute(builder: (context) => home_page(token: token)),
         );
       } else {
         _showErrorDialog(context, 'Invalid username or password.');

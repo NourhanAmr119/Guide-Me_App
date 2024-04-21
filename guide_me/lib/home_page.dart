@@ -1,20 +1,22 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+
 import 'city_page.dart';
 import 'favorite_page.dart';
-import 'history.dart';
+import 'history_page.dart';
 
-class HomePage extends StatefulWidget {
+class home_page extends StatefulWidget {
   final String token;
 
-  const HomePage({Key? key, required this.token}) : super(key: key);
+  const home_page({Key? key, required this.token}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<home_page> {
   final ScrollController _scrollController = ScrollController();
   bool _showAppbarColor = false;
   List<Map<String, dynamic>> cities = [];
@@ -73,7 +75,9 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: _showAppbarColor ? Theme.of(context).primaryColor : Colors.transparent,
+        backgroundColor: _showAppbarColor
+            ? Theme.of(context).primaryColor
+            : Colors.transparent,
         title: Text(
           'Guide Me',
           style: const TextStyle(
@@ -88,7 +92,8 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               showSearch<String>(
                 context: context,
-                delegate: CustomSearchDelegate(context: context, token: widget.token),
+                delegate:
+                    CustomSearchDelegate(context: context, token: widget.token),
               );
             },
           ),
@@ -118,7 +123,8 @@ class _HomePageState extends State<HomePage> {
                   ),
                   itemCount: cities.length,
                   itemBuilder: (BuildContext context, int index) {
-                    return _buildCard(context, cities[index]['name'], cities[index]['imagePath']);
+                    return _buildCard(context, cities[index]['name'],
+                        cities[index]['imagePath']);
                   },
                 ),
               ],
@@ -145,7 +151,8 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => favorite_page(authToken: widget.token),  // Corrected line
+                      builder: (context) => favorite_page(
+                          authToken: widget.token), // Corrected line
                     ),
                   );
                 },
@@ -156,7 +163,7 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => history(token: widget.token),
+                      builder: (context) => history_page(token: widget.token),
                     ),
                   );
                 },
@@ -196,9 +203,9 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   imagePath != null
                       ? Image.network(
-                    imagePath,
-                    fit: BoxFit.cover,
-                  )
+                          imagePath,
+                          fit: BoxFit.cover,
+                        )
                       : Container(),
                   Align(
                     alignment: Alignment.bottomCenter,
@@ -301,7 +308,8 @@ class CustomSearchDelegate extends SearchDelegate<String> {
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => city_page(title: city['name'], token: token),
+                    builder: (context) =>
+                        city_page(title: city['name'], token: token),
                   ),
                 ),
                 child: Card(
@@ -312,9 +320,9 @@ class CustomSearchDelegate extends SearchDelegate<String> {
                       Expanded(
                         child: city['imagePath'] != null
                             ? Image.network(
-                          city['imagePath'],
-                          fit: BoxFit.cover,
-                        )
+                                city['imagePath'],
+                                fit: BoxFit.cover,
+                              )
                             : const Placeholder(),
                       ),
                       Padding(

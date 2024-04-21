@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:jwt_decode/jwt_decode.dart'; // Import the jwt_decode package
 import 'package:guide_me/city_page.dart'; // Import city_page for navigation
+import 'history_page.dart';
+import 'home_page.dart';
 
 class favorite_page extends StatefulWidget {
   final String authToken;
@@ -42,7 +44,8 @@ class _FavoritePageState extends State<favorite_page> {
           print('Favorites: $favorites'); // Print the favorites data
         });
       } else {
-        print('Failed to load favorites: ${response.body}'); // Print error response
+        print(
+            'Failed to load favorites: ${response.body}'); // Print error response
       }
     } catch (e) {
       print('Caught error: $e'); // Print errors if any
@@ -52,7 +55,8 @@ class _FavoritePageState extends State<favorite_page> {
   String decodeToken(String token) {
     Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
     print('Decoded token: $decodedToken');
-    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
+    return decodedToken[
+            'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
         '';
   }
 
@@ -64,7 +68,8 @@ class _FavoritePageState extends State<favorite_page> {
 
       // Send a request to the server to update the favorite status
       final response = await http.put(
-        Uri.parse('http://guide-me.somee.com/api/TouristFavourites/UpdateFavoriteStatus'),
+        Uri.parse(
+            'http://guide-me.somee.com/api/TouristFavourites/UpdateFavoriteStatus'),
         headers: {
           'Authorization': 'Bearer ${widget.authToken}',
           'Content-Type': 'application/json',
@@ -90,10 +95,12 @@ class _FavoritePageState extends State<favorite_page> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Favorites"),
-        backgroundColor: Color.fromARGB(255, 21, 82, 113), // Set the background color of app bar
+        backgroundColor: Color.fromARGB(
+            255, 21, 82, 113), // Set the background color of app bar
       ),
       body: Container(
-        color: Color.fromARGB(255, 21, 82, 113), // Set the background color of the page
+        color: Color.fromARGB(
+            255, 21, 82, 113), // Set the background color of the page
         child: ListView.builder(
           itemCount: favorites.length,
           itemBuilder: (context, index) {
@@ -121,7 +128,8 @@ class _FavoritePageState extends State<favorite_page> {
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5), // Semi-transparent black background
+                        color: Colors.black.withOpacity(
+                            0.5), // Semi-transparent black background
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -142,12 +150,17 @@ class _FavoritePageState extends State<favorite_page> {
           },
         ),
       ),
-      bottomNavigationBar: CustomBottomNavigationBar(), // Add the custom bottom navigation bar
+      bottomNavigationBar: CustomBottomNavigationBar(authToken: widget.authToken),
+ // Add the custom bottom navigation bar
     );
   }
 }
 
 class CustomBottomNavigationBar extends StatelessWidget {
+  final String authToken;
+
+  const CustomBottomNavigationBar({Key? key, required this.authToken}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
@@ -162,7 +175,12 @@ class CustomBottomNavigationBar extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.home),
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => home_page(token: authToken)),
+                  (Route<dynamic> route) => false,
+                );
               },
             ),
             IconButton(
@@ -174,7 +192,12 @@ class CustomBottomNavigationBar extends StatelessWidget {
             IconButton(
               icon: Icon(Icons.history),
               onPressed: () {
-                // Navigate to history page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => history_page(token: authToken),
+                  ),
+                );
               },
             ),
             IconButton(

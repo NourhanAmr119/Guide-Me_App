@@ -79,7 +79,7 @@ class _SignUpPageState extends State<SignUpPage> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => HomePage(token: token),
+          builder: (context) => home_page(token: token),
         ),
       );
     } else {
