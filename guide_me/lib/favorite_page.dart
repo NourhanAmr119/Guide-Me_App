@@ -56,38 +56,8 @@ class _FavoritePageState extends State<favorite_page> {
     Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
     print('Decoded token: $decodedToken');
     return decodedToken[
-            'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
+    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
         '';
-  }
-
-  void handleFavoriteStatusChange(dynamic favorite) async {
-    try {
-      // Extract necessary data from the favorite object
-      int favoriteId = favorite['id'];
-      bool isFavorite = favorite['isFavorite'];
-
-      // Send a request to the server to update the favorite status
-      final response = await http.put(
-        Uri.parse(
-            'http://guide-me.somee.com/api/TouristFavourites/UpdateFavoriteStatus'),
-        headers: {
-          'Authorization': 'Bearer ${widget.authToken}',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'favoriteId': favoriteId,
-          'isFavorite': !isFavorite, // Toggle the favorite status
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        print('Favorite status updated successfully');
-      } else {
-        print('Failed to update favorite status: ${response.body}');
-      }
-    } catch (e) {
-      print('Error updating favorite status: $e');
-    }
   }
 
   @override
@@ -105,8 +75,10 @@ class _FavoritePageState extends State<favorite_page> {
           itemCount: favorites.length,
           itemBuilder: (context, index) {
             final favorite = favorites[index];
-            return Padding(
-              padding: EdgeInsets.all(8.0),
+            return GestureDetector(
+              onTap: () {
+                // Handle tap event
+              },
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -122,16 +94,12 @@ class _FavoritePageState extends State<favorite_page> {
                     ),
                   ),
                   Positioned(
-                    bottom: 8,
-                    left: 8,
-                    right: 8,
+                    bottom: 0, // Place the title at the bottom
+                    left: 0,
+                    right: 0,
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(
-                            0.5), // Semi-transparent black background
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      padding: EdgeInsets.all(8),
+                      color: Colors.black.withOpacity(0.5),
                       child: Text(
                         favorite['name'],
                         style: TextStyle(
@@ -151,7 +119,7 @@ class _FavoritePageState extends State<favorite_page> {
         ),
       ),
       bottomNavigationBar: CustomBottomNavigationBar(authToken: widget.authToken),
- // Add the custom bottom navigation bar
+      // Add the custom bottom navigation bar
     );
   }
 }
@@ -159,7 +127,8 @@ class _FavoritePageState extends State<favorite_page> {
 class CustomBottomNavigationBar extends StatelessWidget {
   final String authToken;
 
-  const CustomBottomNavigationBar({Key? key, required this.authToken}) : super(key: key);
+  const CustomBottomNavigationBar({Key? key, required this.authToken})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -179,7 +148,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                       builder: (context) => home_page(token: authToken)),
-                  (Route<dynamic> route) => false,
+                      (Route<dynamic> route) => false,
                 );
               },
             ),

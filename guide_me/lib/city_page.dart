@@ -5,6 +5,8 @@ import 'package:jwt_decode/jwt_decode.dart';
 import 'favorite_page.dart'; // Import FavoritePage if not imported already
 import 'place_page.dart'; // Import PlacePage
 import 'history_page.dart';
+import 'package:provider/provider.dart';
+import 'favorite_places_model.dart';
 
 class city_page extends StatefulWidget {
   final String title;
@@ -22,7 +24,6 @@ class _CityPageState extends State<city_page> {
   int _currentIndex = 0;
   ScrollController _scrollController = ScrollController();
   bool _showAppbarColor = false;
-  List<String> favoritePlaces = [];
 
   @override
   void initState() {
@@ -65,14 +66,12 @@ class _CityPageState extends State<city_page> {
 
   void _onTapCard(Map<String, dynamic> place, String token) async {
     try {
-      final String touristName =
-          decodeToken(token); // Decode token to get tourist name
+      final String touristName = decodeToken(token); // Decode token to get tourist name
       final response = await http.post(
-        Uri.parse(
-            'http://guide-me.somee.com/api/TouristHistory?placename=${place['name']}&touristname=$touristName'),
+        Uri.parse('http://guide-me.somee.com/api/TouristHistory?placename=${place['name']}&touristname=$touristName'),
         headers: {
           'Authorization': 'Bearer $token',
-          'accept': '*/*',
+          'accept': '/',
         },
       );
 
@@ -81,7 +80,7 @@ class _CityPageState extends State<city_page> {
         // Navigate to the place page
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => place_page(place: place)),
+          MaterialPageRoute(builder: (context) => PlacePage(place: place, token: token)),
         );
       } else {
         print('Failed to add place to history: ${response.statusCode}');
@@ -93,9 +92,9 @@ class _CityPageState extends State<city_page> {
 
   List<Widget> buildCategoryCards(String category) {
     List<Widget> cards = [];
+    final model = Provider.of<FavoritePlacesModel>(context);
     for (var place in places) {
       if (place['category'] == category) {
-        bool isFavorite = favoritePlaces.contains(place['name']);
         cards.add(
           GestureDetector(
             onTap: () {
@@ -106,7 +105,7 @@ class _CityPageState extends State<city_page> {
               child: Card(
                 elevation: 5,
                 margin:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15.0),
                 ),
@@ -126,18 +125,19 @@ class _CityPageState extends State<city_page> {
                       right: 10,
                       child: IconButton(
                         icon: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          model.isFavorite(place['name'])
+                              ? Icons.favorite
+                              : Icons.favorite_border,
                           color: Colors.white,
                         ),
                         onPressed: () async {
-                          setState(() {
-                            if (isFavorite) {
-                              favoritePlaces.remove(place['name']);
-                            } else {
-                              favoritePlaces.add(place['name']);
-                            }
-                          });
-                          await updateFavoritePlace(place['name'], !isFavorite);
+                          if (model.isFavorite(place['name'])) {
+                            model.remove(place['name']);
+                          } else {
+                            model.add(place['name']);
+                          }
+                          await updateFavoritePlace(
+                              place['name'], model.isFavorite(place['name']));
                         },
                       ),
                     ),
@@ -207,7 +207,7 @@ class _CityPageState extends State<city_page> {
     Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
     print('Decoded token: $decodedToken');
     return decodedToken[
-            'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
+    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
         '';
   }
 
@@ -297,7 +297,8 @@ class _CityPageState extends State<city_page> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => favorite_page(
-                            authToken: widget.token), // Corrected line
+                          authToken: widget.token,
+                        ),
                       ),
                     );
                   },
