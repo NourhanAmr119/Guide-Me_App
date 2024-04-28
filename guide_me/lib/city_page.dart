@@ -78,8 +78,10 @@ class _CityPageState extends State<city_page> {
       if (response.statusCode == 200) {
         print('Place added to history successfully');
         // Navigate to the place page
+        print('Place data: $place');
         Navigator.push(
           context,
+
           MaterialPageRoute(builder: (context) => PlacePage(place: place, token: token)),
         );
       } else {
@@ -88,6 +90,7 @@ class _CityPageState extends State<city_page> {
     } catch (e) {
       print('Exception caught: $e');
     }
+
   }
 
   List<Widget> buildCategoryCards(String category) {

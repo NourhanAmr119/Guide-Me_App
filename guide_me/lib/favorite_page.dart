@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:jwt_decode/jwt_decode.dart'; // Import the jwt_decode package
-import 'package:guide_me/city_page.dart'; // Import city_page for navigation
+import 'package:jwt_decode/jwt_decode.dart';
+import 'package:guide_me/city_page.dart';
 import 'history_page.dart';
 import 'home_page.dart';
 
@@ -25,7 +25,6 @@ class _FavoritePageState extends State<favorite_page> {
 
   void fetchFavorites() async {
     try {
-      // Decode the token to extract the user name
       String userName = decodeToken(widget.authToken);
 
       final response = await http.post(
@@ -37,18 +36,17 @@ class _FavoritePageState extends State<favorite_page> {
         },
       );
 
-      print('Status code: ${response.statusCode}'); // Print status code
+      print('Status code: ${response.statusCode}');
       if (response.statusCode == 200) {
         setState(() {
           favorites = jsonDecode(response.body);
-          print('Favorites: $favorites'); // Print the favorites data
+          print('Favorites: $favorites');
         });
       } else {
-        print(
-            'Failed to load favorites: ${response.body}'); // Print error response
+        print('Failed to load favorites: ${response.body}');
       }
     } catch (e) {
-      print('Caught error: $e'); // Print errors if any
+      print('Caught error: $e');
     }
   }
 
@@ -60,17 +58,39 @@ class _FavoritePageState extends State<favorite_page> {
         '';
   }
 
+  void removeFavorite(int index) async {
+    try {
+      final response = await http.post(
+        Uri.parse(
+            'http://guide-me.somee.com/api/TouristFavourites/RemoveFavoritePlace?placeId=${favorites[index]['id']}'),
+        headers: {
+          'Authorization': 'Bearer ${widget.authToken}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('Remove status code: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        setState(() {
+          favorites.removeAt(index);
+        });
+      } else {
+        print('Failed to remove favorite: ${response.body}');
+      }
+    } catch (e) {
+      print('Caught error: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Favorites"),
-        backgroundColor: Color.fromARGB(
-            255, 21, 82, 113), // Set the background color of app bar
+        backgroundColor: Color.fromARGB(255, 21, 82, 113),
       ),
       body: Container(
-        color: Color.fromARGB(
-            255, 21, 82, 113), // Set the background color of the page
+        color: Color.fromARGB(255, 21, 82, 113),
         child: ListView.builder(
           itemCount: favorites.length,
           itemBuilder: (context, index) {
@@ -79,47 +99,59 @@ class _FavoritePageState extends State<favorite_page> {
               onTap: () {
                 // Handle tap event
               },
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: NetworkImage(
-                          favorite['media'][0]['mediaContent'],
+              child: Card(
+                clipBehavior: Clip.antiAlias,
+                child: Stack(
+                  alignment: Alignment.topRight,
+                  children: [
+                    Container(
+                      height: 200,
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: NetworkImage(
+                            favorite['media'][0]['mediaContent'],
+                          ),
+                          fit: BoxFit.cover,
                         ),
-                        fit: BoxFit.cover,
                       ),
                     ),
-                  ),
-                  Positioned(
-                    bottom: 0, // Place the title at the bottom
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      padding: EdgeInsets.all(8),
-                      color: Colors.black.withOpacity(0.5),
-                      child: Text(
-                        favorite['name'],
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        padding: EdgeInsets.all(8),
+                        color: Colors.black.withOpacity(0.5),
+                        child: Text(
+                          favorite['name'],
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      top: 5,
+                      right: 5,
+                      child: IconButton(
+                        icon: Icon(Icons.favorite, color: Colors.white),
+                        onPressed: () {
+                          removeFavorite(index);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           },
         ),
       ),
       bottomNavigationBar: CustomBottomNavigationBar(authToken: widget.authToken),
-      // Add the custom bottom navigation bar
     );
   }
 }
