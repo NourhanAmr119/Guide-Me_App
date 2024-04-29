@@ -1,128 +1,246 @@
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:guide_me/rate_place.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:video_player/video_player.dart';
 
 class PlacePage extends StatefulWidget {
   final Map<String, dynamic> place;
   final String token;
 
-  const PlacePage({Key? key, required this.place, required this.token}) : super(key: key);
+  PlacePage({required this.place, required this.token});
 
   @override
   _PlacePageState createState() => _PlacePageState();
 }
 
 class _PlacePageState extends State<PlacePage> {
-  VideoPlayerController? _videoPlayerController;
-  AudioPlayer? _audioPlayer;
-  bool _isPlayingAudio = false;
+  List<dynamic> mediaList = [];
 
   @override
   void initState() {
     super.initState();
-    _initializeMediaPlayers();
+    fetchMedia();
   }
 
-  void _initializeMediaPlayers() {
-    // Initialize video player
-    var videoMedia = widget.place['media'].firstWhere(
-            (m) => m['mediaType'] == 'video',
-        orElse: () => null);
-    if (videoMedia != null) {
-      _videoPlayerController = VideoPlayerController.network(
-        videoMedia['mediaContent'],
-      )..initialize().then((_) {
-        setState(() {});
-        _videoPlayerController!.play();
-      });
-    }
+  Future<void> fetchMedia() async {
+    final response = await http.get(
+      Uri.parse('http://guide-me.somee.com/api/Place/${widget.place['name']}/places/media'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'Accept': 'application/json',
+      },
+    );
 
-    // Initialize audio player
-    _audioPlayer = AudioPlayer();
-    var audioMedia = widget.place['media'].firstWhere(
-            (m) => m['mediaType'] == 'audio',
-        orElse: () => null);
-    if (audioMedia != null) {
-      _audioPlayer!.play(UrlSource(audioMedia['mediaContent']));
+    if (response.statusCode == 200) {
       setState(() {
-        _isPlayingAudio = true;
+        mediaList = json.decode(response.body)
+            .where((media) => media['mediaType'] != 'audio')
+            .toList(); // Exclude audio media
       });
+    } else {
+      print('Failed to fetch media: ${response.statusCode}');
     }
   }
 
-  @override
-  void dispose() {
-    _videoPlayerController?.dispose();
-    _audioPlayer?.stop();
-    _audioPlayer?.dispose();
-    super.dispose();
+  Widget buildMediaWidget(dynamic media) {
+    switch (media['mediaType']) {
+      case 'image':
+        return Column(
+          children: [
+            Image.network(media['mediaContent']),
+            SizedBox(height: 10),
+            RateButton(placeName: widget.place['name'], token: widget.token),
+          ],
+        );
+      case 'text':
+        return TextWidget(textUrl: media['mediaContent']);
+      case 'video':
+        return VideoWidget(videoUrl: media['mediaContent']);
+      default:
+        return SizedBox();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.place['name'] ?? 'Place Details'),
+        title: Text('Place Page'),
+        backgroundColor: Color.fromARGB(255, 21, 82, 113),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            if (_videoPlayerController != null &&
-                _videoPlayerController!.value.isInitialized)
-              Container(
-                padding: const EdgeInsets.all(8),
-                child: AspectRatio(
-                  aspectRatio: _videoPlayerController!.value.aspectRatio,
-                  child: VideoPlayer(_videoPlayerController!),
-                ),
-              ),
-            if (_isPlayingAudio)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: IconButton(
-                  icon: Icon(_isPlayingAudio ? Icons.pause : Icons.play_arrow),
-                  onPressed: () {
-                    if (_isPlayingAudio) {
-                      _audioPlayer!.pause();
-                    } else {
-                      _audioPlayer!.resume();
-                    }
-                    setState(() {
-                      _isPlayingAudio = !_isPlayingAudio;
-                    });
-                  },
-                ),
-              ),
-            if (widget.place['media'] != null)
-              Container(
-                height: 200,
-                padding: const EdgeInsets.all(8),
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: widget.place['media'].length,
-                  itemBuilder: (context, index) {
-                    var media = widget.place['media'][index];
-                    if (media['mediaType'] == 'image') {
-                      return Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: Image.network(media['mediaContent']),
-                      );
-                    }
-                    return SizedBox.shrink();
-                  },
-                ),
-              ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                widget.place['description'] ?? 'No description available.',
-                style: TextStyle(fontSize: 16),
-              ),
+      backgroundColor: Color.fromARGB(255, 21, 82, 113),
+      body: ListView.builder(
+        itemCount: mediaList.length,
+        itemBuilder: (context, index) {
+          return buildMediaWidget(mediaList[index]);
+        },
+      ),
+
+    );
+  }
+}
+class TextWidget extends StatefulWidget {
+  final String textUrl;
+
+  TextWidget({required this.textUrl});
+
+  @override
+  _TextWidgetState createState() => _TextWidgetState();
+}
+
+class _TextWidgetState extends State<TextWidget> {
+  String? textContent;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchTextContent();
+  }
+
+  Future<void> fetchTextContent() async {
+    final response = await http.get(Uri.parse(widget.textUrl));
+    if (response.statusCode == 200) {
+      setState(() {
+        textContent = response.body;
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        isLoading = false;
+        textContent = 'Failed to load text content';
+      });
+      print('Error fetching text content: ${response.statusCode}');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+       title: Text('About the Place', style: TextStyle(color: Colors.white,fontSize: 25,fontWeight: FontWeight.bold)),
+      subtitle: isLoading
+          ? CircularProgressIndicator()
+          : Container(
+        height: 100, // Set the height of the text area
+        child: Scrollbar(
+          child: SingleChildScrollView(
+            child: Text(
+              textContent ?? 'Failed to load text content',
+              style: TextStyle(color: Colors.white, fontSize: 14), // Adjust the font size
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+class VideoWidget extends StatefulWidget {
+  final String videoUrl;
+
+  VideoWidget({required this.videoUrl});
+
+  @override
+  _VideoWidgetState createState() => _VideoWidgetState();
+}
+
+class _VideoWidgetState extends State<VideoWidget> {
+  late VideoPlayerController _controller;
+  bool _isBuffering = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.network(widget.videoUrl)
+      ..addListener(_updateState)
+      ..initialize().then((_) {
+        if (mounted) {
+          setState(() {
+            _controller.play();
+          });
+        }
+      })
+      ..setLooping(true); // Optionally, loop the video
+  }
+
+  void _updateState() {
+    if (_controller.value.isBuffering != _isBuffering) {
+      setState(() {
+        _isBuffering = _controller.value.isBuffering;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text('Video', style: TextStyle(color: Colors.white,fontSize: 25,fontWeight: FontWeight.bold)),
+      subtitle: _controller.value.isInitialized
+          ? AspectRatio(
+        aspectRatio: _controller.value.aspectRatio,
+        child: Stack(
+          alignment: Alignment.bottomCenter,
+          children: <Widget>[
+            VideoPlayer(_controller),
+            _VideoProgressBar(_controller),
+            VideoProgressIndicator(_controller, allowScrubbing: true),
+            if (_isBuffering) CircularProgressIndicator(),
           ],
         ),
+      )
+          : CircularProgressIndicator(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_updateState);
+    _controller.dispose();
+    super.dispose();
+  }
+}
+
+class _VideoProgressBar extends StatelessWidget {
+  final VideoPlayerController controller;
+
+  _VideoProgressBar(this.controller);
+
+  @override
+  Widget build(BuildContext context) {
+    return VideoProgressIndicator(
+      controller,
+      allowScrubbing: true,
+      padding: EdgeInsets.all(3.0),
+      colors: VideoProgressColors(
+        playedColor: Colors.red, // Replace with your desired color
+      ),
+    );
+  }
+}
+
+class RateButton extends StatelessWidget {
+  final String placeName;
+  final String token;
+
+  RateButton({required this.placeName, required this.token});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RatePage(placeName: placeName, token: token),
+          ),
+        );
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.grey,
+      ),
+      child: Text(
+        'Rate this place',
+        style: TextStyle(color: Colors.white),
       ),
     );
   }
