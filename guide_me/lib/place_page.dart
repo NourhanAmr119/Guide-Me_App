@@ -3,6 +3,7 @@ import 'package:guide_me/rate_place.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:video_player/video_player.dart';
+import 'review_page.dart';
 
 class PlacePage extends StatefulWidget {
   final Map<String, dynamic> place;
@@ -226,22 +227,47 @@ class RateButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => RatePage(placeName: placeName, token: token),
+    return Row(
+      children: [
+        ElevatedButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RatePage(placeName: placeName, token: token),
+              ),
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.grey,
           ),
-        );
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.grey,
-      ),
-      child: Text(
-        'Rate this place',
-        style: TextStyle(color: Colors.white),
-      ),
+          child: Text(
+            'Rate this place',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+        SizedBox(width: 10), // Add some space between the buttons
+        ElevatedButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ReviewPage(placeName: placeName, token: token)
+
+              ),
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.grey,
+          ),
+          child: Text(
+            'Review',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      ],
     );
   }
+
 }
+
