@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:guide_me/rate_place.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:video_player/video_player.dart';
-import 'review_page.dart';
+import 'package:guide_me/review_page.dart';
+import 'package:guide_me/rate_place.dart';
 
 class PlacePage extends StatefulWidget {
   final Map<String, dynamic> place;
@@ -51,7 +51,7 @@ class _PlacePageState extends State<PlacePage> {
           children: [
             Image.network(media['mediaContent']),
             SizedBox(height: 10),
-            RateButton(placeName: widget.place['name'], token: widget.token),
+            ReviewButton(placeName: widget.place['name'], token: widget.token),
           ],
         );
       case 'text':
@@ -67,7 +67,30 @@ class _PlacePageState extends State<PlacePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Place Page'),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(widget.place['name']),
+            IconButton(
+              icon: Icon(Icons.qr_code),
+              onPressed: () {
+                // Handle your scan action
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.star,  color: Colors.yellow),
+
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RatePage(placeName: widget.place['name'], token: widget.token),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
         backgroundColor: Color.fromARGB(255, 21, 82, 113),
       ),
       backgroundColor: Color.fromARGB(255, 21, 82, 113),
@@ -77,10 +100,10 @@ class _PlacePageState extends State<PlacePage> {
           return buildMediaWidget(mediaList[index]);
         },
       ),
-
     );
   }
 }
+
 class TextWidget extends StatefulWidget {
   final String textUrl;
 
@@ -119,7 +142,7 @@ class _TextWidgetState extends State<TextWidget> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-       title: Text('About the Place', style: TextStyle(color: Colors.white,fontSize: 25,fontWeight: FontWeight.bold)),
+      title: Text('About the Place', style: TextStyle(color: Colors.white,fontSize: 25,fontWeight: FontWeight.bold)),
       subtitle: isLoading
           ? CircularProgressIndicator()
           : Container(
@@ -136,6 +159,7 @@ class _TextWidgetState extends State<TextWidget> {
     );
   }
 }
+
 class VideoWidget extends StatefulWidget {
   final String videoUrl;
 
@@ -219,55 +243,30 @@ class _VideoProgressBar extends StatelessWidget {
   }
 }
 
-class RateButton extends StatelessWidget {
+class ReviewButton extends StatelessWidget {
   final String placeName;
   final String token;
 
-  RateButton({required this.placeName, required this.token});
+  ReviewButton({required this.placeName, required this.token});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => RatePage(placeName: placeName, token: token),
-              ),
-            );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.grey,
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => ReviewPage(placeName: placeName, token: token)
           ),
-          child: Text(
-            'Rate this place',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-        SizedBox(width: 10), // Add some space between the buttons
-        ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ReviewPage(placeName: placeName, token: token)
-
-              ),
-            );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.grey,
-          ),
-          child: Text(
-            'Review',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      ],
+        );
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blueGrey[700],
+      ),
+      child: Text(
+        'Reviews',
+        style: TextStyle(fontSize: 22,color: Colors.white,fontWeight: FontWeight.bold),
+      ),
     );
   }
-
 }
-

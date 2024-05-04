@@ -30,12 +30,15 @@ class _RatePageState extends State<RatePage> {
   String decodeToken(String token) {
     Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
     print('Decoded token: $decodedToken');
-    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ?? '';
+    return decodedToken[
+    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
+        '';
   }
 
   Future<void> fetchSuggestions() async {
     final response = await http.get(
-      Uri.parse('http://guide-me.somee.com/api/Rating/$rating/Rating/Suggestion'),
+      Uri.parse(
+          'http://guide-me.somee.com/api/Rating/$rating/Rating/Suggestion'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -62,45 +65,42 @@ class _RatePageState extends State<RatePage> {
   }
 
   Future<void> submitSuggestions() async {
-    for (String suggestion in selectedSuggestions) {
-      final response = await http.post(
-        Uri.parse('http://guide-me.somee.com/Rating/Suggestion'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'suggestion': suggestion,
-          'placeName': widget.placeName,
-          'touristName': touristName,
-          'ratingNum': rating,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        print('Suggestion submitted successfully: $suggestion');
-      } else {
-        print('Failed to submit suggestion: ${response.statusCode}');
-      }
-    }
-
-    // Show a dialog box if suggestions are submitted successfully
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Thanks for rating'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('OK'),
-            ),
-          ],
-        );
+    final response = await http.post(
+      Uri.parse('http://guide-me.somee.com/Rating/Suggestion'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'Content-Type': 'application/json',
       },
+      body: jsonEncode({
+        'suggestion': selectedSuggestions, // Send all selected suggestions
+        'placeName': widget.placeName,
+        'touristName': touristName,
+        'ratingNum': rating,
+      }),
     );
+
+    if (response.statusCode == 200) {
+      print('Suggestions submitted successfully');
+      // Show a dialog box if suggestions are submitted successfully
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Thanks for rating'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      print('Failed to submit suggestions: ${response.statusCode}');
+    }
   }
 
   void ratePlace() async {
@@ -135,7 +135,9 @@ class _RatePageState extends State<RatePage> {
       ),
       backgroundColor: Color.fromARGB(255, 21, 82, 113),
       body: SingleChildScrollView(
-        padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + kToolbarHeight), // Place content below app bar
+        padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top +
+                kToolbarHeight), // Place content below app bar
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -166,7 +168,10 @@ class _RatePageState extends State<RatePage> {
               SizedBox(height: 30),
               Text(
                 'Suggestions:',
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
               ),
               SizedBox(height: 30),
               Wrap(
@@ -177,9 +182,14 @@ class _RatePageState extends State<RatePage> {
                       toggleSuggestionSelection(suggestion);
                     },
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white, backgroundColor: selectedSuggestions.contains(suggestion) ? Colors.blueGrey[700]: Colors.grey,
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      foregroundColor: Colors.white,
+                      backgroundColor: selectedSuggestions.contains(suggestion)
+                          ? Colors.blueGrey[700]
+                          : Colors.grey,
+                      padding:
+                      EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)),
                     ),
                     child: Text(suggestion),
                   );
@@ -193,13 +203,16 @@ class _RatePageState extends State<RatePage> {
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
                   backgroundColor: Colors.black,
-                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 10), // Larger submit button
+                  padding: EdgeInsets.symmetric(
+                      horizontal: 30, vertical: 10), // Larger submit button
                 ),
-                child: Text('Submit Rating', style: TextStyle(fontSize: 20)), // Larger text
+                child: Text('Submit Rating',
+                    style: TextStyle(fontSize: 20)), // Larger text
               ),
             ],
           ),
         ),
       ),
     );
-  }}
+  }
+}

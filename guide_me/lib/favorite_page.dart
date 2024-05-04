@@ -60,13 +60,19 @@ class _FavoritePageState extends State<favorite_page> {
 
   void removeFavorite(int index) async {
     try {
+      String userName = decodeToken(widget.authToken);
+
       final response = await http.post(
-        Uri.parse(
-            'http://guide-me.somee.com/api/TouristFavourites/RemoveFavoritePlace?placeId=${favorites[index]['id']}'),
+        Uri.parse('http://guide-me.somee.com/api/TouristFavourites/RemoveFavoritePlace'),
         headers: {
           'Authorization': 'Bearer ${widget.authToken}',
           'Content-Type': 'application/json',
         },
+        body: jsonEncode({
+          'PlaceName': favorites[index]['name'], // Assuming 'name' corresponds to 'PlaceName'
+          'TouristName': userName, // Assuming 'userName' corresponds to 'TouristName'
+          'placeId': favorites[index]['id'],
+        }),
       );
 
       print('Remove status code: ${response.statusCode}');
@@ -81,6 +87,7 @@ class _FavoritePageState extends State<favorite_page> {
       print('Caught error: $e');
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +147,7 @@ class _FavoritePageState extends State<favorite_page> {
                       child: IconButton(
                         icon: Icon(Icons.favorite, color: Colors.white),
                         onPressed: () {
-                          removeFavorite(index);
+                          removeFavorite(index); // Call removeFavorite method
                         },
                       ),
                     ),

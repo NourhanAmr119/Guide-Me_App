@@ -7,7 +7,6 @@ import 'place_page.dart'; // Import PlacePage
 import 'history_page.dart';
 import 'package:provider/provider.dart';
 import 'favorite_places_model.dart';
-
 class city_page extends StatefulWidget {
   final String title;
   final String token;
@@ -90,94 +89,6 @@ class _CityPageState extends State<city_page> {
     } catch (e) {
       print('Exception caught: $e');
     }
-
-  }
-
-  List<Widget> buildCategoryCards(String category) {
-    List<Widget> cards = [];
-    final model = Provider.of<FavoritePlacesModel>(context);
-    for (var place in places) {
-      if (place['category'] == category) {
-        cards.add(
-          GestureDetector(
-            onTap: () {
-              _onTapCard(place, widget.token); // Pass the entire place object
-            },
-            child: SizedBox(
-              height: 250,
-              child: Card(
-                elevation: 5,
-                margin:
-                const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15.0),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(15.0),
-                        child: Image.network(
-                          place['media'][0]['mediaContent'],
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 10,
-                      right: 10,
-                      child: IconButton(
-                        icon: Icon(
-                          model.isFavorite(place['name'])
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color: Colors.white,
-                        ),
-                        onPressed: () async {
-                          if (model.isFavorite(place['name'])) {
-                            model.remove(place['name']);
-                          } else {
-                            model.add(place['name']);
-                          }
-                          await updateFavoritePlace(
-                              place['name'], model.isFavorite(place['name']));
-                        },
-                      ),
-                    ),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.only(
-                            bottomLeft: Radius.circular(15.0),
-                            bottomRight: Radius.circular(15.0),
-                          ),
-                          color: Colors.black54
-                              .withOpacity(_showAppbarColor ? 0.5 : 0.8),
-                        ),
-                        child: Text(
-                          place['name'],
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      }
-    }
-    return cards;
   }
 
   Future<void> updateFavoritePlace(String placeName, bool isFavorite) async {
@@ -189,7 +100,7 @@ class _CityPageState extends State<city_page> {
 
     final response = await http.post(
       Uri.parse(
-          'http://guide-me.somee.com/api/TouristFavourites/${isFavorite ? "AddFvoritePlace" : "DeleteFavoritePlace"}'),
+          'http://guide-me.somee.com/api/TouristFavourites/${isFavorite ? "AddFavoritePlace" : "RemoveFavoritePlace"}'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Content-Type': 'application/json',
@@ -329,5 +240,91 @@ class _CityPageState extends State<city_page> {
         ),
       ),
     );
+  }
+
+  List<Widget> buildCategoryCards(String category) {
+    List<Widget> cards = [];
+    final model = Provider.of<FavoritePlacesModel>(context);
+    for (var place in places) {
+      if (place['category'] == category) {
+        bool isFavorite = model.isFavorite(place['name']);
+        cards.add(
+          GestureDetector(
+            onTap: () {
+              _onTapCard(place, widget.token); // Pass the entire place object
+            },
+            child: SizedBox(
+              height: 250,
+              child: Card(
+                elevation: 5,
+                margin:
+                const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15.0),
+                        child: Image.network(
+                          place['media'][0]['mediaContent'],
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: IconButton(
+                        icon: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: Colors.white,
+                        ),
+                        onPressed: () async {
+                          if (isFavorite) {
+                            model.remove(place['name']);
+                          } else {
+                            model.add(place['name']);
+                          }
+                          await updateFavoritePlace(
+                              place['name'], !isFavorite);
+                        },
+                      ),
+                    ),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(15.0),
+                            bottomRight: Radius.circular(15.0),
+                          ),
+                          color: Colors.black54
+                              .withOpacity(_showAppbarColor ? 0.5 : 0.8),
+                        ),
+                        child: Text(
+                          place['name'],
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+    }
+    return cards;
   }
 }
