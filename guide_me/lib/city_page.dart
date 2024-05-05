@@ -90,6 +90,39 @@ class _CityPageState extends State<city_page> {
       print('Exception caught: $e');
     }
   }
+  Widget _buildRatingStars(double rating) {
+    int roundedRating = rating.round();
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(5, (index) {
+        if (index < roundedRating) {
+          return Icon(Icons.star, color: Colors.yellow);
+        } else {
+          return Icon(Icons.star_border, color: Colors.grey);
+        }
+      }),
+    );
+  }
+
+  Future<double> fetchRating(String placeName) async {
+    try {
+      var response = await http.get(
+        Uri.parse('http://guide-me.somee.com/api/Rating/$placeName/OverAllRating'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+        },
+      );
+      if (response.statusCode == 200) {
+        return double.parse(response.body);
+      } else {
+        print('Failed to load rating: ${response.statusCode}');
+        return 0.0;
+      }
+    } catch (e) {
+      print('Exception caught: $e');
+      return 0.0;
+    }
+  }
 
   Future<void> updateFavoritePlace(String placeName, bool isFavorite) async {
     final String touristName = decodeToken(widget.token);
@@ -257,8 +290,7 @@ class _CityPageState extends State<city_page> {
               height: 250,
               child: Card(
                 elevation: 5,
-                margin:
-                const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15.0),
                 ),
@@ -303,17 +335,33 @@ class _CityPageState extends State<city_page> {
                             bottomLeft: Radius.circular(15.0),
                             bottomRight: Radius.circular(15.0),
                           ),
-                          color: Colors.black54
-                              .withOpacity(_showAppbarColor ? 0.5 : 0.8),
+                          color: Colors.black54.withOpacity(_showAppbarColor ? 0.5 : 0.8),
                         ),
-                        child: Text(
-                          place['name'],
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              place['name'],
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            FutureBuilder<double>(
+                              future: fetchRating(place['name']), // Fetch the rating for the place
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return CircularProgressIndicator();
+                                } else if (snapshot.hasError) {
+                                  return Text('Error: ${snapshot.error}');
+                                } else {
+                                  return _buildRatingStars(snapshot.data ?? 0); // Use the fetched rating to display stars
+                                }
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -327,4 +375,6 @@ class _CityPageState extends State<city_page> {
     }
     return cards;
   }
+
+
 }
