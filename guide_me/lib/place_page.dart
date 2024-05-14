@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:video_player/video_player.dart';
 import 'package:guide_me/review_page.dart';
-import 'package:guide_me/rate_place.dart';
-
+import 'package:guide_me/rate_page.dart';
+import 'package:audioplayers/audioplayers.dart';
 class PlacePage extends StatefulWidget {
   final Map<String, dynamic> place;
   final String token;
@@ -159,7 +159,93 @@ class _TextWidgetState extends State<TextWidget> {
     );
   }
 }
-
+// class AudioWidget extends StatelessWidget {
+//   final String audioUrl;
+//
+//   AudioWidget({required this.audioUrl});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return ListTile(
+//       title: Text('Audio', style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
+//       subtitle: AudioPlayerWidget(audioUrl: audioUrl),
+//     );
+//   }
+// }
+//
+// class AudioPlayerWidget extends StatefulWidget {
+//   final String audioUrl;
+//
+//   AudioPlayerWidget({required this.audioUrl});
+//
+//   @override
+//   _AudioPlayerWidgetState createState() => _AudioPlayerWidgetState();
+// }
+//
+// class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
+//   late AudioPlayer _audioPlayer;
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//     _audioPlayer = AudioPlayer();
+//     _audioPlayer.setUrl(widget.audioUrl);
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Row(
+//       mainAxisAlignment: MainAxisAlignment.center,
+//       children: [
+//         IconButton(
+//           icon: Icon(Icons.play_arrow),
+//           onPressed: () {
+//             _audioPlayer.play();
+//           },
+//         ),
+//         IconButton(
+//           icon: Icon(Icons.pause),
+//           onPressed: () {
+//             _audioPlayer.pause();
+//           },
+//         ),
+//         IconButton(
+//           icon: Icon(Icons.stop),
+//           onPressed: () {
+//             _audioPlayer.stop();
+//           },
+//         ),
+//       ],
+//     );
+//   }
+//
+//   @override
+//   void dispose() {
+//     _audioPlayer.dispose();
+//     super.dispose();
+//   }
+// }
+Widget buildMediaWidget(dynamic media) {
+  switch (media['mediaType']) {
+    case 'image':
+      var widget;
+      return Column(
+        children: [
+          Image.network(media['mediaContent']),
+          SizedBox(height: 10),
+          ReviewButton(placeName: widget.place['name'], token: widget.token),
+        ],
+      );
+    // case 'audio':
+    //   return AudioWidget(audioUrl: media['mediaContent']);
+    case 'text':
+      return TextWidget(textUrl: media['mediaContent']);
+    case 'video':
+      return VideoWidget(videoUrl: media['mediaContent']);
+    default:
+      return SizedBox();
+  }
+ }
 class VideoWidget extends StatefulWidget {
   final String videoUrl;
 
@@ -172,6 +258,8 @@ class VideoWidget extends StatefulWidget {
 class _VideoWidgetState extends State<VideoWidget> {
   late VideoPlayerController _controller;
   bool _isBuffering = true;
+  bool _isMuted = false;
+  bool _isPlaying = false;
 
   @override
   void initState() {
@@ -182,10 +270,11 @@ class _VideoWidgetState extends State<VideoWidget> {
         if (mounted) {
           setState(() {
             _controller.play();
+            _isPlaying = true;
           });
         }
       })
-      ..setLooping(true); // Optionally, loop the video
+      ..setLooping(true);
   }
 
   void _updateState() {
@@ -196,10 +285,28 @@ class _VideoWidgetState extends State<VideoWidget> {
     }
   }
 
+  void _toggleMute() {
+    setState(() {
+      _isMuted = !_isMuted;
+      _controller.setVolume(_isMuted ? 0 : 1);
+    });
+  }
+
+  void _togglePlayPause() {
+    if (_isPlaying) {
+      _controller.pause();
+    } else {
+      _controller.play();
+    }
+    setState(() {
+      _isPlaying = !_isPlaying;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text('Video', style: TextStyle(color: Colors.white,fontSize: 25,fontWeight: FontWeight.bold)),
+      title: Text('Video', style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
       subtitle: _controller.value.isInitialized
           ? AspectRatio(
         aspectRatio: _controller.value.aspectRatio,
@@ -210,6 +317,22 @@ class _VideoWidgetState extends State<VideoWidget> {
             _VideoProgressBar(_controller),
             VideoProgressIndicator(_controller, allowScrubbing: true),
             if (_isBuffering) CircularProgressIndicator(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                IconButton(
+                  icon: _isPlaying ? Icon(Icons.stop) : Icon(Icons.play_arrow),
+                  onPressed: _togglePlayPause,
+                  color: Colors.white,
+                ),
+                SizedBox(width: 20),
+                IconButton(
+                  icon: Icon(_isMuted ? Icons.volume_off : Icons.volume_up),
+                  onPressed: _toggleMute,
+                  color: Colors.white,
+                ),
+              ],
+            ),
           ],
         ),
       )
@@ -224,7 +347,6 @@ class _VideoWidgetState extends State<VideoWidget> {
     super.dispose();
   }
 }
-
 class _VideoProgressBar extends StatelessWidget {
   final VideoPlayerController controller;
 

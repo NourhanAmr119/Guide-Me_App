@@ -5,6 +5,7 @@ import 'package:jwt_decode/jwt_decode.dart';
 import 'favorite_page.dart'; // Import FavoritePage if not imported already
 import 'place_page.dart'; // Import PlacePage
 import 'history_page.dart';
+import 'profile_page.dart';
 import 'package:provider/provider.dart';
 import 'favorite_places_model.dart';
 class city_page extends StatefulWidget {
@@ -264,7 +265,12 @@ class _CityPageState extends State<city_page> {
                 IconButton(
                   icon: const Icon(Icons.account_circle),
                   onPressed: () {
-                    // Navigate to account page
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                        builder: (context) => profile_page(token: widget.token),
+                        ),
+                    );
                   },
                 ),
               ],

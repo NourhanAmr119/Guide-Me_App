@@ -18,4 +18,6 @@ class FavoritePlacesModel extends ChangeNotifier {
     _favoritePlaces.remove(placeName);
     notifyListeners();
   }
+
+  void logout() {}
 }
