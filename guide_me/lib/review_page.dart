@@ -15,6 +15,7 @@ class ReviewPage extends StatefulWidget {
 
 class _ReviewPageState extends State<ReviewPage> {
   List<dynamic> reviews = [];
+  TextEditingController _commentController = TextEditingController();
 
   @override
   void initState() {
@@ -40,80 +41,86 @@ class _ReviewPageState extends State<ReviewPage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Reviews'),
-        backgroundColor: Color.fromARGB(255, 21, 82, 113),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.comment),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  String comment = '';
-
-                  return AlertDialog(
-                    title: Text('Add Review'),
-                    content: TextField(
-                      onChanged: (value) {
-                        comment = value;
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Enter your comment',
+        titleTextStyle: TextStyle(color: Colors.black,fontSize:20,fontWeight: FontWeight.bold ),
+        backgroundColor: Color.fromARGB(255, 246, 243, 177), // Background color of the page
+        iconTheme: IconThemeData(color: Colors.black), // Icon color is black
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Container(
+              color: Color.fromARGB(255, 246, 243, 177), // Background color of the page
+              child: ListView.builder(
+                itemCount: reviews.length,
+                itemBuilder: (context, index) {
+                  return Card(
+                    color: Colors.white, // White color for the card
+                    margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            reviews[index]['touristName'],
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.black),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            reviews[index]['comment'],
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ],
                       ),
                     ),
-                    actions: [
-                      ElevatedButton(
-                        onPressed: () {
-                          addReview(comment);
-                          Navigator.pop(context);
-                        },
-                        child: Text('Add Review'),
-                      ),
-                    ],
                   );
                 },
-              );
-            },
+              ),
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: Color.fromARGB(255, 246, 243, 177), // Background color of the page
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _commentController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter your comment',
+                      hintStyle: TextStyle(color: Colors.black), // Color of hint text
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.white, // White color for the comment field background
+                      contentPadding: EdgeInsets.symmetric(vertical: 30, horizontal: 12), // Increase padding here
+                    ),
+                    style: TextStyle(color: Colors.black), // Text color in the comment field
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.send, color: Colors.black), // Icon color is black
+                  onPressed: () {
+                    String comment = _commentController.text;
+                    if (comment.isNotEmpty) {
+                      addReview(comment);
+                      _commentController.clear();
+                    }
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),
-      body: Container(
-        color: Color.fromARGB(255, 21, 82, 113), // Same as the app bar color
-        child: ListView.builder(
-          itemCount: reviews.length,
-          itemBuilder: (context, index) {
-            return Card(
-              color: Colors.grey, // Dark gray color
-              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      reviews[index]['touristName'],
-                      style: TextStyle(fontWeight: FontWeight.bold,fontSize:20, color: Colors.white),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      reviews[index]['comment'],
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
     );
   }
+
 
   Future<void> addReview(String comment) async {
     final response = await http.post(
@@ -142,5 +149,4 @@ class _ReviewPageState extends State<ReviewPage> {
     print('Decoded token: $decodedToken');
     return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ?? '';
   }
-
 }
