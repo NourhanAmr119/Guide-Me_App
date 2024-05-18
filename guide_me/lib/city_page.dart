@@ -8,6 +8,7 @@ import 'history_page.dart';
 import 'profile_page.dart';
 import 'package:provider/provider.dart';
 import 'favorite_places_model.dart';
+
 class city_page extends StatefulWidget {
   final String title;
   final String token;
@@ -24,12 +25,14 @@ class _CityPageState extends State<city_page> {
   int _currentIndex = 0;
   ScrollController _scrollController = ScrollController();
   bool _showAppbarColor = false;
+  List<Map<String, dynamic>> favoritePlaces = [];
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
     fetchData(widget.title);
+    fetchFavoritePlaces();
   }
 
   Future<void> fetchData(String cityName) async {
@@ -52,6 +55,28 @@ class _CityPageState extends State<city_page> {
     }
   }
 
+  Future<void> fetchFavoritePlaces() async {
+    try {
+      var response = await http.post(
+        Uri.parse(
+            'http://guide-me.somee.com/api/TouristFavourites/GetTouristFavoritePlaces?touristname=${decodeToken(widget.token)}'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': '/',
+        },
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          favoritePlaces = List<Map<String, dynamic>>.from(jsonDecode(response.body));
+        });
+      } else {
+        print('Failed to load favorite places: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception caught: $e');
+    }
+  }
+
   void _onScroll() {
     if (_scrollController.offset > 50 && !_showAppbarColor) {
       setState(() {
@@ -66,9 +91,10 @@ class _CityPageState extends State<city_page> {
 
   void _onTapCard(Map<String, dynamic> place, String token) async {
     try {
-      final String touristName = decodeToken(token); // Decode token to get tourist name
+      final String touristName = decodeToken(token);
       final response = await http.post(
-        Uri.parse('http://guide-me.somee.com/api/TouristHistory?placename=${place['name']}&touristname=$touristName'),
+        Uri.parse(
+            'http://guide-me.somee.com/api/TouristHistory?placename=${place['name']}&touristname=$touristName'),
         headers: {
           'Authorization': 'Bearer $token',
           'accept': '/',
@@ -77,11 +103,9 @@ class _CityPageState extends State<city_page> {
 
       if (response.statusCode == 200) {
         print('Place added to history successfully');
-        // Navigate to the place page
         print('Place data: $place');
         Navigator.push(
           context,
-
           MaterialPageRoute(builder: (context) => PlacePage(place: place, token: token)),
         );
       } else {
@@ -91,6 +115,7 @@ class _CityPageState extends State<city_page> {
       print('Exception caught: $e');
     }
   }
+
   Widget _buildRatingStars(double rating) {
     int roundedRating = rating.round();
     return Row(
@@ -125,7 +150,7 @@ class _CityPageState extends State<city_page> {
     }
   }
 
-  Future<void> updateFavoritePlace(String placeName, bool isFavorite) async {
+  Future<String> updateFavoritePlace(String placeName, bool isFavorite) async {
     final String touristName = decodeToken(widget.token);
     final Map<String, String> body = {
       "placeName": placeName,
@@ -143,13 +168,14 @@ class _CityPageState extends State<city_page> {
     );
 
     if (response.statusCode == 200) {
-      print(isFavorite
+      return isFavorite
           ? 'Favorite place added successfully'
-          : 'Favorite place removed successfully');
+          : 'Favorite place removed successfully';
     } else {
-      print('Failed to update favorite place: ${response.statusCode}');
+      return 'Failed to update favorite place: ${response.statusCode}';
     }
   }
+
 
   String decodeToken(String token) {
     Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
@@ -266,10 +292,10 @@ class _CityPageState extends State<city_page> {
                   icon: const Icon(Icons.account_circle),
                   onPressed: () {
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
+                      context,
+                      MaterialPageRoute(
                         builder: (context) => profile_page(token: widget.token),
-                        ),
+                      ),
                     );
                   },
                 ),
@@ -287,6 +313,7 @@ class _CityPageState extends State<city_page> {
     for (var place in places) {
       if (place['category'] == category) {
         bool isFavorite = model.isFavorite(place['name']);
+        bool isInFavorites = favoritePlaces.any((favoritePlace) => favoritePlace['name'] == place['name']);
         cards.add(
           GestureDetector(
             onTap: () {
@@ -316,17 +343,18 @@ class _CityPageState extends State<city_page> {
                       right: 10,
                       child: IconButton(
                         icon: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          isInFavorites ? Icons.favorite : Icons.favorite_border,
                           color: Colors.white,
                         ),
                         onPressed: () async {
-                          if (isFavorite) {
-                            model.remove(place['name']);
+                          if (isInFavorites) {
+                            favoritePlaces.removeWhere((favoritePlace) => favoritePlace['name'] == place['name']);
                           } else {
-                            model.add(place['name']);
+                            favoritePlaces.add(place);
                           }
                           await updateFavoritePlace(
                               place['name'], !isFavorite);
+                          setState(() {});
                         },
                       ),
                     ),
@@ -381,6 +409,5 @@ class _CityPageState extends State<city_page> {
     }
     return cards;
   }
-
-
 }
+
