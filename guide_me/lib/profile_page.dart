@@ -1,24 +1,21 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decode/jwt_decode.dart';
-import 'package:provider/provider.dart';
 import 'edit_profile_page.dart';
 import 'favorite_page.dart';
-import 'favorite_places_model.dart';
 import 'history_page.dart';
 
-class profile_page extends StatefulWidget {
+class ProfilePage extends StatefulWidget {
   final String token;
 
-  profile_page({required this.token});
+  ProfilePage({required this.token});
 
   @override
-  _TouristInfoPageState createState() => _TouristInfoPageState();
+  _ProfilePageState createState() => _ProfilePageState();
 }
 
-class _TouristInfoPageState extends State<profile_page> {
+class _ProfilePageState extends State<ProfilePage> {
   late Future<Map<String, dynamic>> _touristInfo;
 
   @override
@@ -52,8 +49,8 @@ class _TouristInfoPageState extends State<profile_page> {
   }
 
   void _logout() {
-    // Navigate to sign-in screen
-    Navigator.pushReplacementNamed(context, '/signin');
+    // Navigate to the start screen
+    Navigator.pushReplacementNamed(context, '/start');
   }
 
   @override
@@ -62,39 +59,37 @@ class _TouristInfoPageState extends State<profile_page> {
       appBar: AppBar(
         title: Text(
           'Profile Page',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold), // Title color
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Color.fromARGB(255, 246, 243, 177), // Set app bar background color (RGB: 128, 128, 128)
+        backgroundColor: Color.fromARGB(255, 246, 243, 177),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black, size: 30), // Icon for back arrow
+          icon: Icon(Icons.arrow_back, color: Colors.black, size: 30),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
         actions: [
-
-      IconButton(
-      icon: Icon(Icons.edit, color: Colors.black, size: 30), // Icon for edit page
-        onPressed: () {
-          void _navigateToEditProfile(Map<String, dynamic> userInfo) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => edit_profile_page(token: widget.token, initialData: userInfo),
-              ),
-            );
-          }
-          _touristInfo.then((userInfo) {
-            _navigateToEditProfile(userInfo);
-          }).catchError((error) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error fetching user info')));
-          });
-        },
-
+          IconButton(
+            icon: Icon(Icons.edit, color: Colors.black, size: 30),
+            onPressed: () {
+              void _navigateToEditProfile(Map<String, dynamic> userInfo) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditProfilePage(token: widget.token, initialData: userInfo),
+                  ),
+                );
+              }
+              _touristInfo.then((userInfo) {
+                _navigateToEditProfile(userInfo);
+              }).catchError((error) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error fetching user info')));
+              });
+            },
+          ),
+        ],
+        centerTitle: true,
       ),
-    ],
-    centerTitle: true, // Center the title
-    ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _touristInfo,
         builder: (context, snapshot) {
@@ -104,40 +99,30 @@ class _TouristInfoPageState extends State<profile_page> {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
             final touristInfo = snapshot.data!;
+            final photoUrl = touristInfo['photoUrl'];
             return SingleChildScrollView(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center, // Center the data vertically
-                crossAxisAlignment: CrossAxisAlignment.start, // Align data to the left
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: 20),
-                  Center( // Center the profile icon
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Color.fromARGB(255, 246, 243, 177), // Set circle color (RGB: 128, 128, 128)
-                          ),
-                          child: Icon(Icons.person, size: 130, color: Colors.black), // Icon for person
-                        ),
-                        // SizedBox(height: 20),
-                        // Text(
-                        //   '${touristInfo['userName']}',
-                        //   style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold, color: Colors.black),
-                        // ),
-                      ],
+                  Center(
+                    child: CircleAvatar(
+                      radius: 65,
+                      backgroundColor: Color.fromARGB(255, 246, 243, 177),
+                      backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+                      child: photoUrl == null ? Icon(Icons.person, size: 130, color: Colors.black) : null,
                     ),
                   ),
                   SizedBox(height: 30),
-                  Center( // Center the user name, email, and language
+                  Center(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start, // Align data to the left
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.start, // Center the row
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            Icon(Icons.person, color: Colors.black, size: 60), // Icon for user name
+                            Icon(Icons.person, color: Colors.black, size: 60),
                             SizedBox(width: 40),
                             Text(
                               '${touristInfo['userName']}',
@@ -147,9 +132,9 @@ class _TouristInfoPageState extends State<profile_page> {
                         ),
                         SizedBox(height: 30),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.start, // Center the row
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            Icon(Icons.email, color: Colors.black, size: 50), // Icon for email
+                            Icon(Icons.email, color: Colors.black, size: 50),
                             SizedBox(width: 40),
                             Text(
                               '${touristInfo['email']}',
@@ -159,9 +144,9 @@ class _TouristInfoPageState extends State<profile_page> {
                         ),
                         SizedBox(height: 30),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.start, // Center the row
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            Icon(Icons.language, color: Colors.black, size: 50), // Icon for language
+                            Icon(Icons.language, color: Colors.black, size: 50),
                             SizedBox(width: 40),
                             Text(
                               '${touristInfo['language']}',
@@ -173,7 +158,7 @@ class _TouristInfoPageState extends State<profile_page> {
                     ),
                   ),
                   SizedBox(height: 60),
-                  Center( // Center the logout button
+                  Center(
                     child: ElevatedButton(
                       onPressed: _logout,
                       child: Text(
@@ -181,7 +166,8 @@ class _TouristInfoPageState extends State<profile_page> {
                         style: TextStyle(fontSize: 18, color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10), backgroundColor: Color.fromARGB(255, 85, 147, 191), // Set button color (RGB: 85, 147, 191)
+                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                        backgroundColor: Color.fromARGB(255, 85, 147, 191),
                       ),
                     ),
                   ),
@@ -192,7 +178,7 @@ class _TouristInfoPageState extends State<profile_page> {
           }
         },
       ),
-      backgroundColor: Color.fromARGB(255, 246, 243, 177), // Set page background color (RGB: 246, 243, 177)
+      backgroundColor: Color.fromARGB(255, 246, 243, 177),
       bottomNavigationBar: BottomAppBar(
         elevation: 0,
         color: Colors.transparent,
@@ -238,7 +224,7 @@ class _TouristInfoPageState extends State<profile_page> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => profile_page(token: widget.token),
+                      builder: (context) => ProfilePage(token: widget.token),
                     ),
                   );
                 },

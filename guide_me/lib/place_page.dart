@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:guide_me/review_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:video_player/video_player.dart';
-import 'package:guide_me/review_page.dart';
-import 'package:guide_me/rate_page.dart';
 import 'package:audioplayers/audioplayers.dart';
+
 class PlacePage extends StatefulWidget {
   final Map<String, dynamic> place;
   final String token;
@@ -17,11 +17,16 @@ class PlacePage extends StatefulWidget {
 
 class _PlacePageState extends State<PlacePage> {
   List<dynamic> mediaList = [];
+  late final AudioPlayer player;
+  Duration _duration = const Duration();
+  Duration _position = const Duration();
+  bool isPlaying = false;
 
   @override
   void initState() {
     super.initState();
     fetchMedia();
+    initPlayer();
   }
 
   Future<void> fetchMedia() async {
@@ -35,13 +40,37 @@ class _PlacePageState extends State<PlacePage> {
 
     if (response.statusCode == 200) {
       setState(() {
-        mediaList = json.decode(response.body)
-            .where((media) => media['mediaType'] != 'audio')
-            .toList(); // Exclude audio media
+        mediaList = json.decode(response.body);
       });
     } else {
       print('Failed to fetch media: ${response.statusCode}');
     }
+  }
+
+  Future<void> initPlayer() async {
+    player = AudioPlayer();
+    player.onDurationChanged.listen((Duration d) {
+      setState(() => _duration = d);
+    });
+
+    player.onPositionChanged.listen((Duration p) {
+      setState(() => _position = p);
+    });
+
+    player.onPlayerComplete.listen((_) {
+      setState(() => _position = _duration);
+    });
+  }
+
+  void playPause(String url) async {
+    if (isPlaying) {
+      player.pause();
+      isPlaying = false;
+    } else {
+      await player.play(UrlSource(url));
+      isPlaying = true;
+    }
+    setState(() {});
   }
 
   Widget buildMediaWidget(dynamic media) {
@@ -53,6 +82,15 @@ class _PlacePageState extends State<PlacePage> {
             SizedBox(height: 10),
             ReviewButton(placeName: widget.place['name'], token: widget.token),
           ],
+        );
+      case 'audio':
+        return AudioWidget(
+          audioUrl: media['mediaContent'],
+          playPause: playPause,
+          isPlaying: isPlaying,
+          duration: _duration,
+          position: _position,
+          player: player,
         );
       case 'text':
         return TextWidget(textUrl: media['mediaContent']);
@@ -78,8 +116,7 @@ class _PlacePageState extends State<PlacePage> {
               },
             ),
             IconButton(
-              icon: Icon(Icons.star,  color: Colors.yellow),
-
+              icon: Icon(Icons.star, color: Colors.yellow),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -142,7 +179,7 @@ class _TextWidgetState extends State<TextWidget> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text('About the Place', style: TextStyle(color: Colors.white,fontSize: 25,fontWeight: FontWeight.bold)),
+      title: Text('About the Place', style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
       subtitle: isLoading
           ? CircularProgressIndicator()
           : Container(
@@ -159,93 +196,62 @@ class _TextWidgetState extends State<TextWidget> {
     );
   }
 }
-// class AudioWidget extends StatelessWidget {
-//   final String audioUrl;
-//
-//   AudioWidget({required this.audioUrl});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return ListTile(
-//       title: Text('Audio', style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
-//       subtitle: AudioPlayerWidget(audioUrl: audioUrl),
-//     );
-//   }
-// }
-//
-// class AudioPlayerWidget extends StatefulWidget {
-//   final String audioUrl;
-//
-//   AudioPlayerWidget({required this.audioUrl});
-//
-//   @override
-//   _AudioPlayerWidgetState createState() => _AudioPlayerWidgetState();
-// }
-//
-// class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
-//   late AudioPlayer _audioPlayer;
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     _audioPlayer = AudioPlayer();
-//     _audioPlayer.setUrl(widget.audioUrl);
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Row(
-//       mainAxisAlignment: MainAxisAlignment.center,
-//       children: [
-//         IconButton(
-//           icon: Icon(Icons.play_arrow),
-//           onPressed: () {
-//             _audioPlayer.play();
-//           },
-//         ),
-//         IconButton(
-//           icon: Icon(Icons.pause),
-//           onPressed: () {
-//             _audioPlayer.pause();
-//           },
-//         ),
-//         IconButton(
-//           icon: Icon(Icons.stop),
-//           onPressed: () {
-//             _audioPlayer.stop();
-//           },
-//         ),
-//       ],
-//     );
-//   }
-//
-//   @override
-//   void dispose() {
-//     _audioPlayer.dispose();
-//     super.dispose();
-//   }
-// }
-Widget buildMediaWidget(dynamic media) {
-  switch (media['mediaType']) {
-    case 'image':
-      var widget;
-      return Column(
-        children: [
-          Image.network(media['mediaContent']),
-          SizedBox(height: 10),
-          ReviewButton(placeName: widget.place['name'], token: widget.token),
-        ],
-      );
-    // case 'audio':
-    //   return AudioWidget(audioUrl: media['mediaContent']);
-    case 'text':
-      return TextWidget(textUrl: media['mediaContent']);
-    case 'video':
-      return VideoWidget(videoUrl: media['mediaContent']);
-    default:
-      return SizedBox();
+
+class AudioWidget extends StatelessWidget {
+  final String audioUrl;
+  final Function(String) playPause;
+  final bool isPlaying;
+  final Duration duration;
+  final Duration position;
+  final AudioPlayer player;
+
+  AudioWidget({
+    required this.audioUrl,
+    required this.playPause,
+    required this.isPlaying,
+    required this.duration,
+    required this.position,
+    required this.player,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ListTile(
+          title: Text(
+            'Audio',
+            style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold),
+          ),
+        ),
+        Row(
+          children: [
+            IconButton(
+              icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+              onPressed: () => playPause(audioUrl),
+              color: Colors.white,
+            ),
+            Expanded(
+              child: Slider(
+                value: position.inSeconds.toDouble(),
+                onChanged: (value) async {
+                  await player.seek(Duration(seconds: value.toInt()));
+                },
+                min: 0,
+                max: duration.inSeconds.toDouble(),
+                inactiveColor: Colors.grey,
+                activeColor: Colors.red,
+              ),
+            ),
+            Text(duration.formattedDuration, style: TextStyle(color: Colors.white)), // Moved the duration text here
+          ],
+        ),
+      ],
+    );
   }
- }
+}
+
 class VideoWidget extends StatefulWidget {
   final String videoUrl;
 
@@ -347,6 +353,7 @@ class _VideoWidgetState extends State<VideoWidget> {
     super.dispose();
   }
 }
+
 class _VideoProgressBar extends StatelessWidget {
   final VideoPlayerController controller;
 
@@ -387,8 +394,35 @@ class ReviewButton extends StatelessWidget {
       ),
       child: Text(
         'Reviews',
-        style: TextStyle(fontSize: 22,color: Colors.white,fontWeight: FontWeight.bold),
+        style: TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
       ),
     );
+  }
+}
+
+class RatePage extends StatelessWidget {
+  final String placeName;
+  final String token;
+
+  RatePage({required this.placeName, required this.token});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Rate $placeName'),
+      ),
+      body: Center(
+        child: Text('Rating functionality for $placeName'),
+      ),
+    );
+  }
+}
+
+extension DurationExtensions on Duration {
+  String get formattedDuration {
+    String twoDigitMinutes = this.inMinutes.remainder(60).toString().padLeft(2, '0');
+    String twoDigitSeconds = this.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return "$twoDigitMinutes:$twoDigitSeconds";
   }
 }

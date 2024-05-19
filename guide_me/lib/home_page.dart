@@ -185,7 +185,7 @@ class _HomePageState extends State<home_page> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => city_page(title: title, token: widget.token),
+            builder: (context) => CityPage(title: title, token: widget.token),
           ),
         );
       },
@@ -309,7 +309,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
                   context,
                   MaterialPageRoute(
                     builder: (context) =>
-                        city_page(title: city['name'], token: token),
+                        CityPage(title: city['name'], token: token),
                   ),
                 ),
                 child: Card(

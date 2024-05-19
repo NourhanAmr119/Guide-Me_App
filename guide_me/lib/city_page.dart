@@ -9,38 +9,38 @@ import 'profile_page.dart';
 import 'package:provider/provider.dart';
 import 'favorite_places_model.dart';
 
-class city_page extends StatefulWidget {
+class CityPage extends StatefulWidget {
   final String title;
   final String token;
 
-  const city_page({Key? key, required this.title, required this.token})
+  const CityPage({Key? key, required this.title, required this.token})
       : super(key: key);
 
   @override
   _CityPageState createState() => _CityPageState();
 }
 
-class _CityPageState extends State<city_page> {
+class _CityPageState extends State<CityPage> {
   List<dynamic> places = [];
   int _currentIndex = 0;
   ScrollController _scrollController = ScrollController();
   bool _showAppbarColor = false;
-  List<Map<String, dynamic>> favoritePlaces = [];
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    fetchData(widget.title);
-    fetchFavoritePlaces();
+    fetchData(widget.title, decodeToken(widget.token));
   }
 
-  Future<void> fetchData(String cityName) async {
+  Future<void> fetchData(String cityName, String userName) async {
     try {
       var response = await http.get(
-        Uri.parse('http://guide-me.somee.com/api/Place/$cityName/Allplaces'),
+        Uri.parse(
+            'http://guide-me.somee.com/api/Place/$cityName/$userName/Allplaces'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
+          'accept': '/',
         },
       );
       if (response.statusCode == 200) {
@@ -49,28 +49,6 @@ class _CityPageState extends State<city_page> {
         });
       } else {
         print('Failed to load data: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Exception caught: $e');
-    }
-  }
-
-  Future<void> fetchFavoritePlaces() async {
-    try {
-      var response = await http.post(
-        Uri.parse(
-            'http://guide-me.somee.com/api/TouristFavourites/GetTouristFavoritePlaces?touristname=${decodeToken(widget.token)}'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'accept': '/',
-        },
-      );
-      if (response.statusCode == 200) {
-        setState(() {
-          favoritePlaces = List<Map<String, dynamic>>.from(jsonDecode(response.body));
-        });
-      } else {
-        print('Failed to load favorite places: ${response.statusCode}');
       }
     } catch (e) {
       print('Exception caught: $e');
@@ -91,7 +69,8 @@ class _CityPageState extends State<city_page> {
 
   void _onTapCard(Map<String, dynamic> place, String token) async {
     try {
-      final String touristName = decodeToken(token);
+      final String touristName =
+      decodeToken(token); // Decode token to get tourist name
       final response = await http.post(
         Uri.parse(
             'http://guide-me.somee.com/api/TouristHistory?placename=${place['name']}&touristname=$touristName'),
@@ -103,10 +82,12 @@ class _CityPageState extends State<city_page> {
 
       if (response.statusCode == 200) {
         print('Place added to history successfully');
+        // Navigate to the place page
         print('Place data: $place');
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => PlacePage(place: place, token: token)),
+          MaterialPageRoute(
+              builder: (context) => PlacePage(place: place, token: token)),
         );
       } else {
         print('Failed to add place to history: ${response.statusCode}');
@@ -133,7 +114,8 @@ class _CityPageState extends State<city_page> {
   Future<double> fetchRating(String placeName) async {
     try {
       var response = await http.get(
-        Uri.parse('http://guide-me.somee.com/api/Rating/$placeName/OverAllRating'),
+        Uri.parse(
+            'http://guide-me.somee.com/api/Rating/$placeName/OverAllRating'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
         },
@@ -150,7 +132,7 @@ class _CityPageState extends State<city_page> {
     }
   }
 
-  Future<String> updateFavoritePlace(String placeName, bool isFavorite) async {
+  Future<void> updateFavoritePlace(String placeName, bool isFavorite) async {
     final String touristName = decodeToken(widget.token);
     final Map<String, String> body = {
       "placeName": placeName,
@@ -168,14 +150,13 @@ class _CityPageState extends State<city_page> {
     );
 
     if (response.statusCode == 200) {
-      return isFavorite
+      print(isFavorite
           ? 'Favorite place added successfully'
-          : 'Favorite place removed successfully';
+          : 'Favorite place removed successfully');
     } else {
-      return 'Failed to update favorite place: ${response.statusCode}';
+      print('Failed to update favorite place: ${response.statusCode}');
     }
   }
-
 
   String decodeToken(String token) {
     Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
@@ -294,7 +275,7 @@ class _CityPageState extends State<city_page> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => profile_page(token: widget.token),
+                        builder: (context) => ProfilePage(token: widget.token),
                       ),
                     );
                   },
@@ -312,8 +293,8 @@ class _CityPageState extends State<city_page> {
     final model = Provider.of<FavoritePlacesModel>(context);
     for (var place in places) {
       if (place['category'] == category) {
-        bool isFavorite = model.isFavorite(place['name']);
-        bool isInFavorites = favoritePlaces.any((favoritePlace) => favoritePlace['name'] == place['name']);
+        bool isFavorite = place['favoriteFlag'] ==
+            1; // Initialize favorite state based on favoriteFlag
         cards.add(
           GestureDetector(
             onTap: () {
@@ -323,7 +304,8 @@ class _CityPageState extends State<city_page> {
               height: 250,
               child: Card(
                 elevation: 5,
-                margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                margin:
+                const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15.0),
                 ),
@@ -343,18 +325,20 @@ class _CityPageState extends State<city_page> {
                       right: 10,
                       child: IconButton(
                         icon: Icon(
-                          isInFavorites ? Icons.favorite : Icons.favorite_border,
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
                           color: Colors.white,
                         ),
                         onPressed: () async {
-                          if (isInFavorites) {
-                            favoritePlaces.removeWhere((favoritePlace) => favoritePlace['name'] == place['name']);
+                          if (isFavorite) {
+                            model.remove(place['name']);
                           } else {
-                            favoritePlaces.add(place);
+                            model.add(place['name']);
                           }
-                          await updateFavoritePlace(
-                              place['name'], !isFavorite);
-                          setState(() {});
+                          await updateFavoritePlace(place['name'], !isFavorite);
+                          setState(() {
+                            // Update favorite state after adding/removing from favorites
+                            place['favoriteFlag'] = isFavorite ? 0 : 1;
+                          });
                         },
                       ),
                     ),
@@ -369,7 +353,8 @@ class _CityPageState extends State<city_page> {
                             bottomLeft: Radius.circular(15.0),
                             bottomRight: Radius.circular(15.0),
                           ),
-                          color: Colors.black54.withOpacity(_showAppbarColor ? 0.5 : 0.8),
+                          color: Colors.black54
+                              .withOpacity(_showAppbarColor ? 0.5 : 0.8),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -384,14 +369,17 @@ class _CityPageState extends State<city_page> {
                               textAlign: TextAlign.center,
                             ),
                             FutureBuilder<double>(
-                              future: fetchRating(place['name']), // Fetch the rating for the place
+                              future: fetchRating(place[
+                              'name']), // Fetch the rating for the place
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
                                   return CircularProgressIndicator();
                                 } else if (snapshot.hasError) {
                                   return Text('Error: ${snapshot.error}');
                                 } else {
-                                  return _buildRatingStars(snapshot.data ?? 0); // Use the fetched rating to display stars
+                                  return _buildRatingStars(snapshot.data ??
+                                      0); // Use the fetched rating to display stars
                                 }
                               },
                             ),
@@ -410,4 +398,3 @@ class _CityPageState extends State<city_page> {
     return cards;
   }
 }
-
