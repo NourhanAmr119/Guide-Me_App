@@ -35,6 +35,7 @@ class _ReviewPageState extends State<ReviewPage> {
     if (response.statusCode == 200) {
       setState(() {
         reviews = json.decode(response.body);
+        print('Fetched reviews: $reviews'); // Debug: Check fetched reviews
       });
     } else {
       print('Failed to fetch reviews: ${response.statusCode}');
@@ -46,81 +47,105 @@ class _ReviewPageState extends State<ReviewPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Reviews'),
-        titleTextStyle: TextStyle(color: Colors.black,fontSize:20,fontWeight: FontWeight.bold ),
-        backgroundColor: Color.fromARGB(255, 246, 243, 177), // Background color of the page
-        iconTheme: IconThemeData(color: Colors.black), // Icon color is black
+        titleTextStyle: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+        backgroundColor: Color.fromARGB(255, 246, 243, 177),
+        iconTheme: IconThemeData(color: Colors.black),
       ),
       body: Column(
-        children: [
-          Expanded(
-            child: Container(
-              color: Color.fromARGB(255, 246, 243, 177), // Background color of the page
-              child: ListView.builder(
-                itemCount: reviews.length,
-                itemBuilder: (context, index) {
-                  return Card(
-                    color: Colors.white, // White color for the card
-                    margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    elevation: 4,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            reviews[index]['touristName'],
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.black),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            reviews[index]['comment'],
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        ],
+          children: [
+      Expanded(
+      child: Container(
+      color: Color.fromARGB(255, 246, 243, 177),
+      child: ListView.builder(
+        itemCount: reviews.length,
+        itemBuilder: (context, index) {
+          String photoUrl = reviews[index]['photoUrl'] ?? '';
+          String touristName = reviews[index]['touristName'] ?? 'Unknown';
+          String comment = reviews[index]['comment'] ?? '';
+          print('Review $index: photoUrl=$photoUrl, touristName=$touristName');
+
+          return Card(
+            color: Colors.white,
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            elevation: 4,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Colors.white, // Set background color to white
+                        backgroundImage: photoUrl.isNotEmpty
+                            ? NetworkImage(photoUrl)
+                            : null,
+                        child: photoUrl.isEmpty
+                            ? Icon(Icons.person, color: Colors.black, size: 30) // Default icon is black
+                            : null,
                       ),
+                      SizedBox(width: 8),
+                      Text(
+                        touristName,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.black),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 55), // Change the horizontal padding as needed
+                    child: Text(
+                      comment,
+                      style: TextStyle(color: Colors.black),
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
             ),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: Color.fromARGB(255, 246, 243, 177), // Background color of the page
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _commentController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter your comment',
-                      hintStyle: TextStyle(color: Colors.black), // Color of hint text
-                      border: OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Colors.white, // White color for the comment field background
-                      contentPadding: EdgeInsets.symmetric(vertical: 30, horizontal: 12), // Increase padding here
-                    ),
-                    style: TextStyle(color: Colors.black), // Text color in the comment field
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.send, color: Colors.black), // Icon color is black
-                  onPressed: () {
-                    String comment = _commentController.text;
-                    if (comment.isNotEmpty) {
-                      addReview(comment);
-                      _commentController.clear();
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
+          );
+        },
+      ),
+    ),
+    ),
+    Container(
+    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    color: Color.fromARGB(255, 246, 243, 177),
+    child: Row(
+    children: [
+    Expanded(
+    child: TextField(
+    controller: _commentController,
+    decoration: InputDecoration(
+    hintText: 'Enter your comment',
+      hintStyle: TextStyle(color: Colors.grey),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20.0), // Add border radius for rounded corners
+      ),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: EdgeInsets.symmetric(vertical: 22, horizontal: 12),
+    ),
+      style: TextStyle(color: Colors.black),
+    ),
+    ),
+      IconButton(
+        icon: Icon(Icons.send, color: Colors.black),
+        onPressed: () {
+          String comment = _commentController.text;
+          if (comment.isNotEmpty) {
+            addReview(comment);
+            _commentController.clear();
+          }
+        },
+      ),
+    ],
+    ),
+    ),
+          ],
       ),
     );
   }
-
 
   Future<void> addReview(String comment) async {
     final response = await http.post(
@@ -137,7 +162,6 @@ class _ReviewPageState extends State<ReviewPage> {
     );
 
     if (response.statusCode == 200) {
-      // If the review is added successfully, fetch the reviews again to update the list
       fetchReviews();
     } else {
       print('Failed to add review: ${response.statusCode}');
@@ -147,6 +171,6 @@ class _ReviewPageState extends State<ReviewPage> {
   String decodeToken(String token) {
     Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
     print('Decoded token: $decodedToken');
-    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ?? '';
+    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ?? 'Unknown';
   }
 }
