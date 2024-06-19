@@ -93,7 +93,8 @@ class _PlacePageState extends State<PlacePage> {
           player: player,
         );
       case 'text':
-        return TextWidget(textUrl: media['mediaContent']);
+        return TextWidget(textContent: media['mediaContent']);
+
       case 'video':
         return VideoWidget(videoUrl: media['mediaContent']);
       default:
@@ -140,54 +141,21 @@ class _PlacePageState extends State<PlacePage> {
     );
   }
 }
+class TextWidget extends StatelessWidget {
+  final String textContent;
 
-class TextWidget extends StatefulWidget {
-  final String textUrl;
-
-  TextWidget({required this.textUrl});
-
-  @override
-  _TextWidgetState createState() => _TextWidgetState();
-}
-
-class _TextWidgetState extends State<TextWidget> {
-  String? textContent;
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    fetchTextContent();
-  }
-
-  Future<void> fetchTextContent() async {
-    final response = await http.get(Uri.parse(widget.textUrl));
-    if (response.statusCode == 200) {
-      setState(() {
-        textContent = response.body;
-        isLoading = false;
-      });
-    } else {
-      setState(() {
-        isLoading = false;
-        textContent = 'Failed to load text content';
-      });
-      print('Error fetching text content: ${response.statusCode}');
-    }
-  }
+  TextWidget({required this.textContent});
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       title: Text('About the Place', style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
-      subtitle: isLoading
-          ? CircularProgressIndicator()
-          : Container(
+      subtitle: Container(
         height: 100, // Set the height of the text area
         child: Scrollbar(
           child: SingleChildScrollView(
             child: Text(
-              textContent ?? 'Failed to load text content',
+              textContent,
               style: TextStyle(color: Colors.white, fontSize: 14), // Adjust the font size
             ),
           ),
@@ -196,7 +164,6 @@ class _TextWidgetState extends State<TextWidget> {
     );
   }
 }
-
 class AudioWidget extends StatelessWidget {
   final String audioUrl;
   final Function(String) playPause;
