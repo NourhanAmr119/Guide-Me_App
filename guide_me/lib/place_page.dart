@@ -1,5 +1,4 @@
 
-
 import 'package:flutter/material.dart';
 import 'package:guide_me/review_page.dart';
 import 'package:http/http.dart' as http;
@@ -180,20 +179,20 @@ class _PlacePageState extends State<PlacePage> {
               icon: Column(
                 children: [
                   Icon(Icons.rate_review_rounded,
-                      color: Colors.white), // Replace with your reviews icon
+                      color: Colors.black), // Replace with your reviews icon
                   SizedBox(
                       height: 2), // Adjust the height as needed for spacing
                   Text('Reviews',
                       style:
-                          TextStyle(color: Colors.white)), // Title of the icon
+                          TextStyle(color: Colors.black)), // Title of the icon
                 ],
               ),
             ),
           ],
         ),
-        backgroundColor: Color.fromARGB(255, 21, 82, 113),
+        backgroundColor: Color.fromARGB(255, 246, 243, 177),
       ),
-      backgroundColor: Color.fromARGB(255, 21, 82, 113),
+      backgroundColor: Color.fromARGB(255, 246, 243, 177),
       body: ListView.builder(
         itemCount: mediaList.length,
         itemBuilder: (context, index) {
@@ -214,7 +213,7 @@ class TextWidget extends StatelessWidget {
     return ListTile(
       title: Text('About the Place',
           style: TextStyle(
-              color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
+              color: Colors.black, fontSize: 25, fontWeight: FontWeight.bold)),
       subtitle: Container(
         height: 100, // Set the height of the text area
         child: Scrollbar(
@@ -222,7 +221,7 @@ class TextWidget extends StatelessWidget {
             child: Text(
               textContent,
               style: TextStyle(
-                  color: Colors.white, fontSize: 14), // Adjust the font size
+                  color: Colors.black, fontSize: 14), // Adjust the font size
             ),
           ),
         ),
@@ -257,7 +256,7 @@ class AudioWidget extends StatelessWidget {
           title: Text(
             'Audio',
             style: TextStyle(
-                color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold),
+                color: Colors.black, fontSize: 25, fontWeight: FontWeight.bold),
           ),
         ),
         Row(
@@ -351,7 +350,7 @@ class _VideoWidgetState extends State<VideoWidget> {
     return ListTile(
       title: Text('Video',
           style: TextStyle(
-              color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
+              color: Colors.black, fontSize: 25, fontWeight: FontWeight.bold)),
       subtitle: _controller.value.isInitialized
           ? AspectRatio(
               aspectRatio: _controller.value.aspectRatio,
