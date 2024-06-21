@@ -1,9 +1,12 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:guide_me/review_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:video_player/video_player.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'map_page.dart';
 
 class PlacePage extends StatefulWidget {
   final Map<String, dynamic> place;
@@ -31,7 +34,8 @@ class _PlacePageState extends State<PlacePage> {
 
   Future<void> fetchMedia() async {
     final response = await http.get(
-      Uri.parse('http://guide-me.somee.com/api/Place/${widget.place['name']}/places/media'),
+      Uri.parse(
+          'http://guide-me.somee.com/api/Place/${widget.place['name']}/places/media'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Accept': 'application/json',
@@ -73,14 +77,61 @@ class _PlacePageState extends State<PlacePage> {
     setState(() {});
   }
 
+  Future<void> fetchLocationAndNavigate() async {
+    final response = await http.get(
+      Uri.parse(
+          'http://guide-me.somee.com/api/Place/${widget.place['name']}/places/location'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'Accept': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final location = json.decode(response.body);
+      final double latitude = location['latitude'];
+      final double longitude = location['longitude'];
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              MapPage(latitude: latitude, longitude: longitude, locationName: '',),
+        ),
+      );
+    } else {
+      print('Failed to fetch location: ${response.statusCode}');
+    }
+  }
+
   Widget buildMediaWidget(dynamic media) {
     switch (media['mediaType']) {
       case 'image':
         return Column(
           children: [
             Image.network(media['mediaContent']),
+            TextButton(
+              onPressed: fetchLocationAndNavigate,
+              // style: TextButton.styleFrom(
+              //   backgroundColor: Colors.blueGrey[700],
+              // ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Icon(Icons.location_on, color: Colors.blue),
+                  SizedBox(width: 8),
+                  Text(
+                    widget.place['name'],
+                    style: TextStyle(
+                      fontSize: 22,
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             SizedBox(height: 10),
-            ReviewButton(placeName: widget.place['name'], token: widget.token),
           ],
         );
       case 'audio':
@@ -117,15 +168,26 @@ class _PlacePageState extends State<PlacePage> {
               },
             ),
             IconButton(
-              icon: Icon(Icons.star, color: Colors.yellow),
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => RatePage(placeName: widget.place['name'], token: widget.token),
+                    builder: (context) => ReviewPage(
+                        placeName: widget.place['name'], token: widget.token),
                   ),
                 );
               },
+              icon: Column(
+                children: [
+                  Icon(Icons.rate_review_rounded,
+                      color: Colors.white), // Replace with your reviews icon
+                  SizedBox(
+                      height: 2), // Adjust the height as needed for spacing
+                  Text('Reviews',
+                      style:
+                          TextStyle(color: Colors.white)), // Title of the icon
+                ],
+              ),
             ),
           ],
         ),
@@ -141,6 +203,7 @@ class _PlacePageState extends State<PlacePage> {
     );
   }
 }
+
 class TextWidget extends StatelessWidget {
   final String textContent;
 
@@ -149,14 +212,17 @@ class TextWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text('About the Place', style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
+      title: Text('About the Place',
+          style: TextStyle(
+              color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
       subtitle: Container(
         height: 100, // Set the height of the text area
         child: Scrollbar(
           child: SingleChildScrollView(
             child: Text(
               textContent,
-              style: TextStyle(color: Colors.white, fontSize: 14), // Adjust the font size
+              style: TextStyle(
+                  color: Colors.white, fontSize: 14), // Adjust the font size
             ),
           ),
         ),
@@ -164,6 +230,7 @@ class TextWidget extends StatelessWidget {
     );
   }
 }
+
 class AudioWidget extends StatelessWidget {
   final String audioUrl;
   final Function(String) playPause;
@@ -189,7 +256,8 @@ class AudioWidget extends StatelessWidget {
         ListTile(
           title: Text(
             'Audio',
-            style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold),
           ),
         ),
         Row(
@@ -211,7 +279,9 @@ class AudioWidget extends StatelessWidget {
                 activeColor: Colors.red,
               ),
             ),
-            Text(duration.formattedDuration, style: TextStyle(color: Colors.white)), // Moved the duration text here
+            Text(duration.formattedDuration,
+                style: TextStyle(
+                    color: Colors.white)), // Moved the duration text here
           ],
         ),
       ],
@@ -279,36 +349,41 @@ class _VideoWidgetState extends State<VideoWidget> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text('Video', style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
+      title: Text('Video',
+          style: TextStyle(
+              color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
       subtitle: _controller.value.isInitialized
           ? AspectRatio(
-        aspectRatio: _controller.value.aspectRatio,
-        child: Stack(
-          alignment: Alignment.bottomCenter,
-          children: <Widget>[
-            VideoPlayer(_controller),
-            _VideoProgressBar(_controller),
-            VideoProgressIndicator(_controller, allowScrubbing: true),
-            if (_isBuffering) CircularProgressIndicator(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                IconButton(
-                  icon: _isPlaying ? Icon(Icons.stop) : Icon(Icons.play_arrow),
-                  onPressed: _togglePlayPause,
-                  color: Colors.white,
-                ),
-                SizedBox(width: 20),
-                IconButton(
-                  icon: Icon(_isMuted ? Icons.volume_off : Icons.volume_up),
-                  onPressed: _toggleMute,
-                  color: Colors.white,
-                ),
-              ],
-            ),
-          ],
-        ),
-      )
+              aspectRatio: _controller.value.aspectRatio,
+              child: Stack(
+                alignment: Alignment.bottomCenter,
+                children: <Widget>[
+                  VideoPlayer(_controller),
+                  _VideoProgressBar(_controller),
+                  VideoProgressIndicator(_controller, allowScrubbing: true),
+                  if (_isBuffering) CircularProgressIndicator(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      IconButton(
+                        icon: _isPlaying
+                            ? Icon(Icons.stop)
+                            : Icon(Icons.play_arrow),
+                        onPressed: _togglePlayPause,
+                        color: Colors.white,
+                      ),
+                      SizedBox(width: 20),
+                      IconButton(
+                        icon:
+                            Icon(_isMuted ? Icons.volume_off : Icons.volume_up),
+                        onPressed: _toggleMute,
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            )
           : CircularProgressIndicator(),
     );
   }
@@ -352,8 +427,8 @@ class ReviewButton extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => ReviewPage(placeName: placeName, token: token)
-          ),
+              builder: (context) =>
+                  ReviewPage(placeName: placeName, token: token)),
         );
       },
       style: ElevatedButton.styleFrom(
@@ -361,7 +436,8 @@ class ReviewButton extends StatelessWidget {
       ),
       child: Text(
         'Reviews',
-        style: TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
+        style: TextStyle(
+            fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -388,8 +464,10 @@ class RatePage extends StatelessWidget {
 
 extension DurationExtensions on Duration {
   String get formattedDuration {
-    String twoDigitMinutes = this.inMinutes.remainder(60).toString().padLeft(2, '0');
-    String twoDigitSeconds = this.inSeconds.remainder(60).toString().padLeft(2, '0');
+    String twoDigitMinutes =
+        this.inMinutes.remainder(60).toString().padLeft(2, '0');
+    String twoDigitSeconds =
+        this.inSeconds.remainder(60).toString().padLeft(2, '0');
     return "$twoDigitMinutes:$twoDigitSeconds";
   }
 }
