@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:guide_me/review_page.dart';
 import 'package:http/http.dart' as http;
@@ -108,23 +107,29 @@ class _PlacePageState extends State<PlacePage> {
       case 'image':
         return Column(
           children: [
-            Image.network(media['mediaContent']),
+            AspectRatio(
+              aspectRatio: 16/9,
+              child: Image.network(
+                media['mediaContent'],
+                fit: BoxFit.cover,
+              ),
+            ),
             TextButton(
               onPressed: fetchLocationAndNavigate,
-              // style: TextButton.styleFrom(
-              //   backgroundColor: Colors.blueGrey[700],
-              // ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Icon(Icons.location_on, color: Colors.blue),
                   SizedBox(width: 8),
-                  Text(
-                    widget.place['name'],
-                    style: TextStyle(
-                      fontSize: 22,
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold,
+                  Flexible(
+                    child: Text(
+                      widget.place['name'],
+                      style: TextStyle(
+                        fontSize: 22,
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -144,7 +149,6 @@ class _PlacePageState extends State<PlacePage> {
         );
       case 'text':
         return TextWidget(textContent: media['mediaContent']);
-
       case 'video':
         return VideoWidget(videoUrl: media['mediaContent']);
       default:
@@ -156,15 +160,31 @@ class _PlacePageState extends State<PlacePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        iconTheme: IconThemeData(color: Colors.black),
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(widget.place['name']),
+            Flexible(
+              child: Text(
+                widget.place['name'],
+                style: TextStyle(color: Colors.black),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             IconButton(
-              icon: Icon(Icons.qr_code),
               onPressed: () {
                 // Handle your scan action
               },
+              icon: Column(
+                children: [
+                  Icon(Icons.qr_code,
+                      color: Colors.black), // Replace with your reviews icon
+                  SizedBox(
+                      height: 2), // Adjust the height as needed for spacing
+                  Text('Scan',
+                      style:
+                      TextStyle(color: Colors.black)), // Title of the icon
+                ],
+              ),
             ),
             IconButton(
               onPressed: () {
@@ -184,7 +204,7 @@ class _PlacePageState extends State<PlacePage> {
                       height: 2), // Adjust the height as needed for spacing
                   Text('Reviews',
                       style:
-                          TextStyle(color: Colors.black)), // Title of the icon
+                      TextStyle(color: Colors.black)), // Title of the icon
                 ],
               ),
             ),
@@ -215,7 +235,9 @@ class TextWidget extends StatelessWidget {
           style: TextStyle(
               color: Colors.black, fontSize: 25, fontWeight: FontWeight.bold)),
       subtitle: Container(
-        height: 100, // Set the height of the text area
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.3,
+        ),
         child: Scrollbar(
           child: SingleChildScrollView(
             child: Text(
@@ -262,9 +284,9 @@ class AudioWidget extends StatelessWidget {
         Row(
           children: [
             IconButton(
-              icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+              icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow, size: 35,),
               onPressed: () => playPause(audioUrl),
-              color: Colors.white,
+              color: Colors.blueAccent,
             ),
             Expanded(
               child: Slider(
@@ -275,12 +297,11 @@ class AudioWidget extends StatelessWidget {
                 min: 0,
                 max: duration.inSeconds.toDouble(),
                 inactiveColor: Colors.grey,
-                activeColor: Colors.red,
+                activeColor: Colors.blueAccent,
               ),
             ),
             Text(duration.formattedDuration,
-                style: TextStyle(
-                    color: Colors.white)), // Moved the duration text here
+                style: TextStyle(color: Colors.black)),
           ],
         ),
       ],
@@ -311,8 +332,7 @@ class _VideoWidgetState extends State<VideoWidget> {
       ..initialize().then((_) {
         if (mounted) {
           setState(() {
-            _controller.play();
-            _isPlaying = true;
+            _isBuffering = false;
           });
         }
       })
@@ -353,36 +373,35 @@ class _VideoWidgetState extends State<VideoWidget> {
               color: Colors.black, fontSize: 25, fontWeight: FontWeight.bold)),
       subtitle: _controller.value.isInitialized
           ? AspectRatio(
-              aspectRatio: _controller.value.aspectRatio,
-              child: Stack(
-                alignment: Alignment.bottomCenter,
-                children: <Widget>[
-                  VideoPlayer(_controller),
-                  _VideoProgressBar(_controller),
-                  VideoProgressIndicator(_controller, allowScrubbing: true),
-                  if (_isBuffering) CircularProgressIndicator(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      IconButton(
-                        icon: _isPlaying
-                            ? Icon(Icons.stop)
-                            : Icon(Icons.play_arrow),
-                        onPressed: _togglePlayPause,
-                        color: Colors.white,
-                      ),
-                      SizedBox(width: 20),
-                      IconButton(
-                        icon:
-                            Icon(_isMuted ? Icons.volume_off : Icons.volume_up),
-                        onPressed: _toggleMute,
-                        color: Colors.white,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            )
+        aspectRatio: _controller.value.aspectRatio,
+        child: Stack(
+          alignment: Alignment.bottomCenter,
+          children: <Widget>[
+            VideoPlayer(_controller),
+            _VideoProgressBar(_controller),
+            VideoProgressIndicator(_controller, allowScrubbing: true),
+            if (_isBuffering) CircularProgressIndicator(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                IconButton(
+                  icon: _isPlaying
+                      ? Icon(Icons.stop)
+                      : Icon(Icons.play_arrow),
+                  onPressed: _togglePlayPause,
+                  color: Colors.white,
+                ),
+                SizedBox(width: 20),
+                IconButton(
+                  icon: Icon(_isMuted ? Icons.volume_off : Icons.volume_up),
+                  onPressed: _toggleMute,
+                  color: Colors.white,
+                ),
+              ],
+            ),
+          ],
+        ),
+      )
           : CircularProgressIndicator(),
     );
   }
@@ -407,7 +426,7 @@ class _VideoProgressBar extends StatelessWidget {
       allowScrubbing: true,
       padding: EdgeInsets.all(3.0),
       colors: VideoProgressColors(
-        playedColor: Colors.red, // Replace with your desired color
+        playedColor: Colors.red,
       ),
     );
   }
@@ -464,9 +483,9 @@ class RatePage extends StatelessWidget {
 extension DurationExtensions on Duration {
   String get formattedDuration {
     String twoDigitMinutes =
-        this.inMinutes.remainder(60).toString().padLeft(2, '0');
+    this.inMinutes.remainder(60).toString().padLeft(2, '0');
     String twoDigitSeconds =
-        this.inSeconds.remainder(60).toString().padLeft(2, '0');
+    this.inSeconds.remainder(60).toString().padLeft(2, '0');
     return "$twoDigitMinutes:$twoDigitSeconds";
   }
 }

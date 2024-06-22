@@ -20,11 +20,10 @@ class MapPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        iconTheme: IconThemeData(color: Colors.black),
         title: Text(
           'Map View',
-          style: TextStyle(
-            color: Colors.black,  
-            fontSize: 20.0,  
+          style: TextStyle(color: Colors.black, fontSize: 20.0, fontWeight: FontWeight.bold
           ),
         ),
         backgroundColor: Color.fromARGB(255, 246, 243, 177),
