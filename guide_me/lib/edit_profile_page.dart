@@ -5,7 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:jwt_decode/jwt_decode.dart';
 class EditProfilePage extends StatefulWidget {
   final String token;
   final Map<String, dynamic> initialData;
@@ -69,7 +70,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
       });
     }
   }
-
   Future<void> _updateProfile() async {
     if (_formKey.currentState!.validate()) {
       final uri = Uri.parse(
@@ -127,6 +127,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
+  void _updateSharedPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      'profileData',
+      jsonEncode({
+        'userName': _userNameController.text,
+        'email': _emailController.text,
+        'language': _languageController.text,
+        // Add other fields as needed
+      }),
+    );
+  }
+
+  String decodeToken(String token) {
+    Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
+    print('Decoded token: $decodedToken');
+    return decodedToken[
+    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
+        '';
+  }
+
+
   void _showCustomDialog(String message) {
     showDialog(
       context: context,
@@ -161,7 +183,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -191,7 +212,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     alignment: Alignment.center,
                     children: <Widget>[
                       Container(
-                        width: 120,  // Size of the circle
+                        width: 120, // Size of the circle
                         height: 120,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
@@ -199,24 +220,27 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         ),
                         child: _image != null
                             ? ClipOval(
-                          child: Image.file(File(_image!.path), fit: BoxFit.cover),
-                        )
+                                child: Image.file(File(_image!.path),
+                                    fit: BoxFit.cover),
+                              )
                             : _defaultPhotoUrl != null
-                            ? ClipOval(
-                          child: Image.network(_defaultPhotoUrl!, fit: BoxFit.cover),
-                        )
-                            : Icon(
-                          Icons.person,
-                          size: 120,  // Icon size
-                          color: Colors.black,
-                        ),
+                                ? ClipOval(
+                                    child: Image.network(_defaultPhotoUrl!,
+                                        fit: BoxFit.cover),
+                                  )
+                                : Icon(
+                                    Icons.person,
+                                    size: 120, // Icon size
+                                    color: Colors.black,
+                                  ),
                       ),
                       Positioned(
                         right: 0,
                         bottom: 0,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Color.fromARGB(255, 246, 243, 177), // Optional: may adjust if background contrast needed
+                            color: Color.fromARGB(255, 246, 243,
+                                177), // Optional: may adjust if background contrast needed
                             shape: BoxShape.circle,
                           ),
                           child: IconButton(
@@ -332,7 +356,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         });
                       },
                       child: Icon(
-                        _obscureTextCurrent ? Icons.visibility : Icons.visibility_off,
+                        _obscureTextCurrent
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                         color: Colors.black,
                       ),
                     ),
@@ -367,7 +393,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         });
                       },
                       child: Icon(
-                        _obscureTextNew ? Icons.visibility : Icons.visibility_off,
+                        _obscureTextNew
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                         color: Colors.black,
                       ),
                     ),
@@ -401,5 +429,4 @@ class _EditProfilePageState extends State<EditProfilePage> {
       ),
     );
   }
-
 }

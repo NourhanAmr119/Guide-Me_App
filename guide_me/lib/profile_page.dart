@@ -5,6 +5,7 @@ import 'package:jwt_decode/jwt_decode.dart';
 import 'edit_profile_page.dart';
 import 'favorite_page.dart';
 import 'history_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
   final String token;
@@ -16,29 +17,51 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  late Future<Map<String, dynamic>> _touristInfo;
+  Future<Map<String, dynamic>?>? _touristInfo; // Nullable Future
+
+  late SharedPreferences _prefs;
 
   @override
   void initState() {
     super.initState();
-    _touristInfo = _fetchTouristInfo(widget.token);
+    _initializeSharedPreferences().then((_) {
+      _loadTouristInfo();
+    });
   }
 
-  Future<Map<String, dynamic>> _fetchTouristInfo(String token) async {
+  Future<void> _initializeSharedPreferences() async {
+    _prefs = await SharedPreferences.getInstance();
+  }
+
+  Future<void> _loadTouristInfo() async {
+    String? storedProfile = _prefs.getString('profileData');
+    if (storedProfile != null) {
+      setState(() {
+        _touristInfo = Future.value(jsonDecode(storedProfile));
+      });
+    }
+    _fetchTouristInfoFromApi();
+  }
+
+  Future<void> _fetchTouristInfoFromApi() async {
     try {
-      String touristName = decodeToken(token);
+      String touristName = decodeToken(widget.token);
       final response = await http.get(
         Uri.parse('http://guide-me.somee.com/api/Tourist/GetTouristInfo/$touristName'),
-        headers: {'Authorization': 'Bearer $token'},
+        headers: {'Authorization': 'Bearer ${widget.token}'},
       );
       if (response.statusCode == 200) {
-        return json.decode(response.body);
+        final touristInfo = json.decode(response.body);
+        _prefs.setString('profileData', jsonEncode(touristInfo));
+        setState(() {
+          _touristInfo = Future.value(touristInfo);
+        });
       } else {
         throw Exception('Failed to load tourist information: ${response.statusCode}');
       }
     } catch (error) {
       print('Error fetching tourist information: $error');
-      throw Exception('Failed to load tourist information');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error fetching user info')));
     }
   }
 
@@ -72,32 +95,43 @@ class _ProfilePageState extends State<ProfilePage> {
           IconButton(
             icon: Icon(Icons.edit, color: Colors.black, size: 30),
             onPressed: () {
-              void _navigateToEditProfile(Map<String, dynamic> userInfo) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EditProfilePage(token: widget.token, initialData: userInfo),
-                  ),
-                );
+              void _navigateToEditProfile(Map<String, dynamic>? userInfo) {
+                if (userInfo != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditProfilePage(token: widget.token, initialData: userInfo),
+                    ),
+                  ).then((_) {
+                    _fetchTouristInfoFromApi();
+                  });
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User info not available yet')));
+                }
               }
-              _touristInfo.then((userInfo) {
-                _navigateToEditProfile(userInfo);
-              }).catchError((error) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error fetching user info')));
-              });
+
+              if (_touristInfo != null) {
+                _touristInfo!.then((userInfo) {
+                  _navigateToEditProfile(userInfo);
+                }).catchError((error) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error fetching user info')));
+                });
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User info not available yet')));
+              }
             },
           ),
         ],
         centerTitle: true,
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
+      body: FutureBuilder<Map<String, dynamic>?>(
         future: _touristInfo,
-        builder: (context, snapshot) {
+        builder: (context, AsyncSnapshot<Map<String, dynamic>?> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
-          } else {
+          } else if (snapshot.hasData && snapshot.data != null) {
             final touristInfo = snapshot.data!;
             final photoUrl = touristInfo['photoUrl'];
             return SingleChildScrollView(
@@ -175,6 +209,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 ],
               ),
             );
+          } else {
+            // Handle case where _touristInfo is null or snapshot.data is null
+            return Center(child: Text('User info not available yet'));
           }
         },
       ),
