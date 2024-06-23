@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:video_player/video_player.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'map_page.dart';
 
 class PlacePage extends StatefulWidget {
   final Map<String, dynamic> place;
@@ -31,7 +32,8 @@ class _PlacePageState extends State<PlacePage> {
 
   Future<void> fetchMedia() async {
     final response = await http.get(
-      Uri.parse('http://guide-me.somee.com/api/Place/${widget.place['name']}/places/media'),
+      Uri.parse(
+          'http://guide-me.somee.com/api/Place/${widget.place['name']}/places/media'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Accept': 'application/json',
@@ -73,14 +75,67 @@ class _PlacePageState extends State<PlacePage> {
     setState(() {});
   }
 
+  Future<void> fetchLocationAndNavigate() async {
+    final response = await http.get(
+      Uri.parse(
+          'http://guide-me.somee.com/api/Place/${widget.place['name']}/places/location'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'Accept': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final location = json.decode(response.body);
+      final double latitude = location['latitude'];
+      final double longitude = location['longitude'];
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              MapPage(latitude: latitude, longitude: longitude, locationName: '',),
+        ),
+      );
+    } else {
+      print('Failed to fetch location: ${response.statusCode}');
+    }
+  }
+
   Widget buildMediaWidget(dynamic media) {
     switch (media['mediaType']) {
       case 'image':
         return Column(
           children: [
-            Image.network(media['mediaContent']),
+            AspectRatio(
+              aspectRatio: 16/9,
+              child: Image.network(
+                media['mediaContent'],
+                fit: BoxFit.cover,
+              ),
+            ),
+            TextButton(
+              onPressed: fetchLocationAndNavigate,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Icon(Icons.location_on, color: Colors.blue),
+                  SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      widget.place['name'],
+                      style: TextStyle(
+                        fontSize: 22,
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             SizedBox(height: 10),
-            ReviewButton(placeName: widget.place['name'], token: widget.token),
           ],
         );
       case 'audio':
@@ -94,7 +149,6 @@ class _PlacePageState extends State<PlacePage> {
         );
       case 'text':
         return TextWidget(textContent: media['mediaContent']);
-
       case 'video':
         return VideoWidget(videoUrl: media['mediaContent']);
       default:
@@ -106,32 +160,59 @@ class _PlacePageState extends State<PlacePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        iconTheme: IconThemeData(color: Colors.black),
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(widget.place['name']),
+            Flexible(
+              child: Text(
+                widget.place['name'],
+                style: TextStyle(color: Colors.black),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             IconButton(
-              icon: Icon(Icons.qr_code),
               onPressed: () {
                 // Handle your scan action
               },
+              icon: Column(
+                children: [
+                  Icon(Icons.qr_code,
+                      color: Colors.black), // Replace with your reviews icon
+                  SizedBox(
+                      height: 2), // Adjust the height as needed for spacing
+                  Text('Scan',
+                      style:
+                      TextStyle(color: Colors.black)), // Title of the icon
+                ],
+              ),
             ),
             IconButton(
-              icon: Icon(Icons.star, color: Colors.yellow),
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => RatePage(placeName: widget.place['name'], token: widget.token),
+                    builder: (context) => ReviewPage(
+                        placeName: widget.place['name'], token: widget.token),
                   ),
                 );
               },
+              icon: Column(
+                children: [
+                  Icon(Icons.rate_review_rounded,
+                      color: Colors.black), // Replace with your reviews icon
+                  SizedBox(
+                      height: 2), // Adjust the height as needed for spacing
+                  Text('Reviews',
+                      style:
+                      TextStyle(color: Colors.black)), // Title of the icon
+                ],
+              ),
             ),
           ],
         ),
-        backgroundColor: Color.fromARGB(255, 21, 82, 113),
+        backgroundColor: Color.fromARGB(255, 246, 243, 177),
       ),
-      backgroundColor: Color.fromARGB(255, 21, 82, 113),
+      backgroundColor: Color.fromARGB(255, 246, 243, 177),
       body: ListView.builder(
         itemCount: mediaList.length,
         itemBuilder: (context, index) {
@@ -141,6 +222,7 @@ class _PlacePageState extends State<PlacePage> {
     );
   }
 }
+
 class TextWidget extends StatelessWidget {
   final String textContent;
 
@@ -149,14 +231,19 @@ class TextWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text('About the Place', style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
+      title: Text('About the Place',
+          style: TextStyle(
+              color: Colors.black, fontSize: 25, fontWeight: FontWeight.bold)),
       subtitle: Container(
-        height: 100, // Set the height of the text area
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.3,
+        ),
         child: Scrollbar(
           child: SingleChildScrollView(
             child: Text(
               textContent,
-              style: TextStyle(color: Colors.white, fontSize: 14), // Adjust the font size
+              style: TextStyle(
+                  color: Colors.black, fontSize: 14), // Adjust the font size
             ),
           ),
         ),
@@ -164,6 +251,7 @@ class TextWidget extends StatelessWidget {
     );
   }
 }
+
 class AudioWidget extends StatelessWidget {
   final String audioUrl;
   final Function(String) playPause;
@@ -189,15 +277,16 @@ class AudioWidget extends StatelessWidget {
         ListTile(
           title: Text(
             'Audio',
-            style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: Colors.black, fontSize: 25, fontWeight: FontWeight.bold),
           ),
         ),
         Row(
           children: [
             IconButton(
-              icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+              icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow, size: 35,),
               onPressed: () => playPause(audioUrl),
-              color: Colors.white,
+              color: Colors.blueAccent,
             ),
             Expanded(
               child: Slider(
@@ -208,10 +297,11 @@ class AudioWidget extends StatelessWidget {
                 min: 0,
                 max: duration.inSeconds.toDouble(),
                 inactiveColor: Colors.grey,
-                activeColor: Colors.red,
+                activeColor: Colors.blueAccent,
               ),
             ),
-            Text(duration.formattedDuration, style: TextStyle(color: Colors.white)), // Moved the duration text here
+            Text(duration.formattedDuration,
+                style: TextStyle(color: Colors.black)),
           ],
         ),
       ],
@@ -242,8 +332,7 @@ class _VideoWidgetState extends State<VideoWidget> {
       ..initialize().then((_) {
         if (mounted) {
           setState(() {
-            _controller.play();
-            _isPlaying = true;
+            _isBuffering = false;
           });
         }
       })
@@ -279,7 +368,9 @@ class _VideoWidgetState extends State<VideoWidget> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text('Video', style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
+      title: Text('Video',
+          style: TextStyle(
+              color: Colors.black, fontSize: 25, fontWeight: FontWeight.bold)),
       subtitle: _controller.value.isInitialized
           ? AspectRatio(
         aspectRatio: _controller.value.aspectRatio,
@@ -294,7 +385,9 @@ class _VideoWidgetState extends State<VideoWidget> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 IconButton(
-                  icon: _isPlaying ? Icon(Icons.stop) : Icon(Icons.play_arrow),
+                  icon: _isPlaying
+                      ? Icon(Icons.stop)
+                      : Icon(Icons.play_arrow),
                   onPressed: _togglePlayPause,
                   color: Colors.white,
                 ),
@@ -333,7 +426,7 @@ class _VideoProgressBar extends StatelessWidget {
       allowScrubbing: true,
       padding: EdgeInsets.all(3.0),
       colors: VideoProgressColors(
-        playedColor: Colors.red, // Replace with your desired color
+        playedColor: Colors.red,
       ),
     );
   }
@@ -352,8 +445,8 @@ class ReviewButton extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => ReviewPage(placeName: placeName, token: token)
-          ),
+              builder: (context) =>
+                  ReviewPage(placeName: placeName, token: token)),
         );
       },
       style: ElevatedButton.styleFrom(
@@ -361,7 +454,8 @@ class ReviewButton extends StatelessWidget {
       ),
       child: Text(
         'Reviews',
-        style: TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
+        style: TextStyle(
+            fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -388,8 +482,10 @@ class RatePage extends StatelessWidget {
 
 extension DurationExtensions on Duration {
   String get formattedDuration {
-    String twoDigitMinutes = this.inMinutes.remainder(60).toString().padLeft(2, '0');
-    String twoDigitSeconds = this.inSeconds.remainder(60).toString().padLeft(2, '0');
+    String twoDigitMinutes =
+    this.inMinutes.remainder(60).toString().padLeft(2, '0');
+    String twoDigitSeconds =
+    this.inSeconds.remainder(60).toString().padLeft(2, '0');
     return "$twoDigitMinutes:$twoDigitSeconds";
   }
 }

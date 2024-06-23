@@ -31,6 +31,7 @@ class MyApp extends StatelessWidget {
         // Define your app's routes
         routes: {
           '/sign_up': (context) => SignUpPage(),
+          '/sign_in': (context) => SignInPage(),
           '/start': (context) => StartScreen(),
         },
       ),

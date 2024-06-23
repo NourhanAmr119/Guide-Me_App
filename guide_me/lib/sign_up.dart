@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'home_page.dart';
-
+import 'package:google_fonts/google_fonts.dart';
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
 
@@ -131,7 +131,7 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+
       body: Container(
         height: MediaQuery.of(context).size.height,
         decoration: BoxDecoration(
@@ -140,133 +140,155 @@ class _SignUpPageState extends State<SignUpPage> {
             fit: BoxFit.cover,
           ),
         ),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Text(
-                  'Guide Me',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
+        child: ListView(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          children: <Widget>[
+            SizedBox(height: 60.0),
+            Text(
+              'Guide Me',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.shrikhand(
+                textStyle: TextStyle(
+                  fontSize: 43,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 229, 233, 154),
+                  height: 1.5,
                 ),
-                SizedBox(height: 20),
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      buildTextField(
-                        controller: _usernameController,
-                        labelText: 'Username',
-                        prefixIcon: Icons.person,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your username';
-                          }
-                          return null;
-                        },
-                      ),
-                      buildTextField(
-                        controller: _emailController,
-                        labelText: 'Email',
-                        prefixIcon: Icons.email,
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your email';
-                          }
-                          if (!RegExp(r"^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$")
-                              .hasMatch(value)) {
-                            return 'Please enter a valid email';
-                          }
-                          return null;
-                        },
-                      ),
-                      buildTextField(
-                        controller: _passwordController,
-                        labelText: 'Password',
-                        prefixIcon: Icons.lock,
-                        isPassword: true,
-                        toggleVisibility: _togglePasswordVisibility,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your password';
-                          }
-                          if (value.length < 8) {
-                            return 'Password should be at least 8 characters';
-                          }
-                          if (!value.contains(RegExp(r'[a-zA-Z]'))) {
-                            return 'Password must contain at least one letter';
-                          }
-                          if (!value.contains(RegExp(r'[0-9]'))) {
-                            return 'Password must contain at least one digit';
-                          }
-                          if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
-                            return 'Password must contain at least one special character';
-                          }
-                          return null;
-                        },
-                      ),
-                      buildTextField(
-                        controller: _confirmPasswordController,
-                        labelText: 'Confirm Password',
-                        prefixIcon: Icons.lock,
-                        isPassword: true,
-                        validator: (value) {
-                          if (value != _passwordController.text) {
-                            return 'Passwords do not match';
-                          }
-                          return null;
-                        },
-                      ),
-                      buildTextField(
-                        controller: _languageController,
-                        labelText: 'Language',
-                        prefixIcon: Icons.language,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your language';
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
+              ),
+            ),
+            SizedBox(height: 50.0),
+            Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  buildTextField(
+                    controller: _usernameController,
+                    labelText: 'Username',
+                    prefixIcon: Icons.person,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your username';
+                      }
+                      return null;
+                    },
                   ),
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _signUp(); // Call _signUp() method here
-                    }
-                  },
-                  child: _isLoading
-                      ? CircularProgressIndicator()
-                      : Text(
-                    'Sign Up',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  SizedBox(height: 30.0),
+                  buildTextField(
+                    controller: _emailController,
+                    labelText: 'Email',
+                    prefixIcon: Icons.email,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your email';
+                      }
+                      if (!RegExp(r"^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$")
+                          .hasMatch(value)) {
+                        return 'Please enter a valid email';
+                      }
+                      return null;
+                    },
                   ),
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.all(15.0), backgroundColor: Color.fromARGB(255, 39, 84, 105),
-                    minimumSize: Size(120, 0), // Change button color here
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25), // Change border radius here
+                  SizedBox(height: 30.0),
+                  buildTextField(
+                    controller: _passwordController,
+                    labelText: 'Password',
+                    prefixIcon: Icons.lock,
+                    isPassword: true,
+                    toggleVisibility: _togglePasswordVisibility,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your password';
+                      }
+                      if (value.length < 8) {
+                        return 'Password should be at least 8 characters';
+                      }
+                      if (!value.contains(RegExp(r'[a-zA-Z]'))) {
+                        return 'Password must contain at least one letter';
+                      }
+                      if (!value.contains(RegExp(r'[0-9]'))) {
+                        return 'Password must contain at least one digit';
+                      }
+                      if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+                        return 'Password must contain at least one special character';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 30.0),
+                  buildTextField(
+                    controller: _confirmPasswordController,
+                    labelText: 'Confirm Password',
+                    prefixIcon: Icons.lock,
+                    isPassword: true,
+                    validator: (value) {
+                      if (value != _passwordController.text) {
+                        return 'Passwords do not match';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 30.0),
+                  buildTextField(
+                    controller: _languageController,
+                    labelText: 'Language',
+                    prefixIcon: Icons.language,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your language';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 30.0),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        _signUp(); // Call _signUp() method here
+                      }
+                    },
+                    child: _isLoading
+                        ? CircularProgressIndicator()
+                        : Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        color: Color.fromARGB(255, 229, 233, 154),
+                        fontSize: 18,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.fromLTRB(50, 10, 50, 10),
+                      backgroundColor: Color.fromARGB(255, 35, 110, 172),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 30.0),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/sign_in');
+                    },
+                    child: Center(
+                      child: Text(
+                        'Already have an Account? Sign in',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
-
   Widget buildTextField({
     required TextEditingController controller,
     required String labelText,
@@ -308,7 +330,7 @@ class _SignUpPageState extends State<SignUpPage> {
             });
           },
           decoration: InputDecoration(
-            contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+            contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
             labelText: labelText,
             labelStyle: TextStyle(fontSize: 14),
             prefixIcon: Icon(prefixIcon),

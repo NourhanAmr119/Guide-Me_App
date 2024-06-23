@@ -36,109 +36,111 @@ class _SignInPageState extends State<SignInPage> {
           ),
         ),
         child: Center(
-          child: Container(
-            width: MediaQuery.of(context).size.width - 40,
-            padding: const EdgeInsets.all(20.0),
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text(
-                    'Guide Me',
-                    style: GoogleFonts.shrikhand(
-                      textStyle: TextStyle(
-                        fontSize: 43,
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 229, 233, 154),
-                        height: 1.5,
+          child: SingleChildScrollView(
+            child: Container(
+              width: MediaQuery.of(context).size.width - 40,
+              padding: const EdgeInsets.all(20.0),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      'Guide Me',
+                      style: GoogleFonts.shrikhand(
+                        textStyle: TextStyle(
+                          fontSize: 43,
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(255, 229, 233, 154),
+                          height: 1.5,
+                        ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: 130),
-                  buildTextField(
-                    controller: _usernameController,
-                    labelText: 'Username',
-                    prefixIcon: Icons.account_circle,
-                    errorText: _errorStatus['username'] ?? false
-                        ? 'Please enter your username'
-                        : null,
-                    onChanged: (_) => _formKey.currentState!.validate(),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
+                    SizedBox(height: 130),
+                    buildTextField(
+                      controller: _usernameController,
+                      labelText: 'Username',
+                      prefixIcon: Icons.account_circle,
+                      errorText: _errorStatus['username'] ?? false
+                          ? 'Please enter your username'
+                          : null,
+                      onChanged: (_) => _formKey.currentState!.validate(),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          setState(() {
+                            _errorStatus['username'] = true;
+                          });
+                          return 'Please enter your username';
+                        }
                         setState(() {
-                          _errorStatus['username'] = true;
+                          _errorStatus['username'] = false;
                         });
-                        return 'Please enter your username';
-                      }
-                      setState(() {
-                        _errorStatus['username'] = false;
-                      });
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 30),
-                  buildTextField(
-                    controller: _passwordController,
-                    labelText: 'Password',
-                    prefixIcon: Icons.lock,
-                    isObscure: _isObscure,
-                    errorText: _errorStatus['password'] ?? false
-                        ? 'Please enter your password'
-                        : null,
-                    onChanged: (_) => _formKey.currentState!.validate(),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 30),
+                    buildTextField(
+                      controller: _passwordController,
+                      labelText: 'Password',
+                      prefixIcon: Icons.lock,
+                      isObscure: _isObscure,
+                      errorText: _errorStatus['password'] ?? false
+                          ? 'Please enter your password'
+                          : null,
+                      onChanged: (_) => _formKey.currentState!.validate(),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          setState(() {
+                            _errorStatus['password'] = true;
+                          });
+                          return 'Please enter your password';
+                        }
                         setState(() {
-                          _errorStatus['password'] = true;
+                          _errorStatus['password'] = false;
                         });
-                        return 'Please enter your password';
-                      }
-                      setState(() {
-                        _errorStatus['password'] = false;
-                      });
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 70),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _signIn();
-                      }
-                    },
-                    child: const Text(
-                      'Sign In',
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 229, 233, 154),
-                        fontSize: 18,
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 70),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          _signIn();
+                        }
+                      },
+                      child: const Text(
+                        'Sign In',
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 229, 233, 154),
+                          fontSize: 18,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.fromLTRB(50, 10, 50, 10),
+                        backgroundColor: Color.fromARGB(255, 35, 110, 172),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
                       ),
                     ),
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.fromLTRB(50, 10, 50, 10),
-                      backgroundColor: Color.fromARGB(255, 35, 110, 172),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
+                    SizedBox(height: 30),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, '/sign_up');
+                      },
+                      child: Text(
+                        'Create Account',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: 30),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/sign_up');
-                    },
-                    child: Text(
-                      'Create Account',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -279,5 +281,4 @@ class _SignInPageState extends State<SignInPage> {
       ),
     );
   }
-
 }
