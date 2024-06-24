@@ -5,6 +5,9 @@ import 'dart:convert';
 import 'package:video_player/video_player.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'map_page.dart';
+import 'package:jwt_decode/jwt_decode.dart';
+import "rate_page.dart";
+
 
 class PlacePage extends StatefulWidget {
   final Map<String, dynamic> place;
@@ -22,13 +25,25 @@ class _PlacePageState extends State<PlacePage> {
   Duration _duration = const Duration();
   Duration _position = const Duration();
   bool isPlaying = false;
+  double _rating = 0.0;
+  String _touristName = '';
 
   @override
   void initState() {
     super.initState();
     fetchMedia();
     initPlayer();
+    _touristName = decodeToken(widget.token);
+    print('Extracted tourist name: $_touristName');
+    if (_touristName.isNotEmpty) {
+      fetchRating();
+    } else {
+      print('Failed to decode tourist name from token.');
+    }
   }
+
+
+
 
   Future<void> fetchMedia() async {
     final response = await http.get(
@@ -101,19 +116,122 @@ class _PlacePageState extends State<PlacePage> {
       print('Failed to fetch location: ${response.statusCode}');
     }
   }
+  String decodeToken(String token) {
+    Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
+    print('Decoded token: $decodedToken');
+    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ?? '';
+  }
+
+  Future<void> fetchRating() async {
+    if (_touristName.isEmpty) {
+      print('Tourist name is required.');
+      return;
+    }
+
+    final placeName = widget.place['name'];
+    if (placeName == null || placeName.isEmpty) {
+      print('Place name is required.');
+      return;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'http://guide-me.somee.com/Rating/GetLatestRate?TouristName=${Uri.encodeComponent(_touristName)}&PlaceName=${Uri.encodeComponent(placeName)}',
+        ),
+        headers: {
+          'accept': '*/*',
+          'Authorization': 'Bearer ${widget.token}',
+        },
+      );
+
+      print('Request URL: ${response.request?.url}');
+      print('Response Status: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final rating = double.tryParse(response.body) ?? 0.0;
+        setState(() {
+          _rating = rating;
+        });
+      } else {
+        print('Failed to fetch rating: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching rating: $e');
+    }
+  }
+
+  Widget _buildRatingStars(double rating) {
+    int roundedRating = rating.round();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0), // Adjust padding as needed
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(5, (index) {
+          if (index < roundedRating) {
+            return Row(
+              children: [
+                Icon(Icons.star, color: Colors.yellow),
+                if (index < 4) SizedBox(width: 4), // Adjust spacing as needed
+              ],
+            );
+          } else {
+            return Row(
+              children: [
+                Icon(Icons.star_border, color: Colors.grey),
+                if (index < 4) SizedBox(width: 4), // Adjust spacing as needed
+              ],
+            );
+          }
+        }),
+      ),
+    );
+  }
+
 
   Widget buildMediaWidget(dynamic media) {
     switch (media['mediaType']) {
       case 'image':
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // عرض الصورة
             AspectRatio(
-              aspectRatio: 16/9,
+              aspectRatio: 16 / 9,
               child: Image.network(
                 media['mediaContent'],
                 fit: BoxFit.cover,
               ),
             ),
+            SizedBox(height: 10), // مسافة بين الصورة وعناصر التقييم
+            // عرض النجوم الخاصة بالتقييم وزر التقييم في صف
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0), // إضافة مسافة من اليمين واليسار
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // نجوم التقييم
+                  _buildRatingStars(_rating),
+                  // زر التقييم
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RatePage(
+                            placeName: widget.place['name'],
+                            token: widget.token,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text('Rate This Place'),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 10),
             TextButton(
               onPressed: fetchLocationAndNavigate,
               child: Row(
@@ -461,24 +579,6 @@ class ReviewButton extends StatelessWidget {
   }
 }
 
-class RatePage extends StatelessWidget {
-  final String placeName;
-  final String token;
-
-  RatePage({required this.placeName, required this.token});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Rate $placeName'),
-      ),
-      body: Center(
-        child: Text('Rating functionality for $placeName'),
-      ),
-    );
-  }
-}
 
 extension DurationExtensions on Duration {
   String get formattedDuration {
