@@ -22,6 +22,7 @@ class CityPage extends StatefulWidget {
 
 class _CityPageState extends State<CityPage> {
   List<dynamic> places = [];
+  List<String> categories = [];
   int _currentIndex = 0;
   ScrollController _scrollController = ScrollController();
   bool _showAppbarColor = false;
@@ -46,6 +47,10 @@ class _CityPageState extends State<CityPage> {
       if (response.statusCode == 200) {
         setState(() {
           places = jsonDecode(response.body);
+          categories = places
+              .map<String>((place) => place['category'].toString())
+              .toSet()
+              .toList();
         });
       } else {
         print('Failed to load data: ${response.statusCode}');
@@ -69,8 +74,7 @@ class _CityPageState extends State<CityPage> {
 
   void _onTapCard(Map<String, dynamic> place, String token) async {
     try {
-      final String touristName =
-      decodeToken(token); // Decode token to get tourist name
+      final String touristName = decodeToken(token);
       final response = await http.post(
         Uri.parse(
             'http://guide-me.somee.com/api/TouristHistory?placename=${place['name']}&touristname=$touristName'),
@@ -82,12 +86,11 @@ class _CityPageState extends State<CityPage> {
 
       if (response.statusCode == 200) {
         print('Place added to history successfully');
-        // Navigate to the place page
-        print('Place data: $place');
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => PlacePage(place: place, token: token)),
+            builder: (context) => PlacePage(place: place, token: token),
+          ),
         );
       } else {
         print('Failed to add place to history: ${response.statusCode}');
@@ -169,7 +172,7 @@ class _CityPageState extends State<CityPage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3,
+      length: categories.length,
       child: Scaffold(
         extendBodyBehindAppBar: true,
         appBar: AppBar(
@@ -192,13 +195,12 @@ class _CityPageState extends State<CityPage> {
               onPressed: () {},
             ),
           ],
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Historical'),
-              Tab(text: 'Entertainment'),
-              Tab(text: 'Religious'),
-            ],
-          ),
+          bottom: categories.isNotEmpty
+              ? TabBar(
+            isScrollable: true,
+            tabs: categories.map((category) => Tab(text: category)).toList(),
+          )
+              : null,
         ),
         body: Container(
           decoration: const BoxDecoration(
@@ -212,22 +214,16 @@ class _CityPageState extends State<CityPage> {
               _onScroll();
               return true;
             },
-            child: TabBarView(
-              children: [
-                ListView(
-                  controller: _scrollController,
-                  children: buildCategoryCards('Historical'),
-                ),
-                ListView(
-                  controller: _scrollController,
-                  children: buildCategoryCards('Entertainment'),
-                ),
-                ListView(
-                  controller: _scrollController,
-                  children: buildCategoryCards('Religious'),
-                ),
-              ],
-            ),
+            child: categories.isNotEmpty
+                ? TabBarView(
+              children: categories
+                  .map((category) => ListView(
+                controller: _scrollController,
+                children: buildCategoryCards(category),
+              ))
+                  .toList(),
+            )
+                : Center(child: CircularProgressIndicator()),
           ),
         ),
         bottomNavigationBar: BottomAppBar(

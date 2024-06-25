@@ -140,7 +140,7 @@ class _PlacePageState extends State<PlacePage> {
           'http://guide-me.somee.com/Rating/GetLatestRate?TouristName=${Uri.encodeComponent(_touristName)}&PlaceName=${Uri.encodeComponent(placeName)}',
         ),
         headers: {
-          'accept': '*/*',
+          'accept': '/',
           'Authorization': 'Bearer ${widget.token}',
         },
       );
@@ -172,14 +172,14 @@ class _PlacePageState extends State<PlacePage> {
           if (index < roundedRating) {
             return Row(
               children: [
-                Icon(Icons.star, color: Colors.yellow),
+                Icon(Icons.star, color: Colors.yellow, size: 40), // Increase star size
                 if (index < 4) SizedBox(width: 4), // Adjust spacing as needed
               ],
             );
           } else {
             return Row(
               children: [
-                Icon(Icons.star_border, color: Colors.grey),
+                Icon(Icons.star_border, color: Colors.grey, size: 40), // Increase star size
                 if (index < 4) SizedBox(width: 4), // Adjust spacing as needed
               ],
             );
@@ -190,13 +190,14 @@ class _PlacePageState extends State<PlacePage> {
   }
 
 
+
   Widget buildMediaWidget(dynamic media) {
     switch (media['mediaType']) {
       case 'image':
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // عرض الصورة
+            // Display the image
             AspectRatio(
               aspectRatio: 16 / 9,
               child: Image.network(
@@ -204,16 +205,16 @@ class _PlacePageState extends State<PlacePage> {
                 fit: BoxFit.cover,
               ),
             ),
-            SizedBox(height: 10), // مسافة بين الصورة وعناصر التقييم
-            // عرض النجوم الخاصة بالتقييم وزر التقييم في صف
+            SizedBox(height: 10), // Space between the image and rating elements
+            // Display the rating stars and rate button in a row
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0), // إضافة مسافة من اليمين واليسار
+              padding: const EdgeInsets.symmetric(horizontal: 8.0), // Add padding on the sides
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // نجوم التقييم
+                  // Rating stars
                   _buildRatingStars(_rating),
-                  // زر التقييم
+                  // Rate button
                   ElevatedButton(
                     onPressed: () {
                       Navigator.push(
@@ -226,11 +227,18 @@ class _PlacePageState extends State<PlacePage> {
                         ),
                       );
                     },
-                    child: Text('Rate This Place'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black, // Gold background
+                    ),
+                    child: Text(
+                      _rating == 0 ? 'Rate This Place' : 'Change Rate', // Conditional button text
+                      style: TextStyle(color: Colors.white), // Black text
+                    ),
                   ),
                 ],
               ),
             ),
+
             SizedBox(height: 10),
             TextButton(
               onPressed: fetchLocationAndNavigate,
@@ -273,6 +281,7 @@ class _PlacePageState extends State<PlacePage> {
         return SizedBox();
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
