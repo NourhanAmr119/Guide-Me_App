@@ -320,76 +320,12 @@ class _PlacePageState extends State<PlacePage> {
         return Column(
           children: [
             VideoWidget(videoUrl: media['mediaContent']),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Recommendations',
-                  style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black),
-                ),
-              ),
-            ),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: recommendations.map((recommendation) {
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 150,
-                          height: 150,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.5),
-                                spreadRadius: 2,
-                                blurRadius: 5,
-                                offset: Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Image.network(
-                                recommendation['image'],
-                                width: 150,
-                                height: 100,
-                                fit: BoxFit.cover,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  recommendation['placeName'],
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                child: _buildRatingStarsRecommendation(recommendation['rate']),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
           ],
         );
       default:
         return SizedBox();
     }
   }
-
 
 
   Widget _buildRatingStarsRecommendation(double rating) {
@@ -468,12 +404,82 @@ class _PlacePageState extends State<PlacePage> {
               },
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Recommendations',
+                style: TextStyle(fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
+              ),
+            ),
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: recommendations.map((recommendation) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Image.network(
+                              recommendation['image'],
+                              width: 150,
+                              height: 100,
+                              fit: BoxFit.cover,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                recommendation['placeName'],
+                                style: TextStyle(fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0),
+                              child: _buildRatingStarsRecommendation(
+                                  recommendation['rate']),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
         ],
       ),
     );
-  }}
+  }
+}
 
-class TextWidget extends StatelessWidget {
+  class TextWidget extends StatelessWidget {
   final String textContent;
 
   TextWidget({required this.textContent});
