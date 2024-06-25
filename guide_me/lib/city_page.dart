@@ -23,12 +23,14 @@ class CityPage extends StatefulWidget {
 class _CityPageState extends State<CityPage> {
   List<dynamic> places = [];
   List<String> categories = [];
+  String pagetitle = '';
   int _currentIndex = 0;
   ScrollController _scrollController = ScrollController();
   bool _showAppbarColor = false;
 
   @override
   void initState() {
+    pagetitle = widget.title;
     super.initState();
     _scrollController.addListener(_onScroll);
     fetchData(widget.title, decodeToken(widget.token));
@@ -88,9 +90,13 @@ class _CityPageState extends State<CityPage> {
         print('Place added to history successfully');
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => PlacePage(place: place, token: token),
-          ),
+            MaterialPageRoute(
+              builder: (context) => PlacePage(
+                  place: place,
+                  token: token,
+                  cityName: pagetitle
+              ),
+            )
         );
       } else {
         print('Failed to add place to history: ${response.statusCode}');
