@@ -131,9 +131,11 @@ class _RatePageState extends State<RatePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Rate Place'),
-        backgroundColor: Color.fromARGB(255, 21, 82, 113),
+        titleTextStyle: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+        backgroundColor: Color.fromARGB(255, 246, 243, 177),
+        iconTheme: IconThemeData(color: Colors.black),
       ),
-      backgroundColor: Color.fromARGB(255, 21, 82, 113),
+      backgroundColor: Color.fromARGB(255, 246, 243, 177),
       body: SingleChildScrollView(
         padding: EdgeInsets.only(
             top: MediaQuery.of(context).padding.top +
@@ -142,9 +144,11 @@ class _RatePageState extends State<RatePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Text(
-                'Share your thoughts to help us improve ',
-                style: TextStyle(fontSize: 30, color: Colors.white),
+              Center(
+                child: Text(
+                  'Your Rating ',
+                  style: TextStyle(fontSize: 30, color: Colors.black),
+                ),
               ),
               SizedBox(height: 60),
               Row(
@@ -167,11 +171,11 @@ class _RatePageState extends State<RatePage> {
               ),
               SizedBox(height: 30),
               Text(
-                'Suggestions:',
+                'If you like, share with us the reasons',
                 style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white),
+                    color: Colors.black),
               ),
               SizedBox(height: 30),
               Wrap(
@@ -184,7 +188,7 @@ class _RatePageState extends State<RatePage> {
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: selectedSuggestions.contains(suggestion)
-                          ? Colors.blueGrey[700]
+                          ? Colors.grey[600]
                           : Colors.grey,
                       padding:
                       EdgeInsets.symmetric(horizontal: 20, vertical: 10),

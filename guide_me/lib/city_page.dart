@@ -8,6 +8,7 @@ import 'history_page.dart';
 import 'profile_page.dart';
 import 'package:provider/provider.dart';
 import 'favorite_places_model.dart';
+import 'suggest_place.dart'; // Add this import
 
 class CityPage extends StatefulWidget {
   final String title;
@@ -23,14 +24,12 @@ class CityPage extends StatefulWidget {
 class _CityPageState extends State<CityPage> {
   List<dynamic> places = [];
   List<String> categories = [];
-  String pagetitle = '';
   int _currentIndex = 0;
   ScrollController _scrollController = ScrollController();
   bool _showAppbarColor = false;
 
   @override
   void initState() {
-    pagetitle = widget.title;
     super.initState();
     _scrollController.addListener(_onScroll);
     fetchData(widget.title, decodeToken(widget.token));
@@ -90,13 +89,14 @@ class _CityPageState extends State<CityPage> {
         print('Place added to history successfully');
         Navigator.push(
           context,
-            MaterialPageRoute(
-              builder: (context) => PlacePage(
-                  place: place,
-                  token: token,
-                  cityName: pagetitle
-              ),
-            )
+          MaterialPageRoute(
+            builder: (context) => PlacePage(
+              touristName: decodeToken(widget.token),
+              cityName: widget.title,
+              place: place,
+              token: widget.token,
+            ),
+          ),
         );
       } else {
         print('Failed to add place to history: ${response.statusCode}');
@@ -199,6 +199,17 @@ class _CityPageState extends State<CityPage> {
             IconButton(
               icon: const Icon(Icons.qr_code, color: Colors.white),
               onPressed: () {},
+            ),
+            IconButton(
+              icon: const Icon(Icons.add, color: Colors.white),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SuggestionPage(token: widget.token), // Navigate to SuggestionPage with token
+                  ),
+                );
+              },
             ),
           ],
           bottom: categories.isNotEmpty

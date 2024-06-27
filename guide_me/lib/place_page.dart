@@ -8,13 +8,39 @@ import 'map_page.dart';
 import 'package:jwt_decode/jwt_decode.dart';
 import "rate_page.dart";
 
+class Recommendation {
+  final String placeName;
+  final String image;
+  final int rate;
+
+  Recommendation({
+    required this.placeName,
+    required this.image,
+    required this.rate,
+  });
+
+  factory Recommendation.fromJson(Map<String, dynamic> json) {
+    return Recommendation(
+      placeName: json['placeName'],
+      image: json['image'],
+      rate: json['rate'],
+    );
+  }
+}
 
 class PlacePage extends StatefulWidget {
+  final String touristName;
+  final String cityName;
   final Map<String, dynamic> place;
   final String token;
-  final String cityName;
 
-  PlacePage({required this.place, required this.token,required this.cityName});
+  const PlacePage({
+    Key? key,
+    required this.touristName,
+    required this.cityName,
+    required this.place,
+    required this.token,
+  }) : super(key: key);
 
   @override
   _PlacePageState createState() => _PlacePageState();
@@ -22,13 +48,13 @@ class PlacePage extends StatefulWidget {
 
 class _PlacePageState extends State<PlacePage> {
   List<dynamic> mediaList = [];
-  List<dynamic> recommendations = [];
   late final AudioPlayer player;
   Duration _duration = const Duration();
   Duration _position = const Duration();
   bool isPlaying = false;
   double _rating = 0.0;
   String _touristName = '';
+  List<Recommendation> recommendations = [];
 
   @override
   void initState() {
@@ -36,22 +62,40 @@ class _PlacePageState extends State<PlacePage> {
     fetchMedia();
     initPlayer();
     _touristName = decodeToken(widget.token);
-    print('Extracted tourist name: $_touristName');
     if (_touristName.isNotEmpty) {
       fetchRating();
     } else {
       print('Failed to decode tourist name from token.');
     }
-
-    fetchRecommendations();
+    fetchRecommendations(); // Fetch recommendations on init
   }
 
+  Future<void> fetchRecommendations() async {
+    final response = await http.get(
+      Uri.parse(
+        'http://guide-me.somee.com/api/Recommendation/GetRecommendations?touristName=${Uri.encodeComponent(widget.touristName)}&cityName=${Uri.encodeComponent(widget.cityName)}&placeName=${Uri.encodeComponent(widget.place['name'])}',
+      ),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'Accept': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        recommendations = (json.decode(response.body) as List)
+            .map((data) => Recommendation.fromJson(data))
+            .toList();
+      });
+    } else {
+      print('Failed to fetch recommendations: ${response.statusCode}');
+    }
+  }
 
   Future<void> fetchMedia() async {
     final response = await http.get(
       Uri.parse(
-          'http://guide-me.somee.com/api/Place/${widget
-              .place['name']}/places/media'),
+          'http://guide-me.somee.com/api/Place/${widget.place['name']}/places/media'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Accept': 'application/json',
@@ -96,8 +140,7 @@ class _PlacePageState extends State<PlacePage> {
   Future<void> fetchLocationAndNavigate() async {
     final response = await http.get(
       Uri.parse(
-          'http://guide-me.somee.com/api/Place/${widget
-              .place['name']}/places/location'),
+          'http://guide-me.somee.com/api/Place/${widget.place['name']}/places/location'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Accept': 'application/json',
@@ -112,9 +155,11 @@ class _PlacePageState extends State<PlacePage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              MapPage(
-                latitude: latitude, longitude: longitude, locationName: '',),
+          builder: (context) => MapPage(
+            latitude: latitude,
+            longitude: longitude,
+            locationName: '',
+          ),
         ),
       );
     } else {
@@ -125,7 +170,8 @@ class _PlacePageState extends State<PlacePage> {
   String decodeToken(String token) {
     Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
     print('Decoded token: $decodedToken');
-    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
+    return decodedToken[
+    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
         '';
   }
 
@@ -144,12 +190,10 @@ class _PlacePageState extends State<PlacePage> {
     try {
       final response = await http.get(
         Uri.parse(
-          'http://guide-me.somee.com/Rating/GetLatestRate?TouristName=${Uri
-              .encodeComponent(_touristName)}&PlaceName=${Uri.encodeComponent(
-              placeName)}',
+          'http://guide-me.somee.com/Rating/GetLatestRate?TouristName=${Uri.encodeComponent(_touristName)}&PlaceName=${Uri.encodeComponent(placeName)}',
         ),
         headers: {
-          'accept': '*/*',
+          'accept': '/',
           'Authorization': 'Bearer ${widget.token}',
         },
       );
@@ -169,39 +213,6 @@ class _PlacePageState extends State<PlacePage> {
     } catch (e) {
       print('Error fetching rating: $e');
     }
-  }
-
-  Future<void> fetchRecommendations() async {
-    try {
-      final response = await http.get(
-        Uri.parse(
-          'http://guide-me.somee.com/api/Recommendation/GetRecommendations?touristName=$_touristName&cityName=${widget
-              .cityName}&placeName=${widget.place['name']}',
-        ),
-        headers: {
-          'accept': '*/*',
-          'Authorization': 'Bearer ${widget.token}',
-        },
-      );
-      if (response.statusCode == 200) {
-        setState(() {
-          recommendations = json.decode(response.body);
-        });
-      } else {
-        print('Failed to load recommendations: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error fetching recommendations: $e');
-    }
-  }
-
-
-  Widget buildRecommendationWidget(dynamic recommendation) {
-    return ListTile(
-      title: Text(recommendation['placeName']),
-      subtitle: Text('Rating: ${recommendation['rate']}'),
-      leading: Image.network(recommendation['image']),
-    );
   }
 
   Widget _buildRatingStars(double rating) {
@@ -236,13 +247,13 @@ class _PlacePageState extends State<PlacePage> {
     );
   }
 
-
   Widget buildMediaWidget(dynamic media) {
     switch (media['mediaType']) {
       case 'image':
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Display the image
             AspectRatio(
               aspectRatio: 16 / 9,
               child: Image.network(
@@ -250,13 +261,17 @@ class _PlacePageState extends State<PlacePage> {
                 fit: BoxFit.cover,
               ),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 10), // Space between the image and rating elements
+            // Display the rating stars and rate button in a row
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              // Add padding on the sides
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // Rating stars
                   _buildRatingStars(_rating),
+                  // Rate button
                   ElevatedButton(
                     onPressed: () {
                       Navigator.push(
@@ -270,16 +285,18 @@ class _PlacePageState extends State<PlacePage> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
+                      backgroundColor: Colors.black, // Gold background
                     ),
                     child: Text(
                       _rating == 0 ? 'Rate This Place' : 'Change Rate',
-                      style: TextStyle(color: Colors.white),
+                      // Conditional button text
+                      style: TextStyle(color: Colors.white), // Black text
                     ),
                   ),
                 ],
               ),
             ),
+
             SizedBox(height: 10),
             TextButton(
               onPressed: fetchLocationAndNavigate,
@@ -317,29 +334,10 @@ class _PlacePageState extends State<PlacePage> {
       case 'text':
         return TextWidget(textContent: media['mediaContent']);
       case 'video':
-        return Column(
-          children: [
-            VideoWidget(videoUrl: media['mediaContent']),
-          ],
-        );
+        return VideoWidget(videoUrl: media['mediaContent']);
       default:
         return SizedBox();
     }
-  }
-
-
-  Widget _buildRatingStarsRecommendation(double rating) {
-    int numStars = rating.round();
-    return Row(
-      children: List.generate(
-        5,
-            (index) =>
-            Icon(
-              index < numStars ? Icons.star : Icons.star_border,
-              color: Colors.amber,
-            ),
-      ),
-    );
   }
 
   @override
@@ -348,6 +346,7 @@ class _PlacePageState extends State<PlacePage> {
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.black),
         title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Flexible(
               child: Text(
@@ -356,15 +355,19 @@ class _PlacePageState extends State<PlacePage> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+            Spacer(), // This will push the icons to the right
             IconButton(
               onPressed: () {
                 // Handle your scan action
               },
               icon: Column(
                 children: [
-                  Icon(Icons.qr_code, color: Colors.black),
-                  SizedBox(height: 2),
-                  Text('Scan', style: TextStyle(color: Colors.black)),
+                  Icon(Icons.qr_code,
+                      color: Colors.black), // Replace with your reviews icon
+                  SizedBox(
+                      height: 2), // Adjust the height as needed for spacing
+                  Text('Scan',
+                      style: TextStyle(color: Colors.black)), // Title of the icon
                 ],
               ),
             ),
@@ -373,18 +376,19 @@ class _PlacePageState extends State<PlacePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        ReviewPage(
-                            placeName: widget.place['name'],
-                            token: widget.token),
+                    builder: (context) => ReviewPage(
+                        placeName: widget.place['name'], token: widget.token),
                   ),
                 );
               },
               icon: Column(
                 children: [
-                  Icon(Icons.rate_review_rounded, color: Colors.black),
-                  SizedBox(height: 2),
-                  Text('Reviews', style: TextStyle(color: Colors.black)),
+                  Icon(Icons.rate_review_rounded,
+                      color: Colors.black), // Replace with your reviews icon
+                  SizedBox(
+                      height: 2), // Adjust the height as needed for spacing
+                  Text('Reviews',
+                      style: TextStyle(color: Colors.black)), // Title of the icon
                 ],
               ),
             ),
@@ -393,93 +397,136 @@ class _PlacePageState extends State<PlacePage> {
         backgroundColor: Color.fromARGB(255, 246, 243, 177),
       ),
       backgroundColor: Color.fromARGB(255, 246, 243, 177),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: mediaList.length,
-              itemBuilder: (context, index) {
-                return buildMediaWidget(mediaList[index]);
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Recommendations',
-                style: TextStyle(fontSize: 25,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black),
-              ),
-            ),
-          ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: recommendations.map((recommendation) {
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 150,
-                        height: 150,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 2,
-                              blurRadius: 5,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Image.network(
-                              recommendation['image'],
-                              width: 150,
-                              height: 100,
-                              fit: BoxFit.cover,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                recommendation['placeName'],
-                                style: TextStyle(fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8.0),
-                              child: _buildRatingStarsRecommendation(
-                                  recommendation['rate']),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
+      body: ListView.builder(
+        itemCount: mediaList.length + 1, // Increment itemCount by 1 to include the recommendation list
+        itemBuilder: (context, index) {
+          if (index < mediaList.length) {
+            return buildMediaWidget(mediaList[index]);
+          } else {
+            return buildRecommendationList(); // Add the horizontal recommendation list
+          }
+        },
       ),
+    );
+  }
+
+  Widget buildRecommendationList() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Text(
+            'Places You Might Like',
+            style: TextStyle(
+                color: Colors.black, fontSize: 25, fontWeight: FontWeight.bold),
+          ),
+        ),
+        SizedBox(height: 1),
+        Container(
+          height: 300, // Adjust height as needed
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: recommendations.length,
+            itemBuilder: (context, index) {
+              final recommendation = recommendations[index];
+              return RecommendationCard(
+                recommendation: recommendation,
+                token: widget.token, // Pass the token to the RecommendationCard
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
 
-  class TextWidget extends StatelessWidget {
+class RecommendationCard extends StatelessWidget {
+  final Recommendation recommendation;
+  final String token;
+
+  RecommendationCard({required this.recommendation, required this.token});
+
+  @override
+  Widget build(BuildContext context) {
+    double cardWidth = MediaQuery.of(context).size.width * 0.55;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PlacePage(
+              touristName: recommendation.placeName, // Adjust as needed
+              cityName: '', // Pass the city name if needed
+              place: {
+                'name': recommendation.placeName,
+              },
+              token: token,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        width: cardWidth, // Adjust width as needed
+        margin: EdgeInsets.all(10),
+        child: Card(
+          clipBehavior: Clip.antiAlias, // Ensure the image covers the entire card
+          child: Stack(
+            children: [
+              Image.network(
+                recommendation.image,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  color: Colors.black.withOpacity(0.5), // Semi-transparent black background
+                  padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8), // Reduce padding
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        recommendation.placeName,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16, // Suitable text size
+                          color: Colors.white, // White text color
+                        ),
+                      ),
+                      SizedBox(height: 5),
+                      _buildRatingStars(recommendation.rate),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRatingStars(int rate) {
+    int roundedRating = rate.clamp(0, 5); // Ensure rating is between 0 and 5
+    return Row(
+      children: List.generate(5, (index) {
+        if (index < roundedRating) {
+          return Icon(Icons.star, color: Colors.yellow, size: 20); // Suitable icon size
+        } else {
+          return Icon(Icons.star_border, color: Colors.grey, size: 20); // Suitable icon size
+        }
+      }),
+    );
+  }
+}
+
+class TextWidget extends StatelessWidget {
   final String textContent;
 
   TextWidget({required this.textContent});
@@ -540,7 +587,10 @@ class AudioWidget extends StatelessWidget {
         Row(
           children: [
             IconButton(
-              icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow, size: 35,),
+              icon: Icon(
+                isPlaying ? Icons.pause : Icons.play_arrow,
+                size: 35,
+              ),
               onPressed: () => playPause(audioUrl),
               color: Colors.blueAccent,
             ),
@@ -649,7 +699,8 @@ class _VideoWidgetState extends State<VideoWidget> {
                 ),
                 SizedBox(width: 20),
                 IconButton(
-                  icon: Icon(_isMuted ? Icons.volume_off : Icons.volume_up),
+                  icon:
+                  Icon(_isMuted ? Icons.volume_off : Icons.volume_up),
                   onPressed: _toggleMute,
                   color: Colors.white,
                 ),
@@ -716,7 +767,6 @@ class ReviewButton extends StatelessWidget {
     );
   }
 }
-
 
 extension DurationExtensions on Duration {
   String get formattedDuration {
