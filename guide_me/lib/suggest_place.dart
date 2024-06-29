@@ -1,147 +1,296 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:jwt_decode/jwt_decode.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SuggestionPage extends StatefulWidget {
   final String token;
 
-  SuggestionPage({required this.token});
+  const SuggestionPage({Key? key, required this.token}) : super(key: key);
 
   @override
   _SuggestionPageState createState() => _SuggestionPageState();
 }
 
 class _SuggestionPageState extends State<SuggestionPage> {
-  final TextEditingController _controller = TextEditingController();
-  LatLng _selectedLocation = LatLng(0, 0); // Initialize with a default value
-  bool _isLoading = false;
-  String? _errorMessage;
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _placeController = TextEditingController();
+  final TextEditingController _manualAddressController = TextEditingController();
+  String? _address;
+  String? _latitude;
+  String? _longitude;
 
-  Future<void> _searchLocation(String placeName) async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  Future<void> _searchPlace() async {
+    if (_formKey.currentState!.validate()) {
+      final String placeName = _placeController.text;
 
-    try {
-      List<Location> locations = await locationFromAddress(placeName);
+      try {
+        // Fetch latitude, longitude, and address from OpenStreetMap
+        final response = await http.get(
+          Uri.parse(
+              'https://nominatim.openstreetmap.org/search?q=$placeName+Egypt&format=json'),
+        );
 
-      if (locations.isNotEmpty) {
-        setState(() {
-          _selectedLocation = LatLng(locations.first.latitude, locations.first.longitude);
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _selectedLocation = LatLng(0, 0); // Reset to default value
-          _isLoading = false;
-          _errorMessage = 'Location not found';
-        });
+        print('OpenStreetMap response: ${response.body}'); // Debug statement
+
+        if (response.statusCode == 200) {
+          final List<dynamic> data = json.decode(response.body);
+          if (data.isNotEmpty) {
+            setState(() {
+              _address = data[0]['display_name'];
+              _latitude = data[0]['lat'];
+              _longitude = data[0]['lon'];
+            });
+          } else {
+            _showManualAddressInput();
+          }
+        } else {
+          _showAlertDialog('Failed to fetch location',
+              'Failed to fetch location from OpenStreetMap.');
+        }
+      } catch (e) {
+        print('Error: $e'); // Debug statement
+        _showAlertDialog('An error occurred', e.toString());
       }
-    } catch (e) {
-      print('Error fetching location: $e');
-      setState(() {
-        _selectedLocation = LatLng(0, 0); // Reset to default value
-        _isLoading = false;
-        _errorMessage = 'Error fetching location: ${e.toString()}';
-      });
+    }
+  }
+  void _showManualAddressInput() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(' Place not found you can Enter Address Manually'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _manualAddressController,
+                decoration: InputDecoration(
+                  labelText: 'Address',
+                  hintText: 'Enter the address manually',
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an address';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white), // Keep original color
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text(
+                'Confirm',
+                style: TextStyle(color: Colors.white), // Change color to white
+              ),
+              onPressed: () {
+                if (_manualAddressController.text.isNotEmpty) {
+                  setState(() {
+                    _address = _manualAddressController.text;
+                    _latitude = null;
+                    _longitude = null;
+                  });
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+  Future<void> _confirmSuggestion() async {
+    if ((_latitude != null && _longitude != null && _address != null) ||
+        (_address != null && _latitude == null && _longitude == null)) {
+      final String placeName = _placeController.text;
+      final String touristName = decodeToken(widget.token);
+      String apiUrl;
+
+      if (_latitude != null && _longitude != null) {
+        apiUrl =
+        'http://guide-me.somee.com/api/SuggestionPlaces?placeName=$placeName&latitude=$_latitude&longitude=$_longitude&touristName=$touristName';
+      } else {
+        apiUrl =
+        'http://guide-me.somee.com/api/SuggestionPlaces?placeName=$placeName&address=$_address&touristName=$touristName';
+      }
+
+      try {
+        // Send the suggestion to the API
+        final apiResponse = await http.post(
+          Uri.parse(apiUrl),
+          headers: {
+            'accept': '/',
+            'Authorization': 'Bearer ${widget.token}',
+          },
+        );
+
+        print('API response: ${apiResponse.body}'); // Debug statement
+
+        if (apiResponse.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Your suggestion sent successfully')));
+        } else {
+          _showAlertDialog('Failed to send suggestion', apiResponse.body);
+        }
+      } catch (e) {
+        print('Error: $e'); // Debug statement
+        _showAlertDialog('An error occurred', e.toString());
+      }
     }
   }
 
-  Future<void> _submitSuggestion() async {
-    if (_selectedLocation.latitude != 0 && _selectedLocation.longitude != 0 && _controller.text.isNotEmpty) {
-      final touristName = decodeToken(widget.token);
-      final url = Uri.parse('http://guide-me.somee.com/api/SuggestionPlaces?placeName=${_controller.text}&latitude=${_selectedLocation.latitude}&longitude=${_selectedLocation.longitude}&touristName=$touristName');
-      final response = await http.post(
-        url,
-        headers: {
-          'accept': '/',
-          'Authorization': 'Bearer ${widget.token}',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Suggestion submitted successfully.')),
+  void _showAlertDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to submit suggestion.')),
-        );
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter a place name and select a location.')),
-      );
-    }
+      },
+    );
   }
 
   String decodeToken(String token) {
     Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
-    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ?? '';
+    return decodedToken[
+    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
+        '';
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Suggest a Place'),
+        title: Text(
+          'Suggest a Place',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Color.fromARGB(255, 246, 243, 177),
+        iconTheme: IconThemeData(color: Colors.black),
       ),
+      backgroundColor: Color.fromARGB(255, 246, 243, 177),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
+        child: Container(
+          padding: EdgeInsets.all(16.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextField(
-                controller: _controller,
-                decoration: InputDecoration(
-                  labelText: 'Place Name',
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.search),
-                    onPressed: () {
-                      _searchLocation(_controller.text);
-                    },
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20.0),
+                  child: Text(
+                    'Thank you for helping us \n add more places',
+                    style: GoogleFonts.lato(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
-              if (_isLoading) CircularProgressIndicator(),
-              if (_errorMessage != null) Text(_errorMessage!, style: TextStyle(color: Colors.red)),
-              Container(
-                height: MediaQuery.of(context).size.height * 0.5, // Adjust height as needed
-                child: FlutterMap(
-                  options: MapOptions(
-                    initialCenter: _selectedLocation ?? LatLng(0, 0),
-                    initialZoom: _selectedLocation != null ? 15.0 : 2.0,
-                  ),
+              SizedBox(height: 26),
+              Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TileLayer(
-                      urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      subdomains: ['a', 'b', 'c'],
-                    ),
-                    TileLayer(
-                      urlTemplate:'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-                      subdomains: ['a', 'b', 'c'],
-                    ),
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          width: 80.0,
-                          height: 80.0,
-                          point: _selectedLocation!,
-                          child: Icon(Icons.location_pin, color: Colors.red, size: 40.0),
+                    TextFormField(
+                      controller: _placeController,
+                      textAlign: TextAlign.center, // Center the text field
+                      decoration: InputDecoration(
+                        labelText: 'Place Name',
+                        labelStyle: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
                         ),
-                      ],
+                        // Added bottom black border
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black),
+                        ),
+                        // Removed background color and border
+                      ),
+                      style: TextStyle(color: Colors.black),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a place name';
+                        }
+                        return null;
+                      },
                     ),
+                    SizedBox(height: 26),
+                    Center(
+                      child: SizedBox(
+                        width: 150, // Set the width to your desired value
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black,
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: _searchPlace,
+                          child: Text('Search'),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 30),
+                    if (_address != null) ...[
+                      Text(
+                        'Address:',
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 25),
+                      ),
+                      SizedBox(height: 15),
+                      Text(
+                        _address!,
+                        style: TextStyle(color: Colors.black, fontSize: 22),
+                      ),
+                      SizedBox(height: 26), // Added space after address
+                      Center(
+                        child: SizedBox(
+                          width: 150, // Set the width to your desired value
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              foregroundColor: Colors.white,
+                              minimumSize: Size(40, 40), // Set smaller button size
+                            ),
+                            onPressed: _confirmSuggestion,
+                            child: Text('Confirm'),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
-              ),
-              ElevatedButton(
-                onPressed: _submitSuggestion,
-                child: Text('Submit Suggestion'),
               ),
             ],
           ),
@@ -149,5 +298,4 @@ class _SuggestionPageState extends State<SuggestionPage> {
       ),
     );
   }
-
 }

@@ -192,22 +192,52 @@ class _CityPageState extends State<CityPage> {
             style: const TextStyle(color: Colors.white, fontSize: 25),
           ),
           leading: IconButton(
-            icon: const Icon(Icons.lightbulb_outline, color: Colors.white),
-            onPressed: () {},
+            icon: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.lightbulb_outline, color: Colors.white),
+                SizedBox(height: 2),
+                Text(
+                  'Suggest',
+                  style: TextStyle(color: Colors.white, fontSize: 9),
+                ),
+              ],
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SuggestionPage(token: widget.token), // Navigate to SuggestionPage with token
+                ),
+              );
+            },
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.qr_code, color: Colors.white),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: const Icon(Icons.add, color: Colors.white),
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SuggestionPage(token: widget.token), // Navigate to SuggestionPage with token
+                // Handle your scan action
+              },
+              icon: Column(
+                children: [
+                  Image.asset(
+                    'assets/scan_icon.jpg',
+                    width: 34,  // Adjust the width as needed
+                    height: 24, // Adjust the height as needed
+                    // color: Colors.white, // Apply color filter if necessary
                   ),
+                  SizedBox(height: 2), // Adjust the height as needed for spacing
+                  Text('Scan', style: TextStyle(color: Colors.white, fontSize: 9)),
+                ],
+              ),
+            ),
+            SizedBox(width: 8), // Space between icons
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () {
+                showSearch<String>(
+                  context: context,
+                  delegate:
+                  CustomSearchDelegate(context: context, token: widget.token, cityName: widget.title),
                 );
               },
             ),
@@ -301,6 +331,23 @@ class _CityPageState extends State<CityPage> {
     );
   }
 
+
+  Future<Map<String, dynamic>> searchPlace(String placeName, String cityName, String token) async {
+    final url = 'http://guide-me.somee.com/api/Place/$placeName/$cityName/SearchPlace';
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'accept': '/',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load place');
+    }
+  }
   List<Widget> buildCategoryCards(String category) {
     List<Widget> cards = [];
     final model = Provider.of<FavoritePlacesModel>(context);
@@ -409,5 +456,146 @@ class _CityPageState extends State<CityPage> {
       }
     }
     return cards;
+  }
+}
+
+class CustomSearchDelegate extends SearchDelegate<String> {
+  final BuildContext context;
+  final String token;
+  final String cityName;
+
+  CustomSearchDelegate({required this.context, required this.token, required this.cityName});
+
+  @override
+  ThemeData appBarTheme(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return theme.copyWith(
+      scaffoldBackgroundColor: const Color.fromARGB(255, 21, 82, 113),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color.fromARGB(140, 21, 82, 113),
+      ),
+    );
+  }
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: const Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return Opacity(
+      opacity: 0.9,
+      child: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () {
+          close(context, '');
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    return _buildSearchResults(context);
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    return _buildSearchResults(context);
+  }
+
+  Widget _buildSearchResults(BuildContext context) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _fetchSearchResults(query , cityName),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+          final results = snapshot.data!;
+          return GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.8,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+            ),
+            itemCount: results.length,
+            itemBuilder: (context, index) {
+              final place = results[index];
+              return GestureDetector(
+                // onTap: () => Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => PlacePage(
+                //       touristName: decodeToken(widget.token),
+                //       cityName: widget.title,
+                //       place: place,
+                //       token: widget.token,
+                //     ),
+                //   ),
+                // ),
+                child: Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Expanded(
+                        child: place['imagePath'] != null
+                            ? Image.network(
+                          place['imagePath'],
+                          fit: BoxFit.cover,
+                        )
+                            : const Placeholder(),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          place['name'],
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        } else {
+          return const Center(child: Text('No results found.'));
+        }
+      },
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchSearchResults(String query,String cityName) async {
+    final response = await http.get(
+      Uri.parse('http://guide-me.somee.com/api/Place/$query/$cityName/SearchPlace'),
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map<Map<String, dynamic>>((place) {
+        return {
+          'name': place['placeName'],
+          'imagePath': place['placeImage'],
+        };
+      }).toList();
+    } else {
+      throw Exception('Failed to fetch search results');
+    }
   }
 }

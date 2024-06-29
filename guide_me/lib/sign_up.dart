@@ -242,26 +242,31 @@ class _SignUpPageState extends State<SignUpPage> {
                     },
                   ),
                   SizedBox(height: 30.0),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _signUp(); // Call _signUp() method here
-                      }
-                    },
-                    child: _isLoading
-                        ? CircularProgressIndicator()
-                        : Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 229, 233, 154),
-                        fontSize: 18,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.fromLTRB(50, 10, 50, 10),
-                      backgroundColor: Color.fromARGB(255, 35, 110, 172),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
+                  Center(
+                    child: SizedBox(
+                      width: 150, // Set the width to your desired value
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            _signUp(); // Call _signUp() method here
+                          }
+                        },
+                        child: _isLoading
+                            ? CircularProgressIndicator()
+                            : Text(
+                          'Sign Up',
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 229, 233, 154),
+                            fontSize: 18,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 10.0),
+                          backgroundColor: Color.fromARGB(255, 35, 110, 172),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
                       ),
                     ),
                   ),

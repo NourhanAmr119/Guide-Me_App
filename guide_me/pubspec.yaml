@@ -30,7 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: 1.2.1 
+  http: ^1.2.1
   google_fonts: ^6.2.1
   shared_preferences: ^2.2.2
   jwt_decode: ^0.3.1
@@ -45,15 +45,9 @@ dependencies:
   url_launcher: ^6.3.0
   flutter_map: ^7.0.1
   latlong2: ^0.9.1
-  #  flutter_osm_plugin: ^1.0.5
-  #  geolocator: ^12.0.0
-  fluttertoast: ^8.2.6
-  #  open_street_map_search_and_pick: ^0.1.1
-  #  flutter_open_street_map: ^0.0.4
-  geocoding: ^3.0.0
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.18.1
   cupertino_icons: ^1.0.2
 
 
@@ -66,6 +60,7 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/app_icon.png"
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -91,7 +86,7 @@ flutter:
 
   assets:
     - assets/background_image.jpg
-    - assets/Dream_Park.jpg
+    - assets/scan_icon.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
