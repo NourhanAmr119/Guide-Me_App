@@ -350,21 +350,43 @@ class CustomSearchDelegate extends SearchDelegate<String> {
   }
 
   Future<List<Map<String, dynamic>>> _fetchSearchResults(String query) async {
-    final response = await http.get(
-      Uri.parse('http://guide-me.somee.com/api/City/SearchCity/$query'),
-    );
+    final url = Uri.parse('http://guide-me.somee.com/api/City/SearchCity/$query');
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map<Map<String, dynamic>>((city) {
-        return {
-          'id': city['id'],
-          'name': city['name'],
-          'imagePath': city['cityImage'],
-        };
-      }).toList();
-    } else {
-      throw Exception('Failed to fetch search results');
+    try {
+      final response = await http.get(url, headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYXNtYWEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImM0NzJhMTcwLTE4M2YtNDkxYS04ZGQ5LTQ0M2EzZTRlMzFiNCIsImp0aSI6IjJhNzg1NTA0LTNlYTYtNDRiOC05MDFiLTJkYmFhZDJjMzYyYiIsImV4cCI6MTcxOTk1NjAyMiwiaXNzIjoiaHR0cDovL2d1aWRlLW1lLnNvbWVlLmNvbSIsImF1ZCI6Imh0dHA6Ly9ndWlkZS1tZS5zb21lZS5jb20ifQ.DXorCengkm1FMSZcQbQWP97tWwLeO7m3pE61VU9z-YU'
+      });
+
+      if (response.statusCode == 200) {
+        final dynamic data = json.decode(response.body);
+
+        if (data is List) {
+          // Case when API returns an array of objects
+          return data.map<Map<String, dynamic>>((city) {
+            return {
+              'id': city['id'],
+              'name': city['name'],
+              'imagePath': city['cityImage'],
+            };
+          }).toList();
+        } else if (data is Map<String, dynamic>) {
+          // Case when API returns a single object
+          return [
+            {
+              'id': data['id'],
+              'name': data['name'],
+              'imagePath': data['cityImage'],
+            }
+          ];
+        } else {
+          throw Exception('Data is not in the expected format');
+        }
+      } else {
+        throw Exception('Failed to fetch search results');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
     }
   }
 }

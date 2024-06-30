@@ -206,6 +206,7 @@ class _PlacePageState extends State<PlacePage> {
       print('Tourist name is required.');
       return;
     }
+    print('place in : $widget.place');
 
     final placeName = widget.place['name'];
     if (placeName == null || placeName.isEmpty) {

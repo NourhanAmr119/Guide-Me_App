@@ -237,7 +237,7 @@ class _CityPageState extends State<CityPage> {
                 showSearch<String>(
                   context: context,
                   delegate:
-                  CustomSearchDelegate(context: context, token: widget.token, cityName: widget.title),
+                  CustomSearchDelegate(context: context, token: widget.token, cityName: widget.title,touristName:decodeToken(widget.token)),
                 );
               },
             ),
@@ -332,22 +332,25 @@ class _CityPageState extends State<CityPage> {
   }
 
 
-  Future<Map<String, dynamic>> searchPlace(String placeName, String cityName, String token) async {
-    final url = 'http://guide-me.somee.com/api/Place/$placeName/$cityName/SearchPlace';
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {
-        'accept': '/',
-        'Authorization': 'Bearer $token',
-      },
-    );
 
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Failed to load place');
-    }
-  }
+
+  // Future<Map<String, dynamic>> searchPlace(String placeName, String cityName, String token) async {
+  //   final url = Uri.parse('http://guide-me.somee.com/api/Place/${Uri.encodeComponent(placeName)}/${Uri.encodeComponent(cityName)}/SearchPlace');
+  //   final response = await http.get(
+  //     url,
+  //     headers: {
+  //       'accept': 'application/json',
+  //       'Authorization': 'Bearer $token',
+  //     },
+  //   );
+  //
+  //   if (response.statusCode == 200) {
+  //     return jsonDecode(response.body);
+  //   } else {
+  //     throw Exception('Failed to load place');
+  //   }
+  // }
+
   List<Widget> buildCategoryCards(String category) {
     List<Widget> cards = [];
     final model = Provider.of<FavoritePlacesModel>(context);
@@ -459,18 +462,28 @@ class _CityPageState extends State<CityPage> {
   }
 }
 
-class CustomSearchDelegate extends SearchDelegate<String> {
-  final BuildContext context;
-  final String token;
-  final String cityName;
 
-  CustomSearchDelegate({required this.context, required this.token, required this.cityName});
+
+
+
+
+class CustomSearchDelegate extends SearchDelegate<String> {
+  final String cityName;
+  final String touristName;
+  final String token;
+  final BuildContext context; // Add context here
+
+  CustomSearchDelegate({
+    required this.context,
+    required this.cityName,
+    required this.touristName,
+    required this.token,
+  });
 
   @override
   ThemeData appBarTheme(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return theme.copyWith(
-      scaffoldBackgroundColor: const Color.fromARGB(255, 21, 82, 113),
+    return Theme.of(context).copyWith(
+      scaffoldBackgroundColor: const Color.fromARGB(255, 246, 243, 177),
       appBarTheme: const AppBarTheme(
         backgroundColor: Color.fromARGB(140, 21, 82, 113),
       ),
@@ -491,14 +504,11 @@ class CustomSearchDelegate extends SearchDelegate<String> {
 
   @override
   Widget buildLeading(BuildContext context) {
-    return Opacity(
-      opacity: 0.9,
-      child: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () {
-          close(context, '');
-        },
-      ),
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, '');
+      },
     );
   }
 
@@ -512,90 +522,165 @@ class CustomSearchDelegate extends SearchDelegate<String> {
     return _buildSearchResults(context);
   }
 
+  Future<void> addPlaceToHistory(String placeName) async {
+    try {
+      final url = Uri.parse(
+          'http://guide-me.somee.com/api/TouristHistory?placename=${Uri.encodeComponent(placeName)}&touristname=${Uri.encodeComponent(touristName)}');
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'accept': '*/*',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('Request URL: $url');
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        print('Place added to history successfully');
+        // Handle success as needed, e.g., navigate to a new page
+      } else {
+        print('Failed to add place to history: ${response.statusCode}');
+        // Handle failure, e.g., show a SnackBar with an error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to add place to history: ${response.statusCode}'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Exception caught: $e');
+      // Handle exceptions, e.g., show a SnackBar with the exception message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Exception: $e'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
   Widget _buildSearchResults(BuildContext context) {
     return FutureBuilder<List<Map<String, dynamic>>>(
-      future: _fetchSearchResults(query , cityName),
+      future: searchPlace(query),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-          final results = snapshot.data!;
-          return GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.8,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-            ),
-            itemCount: results.length,
+          final places = snapshot.data!;
+
+          return ListView.builder(
+            itemCount: places.length,
             itemBuilder: (context, index) {
-              final place = results[index];
+              final place = places[index];
+
               return GestureDetector(
-                // onTap: () => Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //     builder: (context) => PlacePage(
-                //       touristName: decodeToken(widget.token),
-                //       cityName: widget.title,
-                //       place: place,
-                //       token: widget.token,
-                //     ),
-                //   ),
-                // ),
-                child: Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      Expanded(
-                        child: place['imagePath'] != null
-                            ? Image.network(
-                          place['imagePath'],
-                          fit: BoxFit.cover,
-                        )
-                            : const Placeholder(),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          place['name'],
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
+                onTap: () {
+                  _onTapCard(place);
+                },
+                child: ListTile(
+                  title: Text(place['placeName'] ?? 'Unknown Place'),
+                  leading: place['placeImage'] != null
+                      ? Image.network(
+                    place['placeImage'],
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.cover,
+                  )
+                      : Placeholder(
+                    fallbackWidth: 50,
+                    fallbackHeight: 50,
                   ),
                 ),
               );
             },
           );
         } else {
-          return const Center(child: Text('No results found.'));
+          return Center(child: Text('No results found.'));
         }
       },
     );
   }
 
-  Future<List<Map<String, dynamic>>> _fetchSearchResults(String query,String cityName) async {
+  Future<List<Map<String, dynamic>>> searchPlace(String placeName) async {
+    final url = Uri.parse(
+        'http://guide-me.somee.com/api/Place/${Uri.encodeComponent(placeName)}/${Uri.encodeComponent(cityName)}/SearchPlace');
     final response = await http.get(
-      Uri.parse('http://guide-me.somee.com/api/Place/$query/$cityName/SearchPlace'),
+      url,
+      headers: {
+        'accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
     );
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map<Map<String, dynamic>>((place) {
-        return {
-          'name': place['placeName'],
-          'imagePath': place['placeImage'],
-        };
-      }).toList();
+      dynamic jsonData = jsonDecode(response.body);
+
+      if (jsonData is List) {
+        List<Map<String, dynamic>> places = [];
+        for (var item in jsonData) {
+          if (item is Map<String, dynamic>) {
+            places.add(item);
+          }
+        }
+        return places;
+      } else if (jsonData is Map<String, dynamic>) {
+        return [jsonData];
+      } else {
+        throw Exception('Unexpected response format');
+      }
     } else {
-      throw Exception('Failed to fetch search results');
+      throw Exception('Failed to load places: ${response.statusCode}');
     }
   }
+
+  void _onTapCard(Map<String, dynamic> place) async {
+    try {
+      final String placeName = place['placeName'] ?? 'Unknown Place';
+
+      await addPlaceToHistory(placeName);
+
+      // Print the parameters before navigating
+      print('Navigating to PlacePage with parameters:');
+      print('touristName: $touristName');
+      print('cityName: $cityName');
+      print('place: $place');
+      print('token: $token');
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PlacePage(
+            touristName: touristName,
+            cityName: cityName,
+            place: {
+              'name': place['placeName'],
+              'image': place['placeImage'],
+            },
+            token: token,
+          ),
+        ),
+      );
+    } catch (e) {
+      print('Error tapping card: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
 }
+
+
+
+
