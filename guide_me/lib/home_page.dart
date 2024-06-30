@@ -1,11 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 import 'city_page.dart';
 import 'favorite_page.dart';
 import 'history_page.dart';
+import 'AppLocalization.dart';
 
 class home_page extends StatefulWidget {
   final String token;
@@ -20,19 +22,70 @@ class _HomePageState extends State<home_page> {
   final ScrollController _scrollController = ScrollController();
   bool _showAppbarColor = false;
   List<Map<String, dynamic>> cities = [];
-  List<String> favoritePlaces = [];
+  String languageCode = 'en'; // Default to English
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
     _fetchCities();
+    _fetchLanguage();
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  String decodeToken(String token) {
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
+  }
+
+  Future<void> _fetchLanguage() async {
+    String touristName = decodeToken(widget.token);
+    final response = await http.get(
+      Uri.parse('http://guide-me.somee.com/api/Tourist/GetTouristInfo/$touristName'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': '*/*',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        languageCode = _mapLanguageCode(data['language']);
+        _setLocale();
+      });
+    } else {
+      throw Exception('Failed to fetch tourist info');
+    }
+  }
+
+  String _mapLanguageCode(String language) {
+    switch (language.toLowerCase()) {
+      case 'spanish':
+        return 'es';
+      case 'french':
+        return 'fr';
+      case 'italian':
+        return 'it';
+      case 'arabic':
+        return 'ar';
+      case 'russian':
+        return 'ru';
+      default:
+        return 'en'; // Default to English
+    }
+  }
+
+  void _setLocale() {
+    AppLocalization appLocalization = AppLocalization(Locale(languageCode));
+    appLocalization.load().then((_) {
+      setState(() {}); // Trigger a rebuild once localization is loaded
+    });
   }
 
   void _fetchCities() async {
@@ -79,7 +132,7 @@ class _HomePageState extends State<home_page> {
             ? Theme.of(context).primaryColor
             : Colors.transparent,
         title: Text(
-          'Guide Me',
+          AppLocalization.of(context).translate('app_title') ?? '', // Provide default value if null
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -92,8 +145,7 @@ class _HomePageState extends State<home_page> {
             onPressed: () {
               showSearch<String>(
                 context: context,
-                delegate:
-                    CustomSearchDelegate(context: context, token: widget.token),
+                delegate: CustomSearchDelegate(context: context, token: widget.token),
               );
             },
           ),
@@ -123,8 +175,7 @@ class _HomePageState extends State<home_page> {
                   ),
                   itemCount: cities.length,
                   itemBuilder: (BuildContext context, int index) {
-                    return _buildCard(context, cities[index]['name'],
-                        cities[index]['imagePath']);
+                    return _buildCard(context, cities[index]);
                   },
                 ),
               ],
@@ -151,8 +202,7 @@ class _HomePageState extends State<home_page> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => favorite_page(
-                          authToken: widget.token), // Corrected line
+                      builder: (context) => favorite_page(authToken: widget.token),
                     ),
                   );
                 },
@@ -179,54 +229,57 @@ class _HomePageState extends State<home_page> {
     );
   }
 
-  Widget _buildCard(BuildContext context, String title, String? imagePath) {
+  Widget _buildCard(BuildContext context, Map<String, dynamic> city) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => CityPage(title: title, token: widget.token),
+            builder: (context) => CityPage(title: city['name'], token: widget.token),
           ),
         );
       },
-      child: Stack(
-        children: [
-          Card(
-            elevation: 3,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30.0),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(30.0),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  imagePath != null
-                      ? Image.network(
-                          imagePath,
-                          fit: BoxFit.cover,
-                        )
-                      : Container(),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        title,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30.0),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30.0),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              city['imagePath'] != null
+                  ? Image.network(
+                city['imagePath'],
+                fit: BoxFit.cover,
+              )
+                  : Container(),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    city['name'] ?? '', // Provide default value if null
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black,
+                          blurRadius: 2,
+                          offset: Offset(1, 1),
                         ),
-                      ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -287,106 +340,86 @@ class CustomSearchDelegate extends SearchDelegate<String> {
   Widget _buildSearchResults(BuildContext context) {
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: _fetchSearchResults(query),
-      builder: (context, snapshot) {
+      builder: (BuildContext context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-          final results = snapshot.data!;
           return GridView.builder(
+            shrinkWrap: true,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              childAspectRatio: 0.8,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
+              crossAxisSpacing: 10.0,
+              mainAxisSpacing: 10.0,
             ),
-            itemCount: results.length,
-            itemBuilder: (context, index) {
-              final city = results[index];
-              return GestureDetector(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        CityPage(title: city['name'], token: token),
-                  ),
-                ),
-                child: Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      Expanded(
-                        child: city['imagePath'] != null
-                            ? Image.network(
-                                city['imagePath'],
-                                fit: BoxFit.cover,
-                              )
-                            : const Placeholder(),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          city['name'],
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
+            itemCount: snapshot.data!.length,
+            itemBuilder: (BuildContext context, int index) {
+              return _buildSearchCard(context, snapshot.data![index]);
             },
           );
         } else {
-          return const Center(child: Text('No results found.'));
+          return const Center(child: Text('No results found'));
         }
       },
     );
   }
 
+  Widget _buildSearchCard(BuildContext context, Map<String, dynamic> result) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CityPage(title: result['name'], token: token),
+          ),
+        );
+      },
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                result['name'] ?? '', // Provide default value if null
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<List<Map<String, dynamic>>> _fetchSearchResults(String query) async {
-    final url = Uri.parse('http://guide-me.somee.com/api/City/SearchCity/$query');
+    final response = await http.get(
+      Uri.parse('http://guide-me.somee.com/api/City/SearchCities/$query'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
 
-    try {
-      final response = await http.get(url, headers: {
-        'accept': '*/*',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYXNtYWEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImM0NzJhMTcwLTE4M2YtNDkxYS04ZGQ5LTQ0M2EzZTRlMzFiNCIsImp0aSI6IjJhNzg1NTA0LTNlYTYtNDRiOC05MDFiLTJkYmFhZDJjMzYyYiIsImV4cCI6MTcxOTk1NjAyMiwiaXNzIjoiaHR0cDovL2d1aWRlLW1lLnNvbWVlLmNvbSIsImF1ZCI6Imh0dHA6Ly9ndWlkZS1tZS5zb21lZS5jb20ifQ.DXorCengkm1FMSZcQbQWP97tWwLeO7m3pE61VU9z-YU'
-      });
-
-      if (response.statusCode == 200) {
-        final dynamic data = json.decode(response.body);
-
-        if (data is List) {
-          // Case when API returns an array of objects
-          return data.map<Map<String, dynamic>>((city) {
-            return {
-              'id': city['id'],
-              'name': city['name'],
-              'imagePath': city['cityImage'],
-            };
-          }).toList();
-        } else if (data is Map<String, dynamic>) {
-          // Case when API returns a single object
-          return [
-            {
-              'id': data['id'],
-              'name': data['name'],
-              'imagePath': data['cityImage'],
-            }
-          ];
-        } else {
-          throw Exception('Data is not in the expected format');
-        }
-      } else {
-        throw Exception('Failed to fetch search results');
-      }
-    } catch (e) {
-      throw Exception('Error: $e');
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map<Map<String, dynamic>>((city) {
+        return {
+          'id': city['id'],
+          'name': city['name'],
+        };
+      }).toList();
+    } else {
+      throw Exception('Failed to fetch search results');
     }
   }
 }
