@@ -87,12 +87,9 @@ flutter:
   assets:
     - assets/background_image.jpg
     - assets/scan_icon.jpg
-    - assets/lang/en.json
-    - assets/lang/es.json
-    - assets/lang/fr.json
-    - assets/lang/it.json
-    - assets/lang/ar.json
-    - assets/lang/ru.json
+    - assets/i18n/en.json
+    - assets/i18n/es.json
+
 
 
 

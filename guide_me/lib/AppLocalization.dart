@@ -5,28 +5,34 @@ import 'package:flutter/services.dart';
 
 class AppLocalization {
   final Locale locale;
-  late Map<String, String> _localizedStrings;
+  Map<String, String> _localizedStrings = {};
 
   AppLocalization(this.locale);
+
+  static const LocalizationsDelegate<AppLocalization> delegate = _AppLocalizationDelegate();
 
   static AppLocalization of(BuildContext context) {
     return Localizations.of<AppLocalization>(context, AppLocalization)!;
   }
-
-  Future<void> load() async {
-    String jsonString =
-    await rootBundle.loadString('assets/lang/${locale.languageCode}.json');
-    Map<String, dynamic> jsonMap = json.decode(jsonString);
-    _localizedStrings = jsonMap.map((key, value) => MapEntry(key, value.toString()));
+  Future<bool> load() async {
+    try {
+      String jsonString = await rootBundle.loadString('assets/i18n/${locale.languageCode}.json');
+      print('Loaded JSON for ${locale.languageCode}: $jsonString'); // Add this line
+      Map<String, dynamic> jsonMap = json.decode(jsonString);
+      _localizedStrings = jsonMap.map((key, value) => MapEntry(key, value.toString()));
+      return true;
+    } catch (e) {
+      print('Failed to load ${locale.languageCode}.json: $e');
+      return false;
+    }
   }
+
 
   String translate(String key) {
-    return _localizedStrings[key] ?? ''; // Provide default value if translation not found
+    return _localizedStrings[key] ?? key;
   }
-
-  static const LocalizationsDelegate<AppLocalization> delegate =
-  _AppLocalizationDelegate();
 }
+
 
 class _AppLocalizationDelegate extends LocalizationsDelegate<AppLocalization> {
   const _AppLocalizationDelegate();

@@ -32,34 +32,28 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _locale = const Locale('en', 'US'); // Default locale
-    _fetchLanguage(); // Fetch user's preferred language
-  }
-  String decodeToken(String token) {
-    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-    return decodedToken[
-    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
-  }
-  void _fetchLanguage() async {
-    // Implement your token decoding logic here
-    String token = ''; // Replace with your token
-    String touristName = decodeToken(token); // Implement decodeToken function
 
-    final response = await http.get(
-      Uri.parse('http://guide-me.somee.com/api/Tourist/GetTouristInfo/$touristName'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'accept': '*/*',
-      },
-    );
+    // Optionally, load user's preferred language
+    _fetchUserLanguage();
+  }
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      String languageCode = _mapLanguageCode(data['language']);
+  Future<void> _fetchUserLanguage() async {
+    // Simulate fetching user language from an API or local storage
+    try {
+      // Replace this with your actual API call to fetch user language
+      // Example:
+      // final response = await http.get('your_api_endpoint');
+      // final userLanguage = json.decode(response.body)['preferredLanguage'];
+
+      // Simulated response:
+      final userLanguage = 'spanish'; // Replace with actual user's language
+
+      final locale = Locale(_mapLanguageCode(userLanguage), ''); // Use country code if available
       setState(() {
-        _locale = Locale(languageCode);
+        _locale = locale;
       });
-    } else {
-      throw Exception('Failed to fetch tourist info');
+    } catch (e) {
+      print('Error fetching user language: $e');
     }
   }
 

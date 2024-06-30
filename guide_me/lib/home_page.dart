@@ -1,13 +1,11 @@
-import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
-
+import 'AppLocalization.dart';
 import 'city_page.dart';
 import 'favorite_page.dart';
 import 'history_page.dart';
-import 'AppLocalization.dart';
 
 class home_page extends StatefulWidget {
   final String token;
@@ -22,14 +20,15 @@ class _HomePageState extends State<home_page> {
   final ScrollController _scrollController = ScrollController();
   bool _showAppbarColor = false;
   List<Map<String, dynamic>> cities = [];
-  String languageCode = 'en'; // Default to English
+  String language = 'en';
+  Locale? _locale; // Define _locale variable
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
     _fetchCities();
-    _fetchLanguage();
+    _fetchLanguage(); // Fetch initial language setting
   }
 
   @override
@@ -45,44 +44,35 @@ class _HomePageState extends State<home_page> {
 
   Future<void> _fetchLanguage() async {
     String touristName = decodeToken(widget.token);
-    final response = await http.get(
-      Uri.parse('http://guide-me.somee.com/api/Tourist/GetTouristInfo/$touristName'),
-      headers: {
-        'Authorization': 'Bearer ${widget.token}',
-        'accept': '*/*',
-      },
-    );
+    try {
+      final response = await http.get(
+        Uri.parse('http://guide-me.somee.com/api/Tourist/GetTouristInfo/$touristName'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': '*/*',
+        },
+      );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      setState(() {
-        languageCode = _mapLanguageCode(data['language']);
-        _setLocale();
-      });
-    } else {
-      throw Exception('Failed to fetch tourist info');
-    }
-  }
+      print('API Response: ${response.statusCode}');
+      print('Response Body: ${response.body}');
 
-  String _mapLanguageCode(String language) {
-    switch (language.toLowerCase()) {
-      case 'spanish':
-        return 'es';
-      case 'french':
-        return 'fr';
-      case 'italian':
-        return 'it';
-      case 'arabic':
-        return 'ar';
-      case 'russian':
-        return 'ru';
-      default:
-        return 'en'; // Default to English
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print('Decoded Data: $data');
+        setState(() {
+          _locale = Locale(data['language'] == 'Spanish' ? 'es' : 'en');
+        });
+        _setLocale(); // Set the new locale
+      } else {
+        throw Exception('Failed to fetch tourist info');
+      }
+    } catch (e) {
+      print('Error fetching tourist info: $e');
     }
   }
 
   void _setLocale() {
-    AppLocalization appLocalization = AppLocalization(Locale(languageCode));
+    AppLocalization appLocalization = AppLocalization(_locale!);
     appLocalization.load().then((_) {
       setState(() {}); // Trigger a rebuild once localization is loaded
     });
@@ -132,13 +122,15 @@ class _HomePageState extends State<home_page> {
             ? Theme.of(context).primaryColor
             : Colors.transparent,
         title: Text(
-          AppLocalization.of(context).translate('app_title') ?? '', // Provide default value if null
+          AppLocalization.of(context).translate('app_title') ?? '',
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
+
+
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -263,16 +255,9 @@ class _HomePageState extends State<home_page> {
                     city['name'] ?? '', // Provide default value if null
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black,
-                          blurRadius: 2,
-                          offset: Offset(1, 1),
-                        ),
-                      ],
                     ),
                   ),
                 ),
@@ -342,9 +327,9 @@ class CustomSearchDelegate extends SearchDelegate<String> {
       future: _fetchSearchResults(query),
       builder: (BuildContext context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(child: Text(AppLocalization.of(context).translate('no_results')));
         } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
           return GridView.builder(
             shrinkWrap: true,
@@ -359,11 +344,12 @@ class CustomSearchDelegate extends SearchDelegate<String> {
             },
           );
         } else {
-          return const Center(child: Text('No results found'));
+          return Center(child: Text(AppLocalization.of(context).translate('no_results')));
         }
       },
     );
   }
+
 
   Widget _buildSearchCard(BuildContext context, Map<String, dynamic> result) {
     return GestureDetector(
@@ -378,22 +364,33 @@ class CustomSearchDelegate extends SearchDelegate<String> {
       child: Card(
         elevation: 3,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15.0),
+          borderRadius: BorderRadius.circular(30.0),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30.0),
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              Text(
-                result['name'] ?? '', // Provide default value if null
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              result['imagePath'] != null
+                  ? Image.network(
+                result['imagePath'],
+                fit: BoxFit.cover,
+              )
+                  : Container(),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    result['name'] ?? '', // Provide default value if null
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -404,7 +401,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
 
   Future<List<Map<String, dynamic>>> _fetchSearchResults(String query) async {
     final response = await http.get(
-      Uri.parse('http://guide-me.somee.com/api/City/SearchCities/$query'),
+      Uri.parse('http://guide-me.somee.com/api/City/SearchCities?searchString=$query'),
       headers: {
         'Authorization': 'Bearer $token',
       },
@@ -416,10 +413,11 @@ class CustomSearchDelegate extends SearchDelegate<String> {
         return {
           'id': city['id'],
           'name': city['name'],
+          'imagePath': city['cityImage'],
         };
       }).toList();
     } else {
-      throw Exception('Failed to fetch search results');
+      throw Exception('Failed to load search results');
     }
   }
 }
