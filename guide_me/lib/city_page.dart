@@ -294,7 +294,7 @@ class _CityPageState extends State<CityPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => favorite_page(
+                        builder: (context) => FavoritePage(
                           authToken: widget.token,
                         ),
                       ),
@@ -307,7 +307,7 @@ class _CityPageState extends State<CityPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => history_page(token: widget.token),
+                        builder: (context) => HistoryPage(token: widget.token),
                       ),
                     );
                   },

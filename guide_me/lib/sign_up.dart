@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'home_page.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
 
@@ -14,9 +15,8 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-  TextEditingController();
-  final TextEditingController _languageController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  String? _selectedLanguage;
 
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
@@ -51,10 +51,10 @@ class _SignUpPageState extends State<SignUpPage> {
     final String email = _emailController.text;
     final String password = _passwordController.text;
     final String confirmPassword = _confirmPasswordController.text;
-    final String language = _languageController.text;
+    final String? language = _selectedLanguage;
 
     final response = await http.post(
-      Uri.parse('http://guide-me.somee.com/api/Tourist/signup'),
+      Uri.parse('http://guideme.somee.com/api/Tourist/signup'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -63,7 +63,7 @@ class _SignUpPageState extends State<SignUpPage> {
         'email': email,
         'password': password,
         'confirmPassword': confirmPassword,
-        'language': language,
+        'language': language!,
       }),
     );
 
@@ -79,7 +79,7 @@ class _SignUpPageState extends State<SignUpPage> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => home_page(token: token),
+          builder: (context) => HomePage(token: token),
         ),
       );
     } else {
@@ -88,50 +88,30 @@ class _SignUpPageState extends State<SignUpPage> {
         final errorResponse = jsonDecode(response.body);
         errorMessage = errorResponse['message'] ?? 'An error occurred';
 
-        if (errorMessage == "Passwords must have at least one uppercase ('A'-'Z')") {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('Error'),
-                content: Text(errorMessage),
-                actions: <Widget>[
-                  TextButton(
-                    child: Text('OK'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        } else if (errorMessage == "Username is already taken.") {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('Error'),
-                content: Text(errorMessage),
-                actions: <Widget>[
-                  TextButton(
-                    child: Text('OK'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        }
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Error'),
+              content: Text(errorMessage),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
       }
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       body: Container(
         height: MediaQuery.of(context).size.height,
         decoration: BoxDecoration(
@@ -183,8 +163,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your email';
                       }
-                      if (!RegExp(r"^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$")
-                          .hasMatch(value)) {
+                      if (!RegExp(r"^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$").hasMatch(value)) {
                         return 'Please enter a valid email';
                       }
                       return null;
@@ -230,13 +209,37 @@ class _SignUpPageState extends State<SignUpPage> {
                     },
                   ),
                   SizedBox(height: 30.0),
-                  buildTextField(
-                    controller: _languageController,
-                    labelText: 'Language',
-                    prefixIcon: Icons.language,
+                  DropdownButtonFormField<String>(
+                    value: _selectedLanguage,
+                    items: [
+                      DropdownMenuItem(
+                        value: 'en',
+                        child: Text('English'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'ar',
+                        child: Text('Arabic'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'fr',
+                        child: Text('French'),
+                      ),
+                    ],
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedLanguage = newValue;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'Language',
+                      prefixIcon: Icon(Icons.language),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25.0),
+                      ),
+                    ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your language';
+                        return 'Please select a language';
                       }
                       return null;
                     },
@@ -294,6 +297,7 @@ class _SignUpPageState extends State<SignUpPage> {
       ),
     );
   }
+
   Widget buildTextField({
     required TextEditingController controller,
     required String labelText,
@@ -306,9 +310,6 @@ class _SignUpPageState extends State<SignUpPage> {
     String hintText = 'Required',
   }) {
     String fieldHintText = 'Enter your $labelText'; // Generate field-specific hint text
-
-    // Create a FocusNode for the TextField
-    FocusNode focusNode = FocusNode();
 
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10),

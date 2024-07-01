@@ -6,15 +6,15 @@ import 'package:guide_me/city_page.dart';
 import 'history_page.dart';
 import 'home_page.dart';
 
-class favorite_page extends StatefulWidget {
+class FavoritePage extends StatefulWidget {
   final String authToken;
-  const favorite_page({Key? key, required this.authToken}) : super(key: key);
+  const FavoritePage({Key? key, required this.authToken}) : super(key: key);
 
   @override
   _FavoritePageState createState() => _FavoritePageState();
 }
 
-class _FavoritePageState extends State<favorite_page> {
+class _FavoritePageState extends State<FavoritePage> {
   List<dynamic> favorites = [];
 
   @override
@@ -186,7 +186,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => home_page(token: authToken)),
+                      builder: (context) => HomePage(token: authToken)),
                       (Route<dynamic> route) => false,
                 );
               },
@@ -203,7 +203,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => history_page(token: authToken),
+                    builder: (context) => HistoryPage(token: authToken),
                   ),
                 );
               },

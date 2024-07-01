@@ -237,7 +237,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => favorite_page(
+                      builder: (context) => FavoritePage(
                         authToken: widget.token,
                       ),
                     ),
@@ -250,7 +250,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => history_page(token: widget.token),
+                      builder: (context) => HistoryPage(token: widget.token),
                     ),
                   );
                 },

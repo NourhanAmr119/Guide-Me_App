@@ -7,28 +7,28 @@ import 'city_page.dart';
 import 'favorite_page.dart';
 import 'history_page.dart';
 
-class home_page extends StatefulWidget {
+class HomePage extends StatefulWidget {
   final String token;
 
-  const home_page({Key? key, required this.token}) : super(key: key);
+  const HomePage({Key? key, required this.token}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<home_page> {
+class _HomePageState extends State<HomePage> {
   final ScrollController _scrollController = ScrollController();
   bool _showAppbarColor = false;
   List<Map<String, dynamic>> cities = [];
   String language = 'en';
-  Locale? _locale; // Define _locale variable
+  Locale? _locale;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
     _fetchCities();
-    _fetchLanguage(); // Fetch initial language setting
+    _fetchLanguage();
   }
 
   @override
@@ -46,23 +46,19 @@ class _HomePageState extends State<home_page> {
     String touristName = decodeToken(widget.token);
     try {
       final response = await http.get(
-        Uri.parse('http://guide-me.somee.com/api/Tourist/GetTouristInfo/$touristName'),
+        Uri.parse('http://guideme.somee.com/api/Tourist/GetTouristInfo/$touristName'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': '*/*',
         },
       );
 
-      print('API Response: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print('Decoded Data: $data');
         setState(() {
           _locale = Locale(data['language'] == 'Spanish' ? 'es' : 'en');
         });
-        _setLocale(); // Set the new locale
+        _setLocale();
       } else {
         throw Exception('Failed to fetch tourist info');
       }
@@ -74,32 +70,41 @@ class _HomePageState extends State<home_page> {
   void _setLocale() {
     AppLocalization appLocalization = AppLocalization(_locale!);
     appLocalization.load().then((_) {
-      setState(() {}); // Trigger a rebuild once localization is loaded
+      setState(() {});
     });
   }
 
   void _fetchCities() async {
+    String touristName = decodeToken(widget.token);
     final response = await http.get(
-      Uri.parse('http://guide-me.somee.com/api/City/AllCities'),
+      Uri.parse('http://guideme.somee.com/api/City/AllCities/$touristName'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
       },
     );
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      setState(() {
-        cities = data.map<Map<String, dynamic>>((city) {
-          return {
-            'id': city['id'],
-            'name': city['name'],
-            'imagePath': city['cityImage'],
-          };
-        }).toList();
-      });
+      final Map<String, dynamic> responseData = json.decode(response.body);
+
+      if (responseData.containsKey('\$values')) {
+        final List<dynamic> cityData = responseData['\$values'];
+
+        setState(() {
+          cities = cityData.map<Map<String, dynamic>>((city) {
+            return {
+              'id': city['id'],
+              'name': city['name'],
+              'imagePath': city['cityImage'],
+            };
+          }).toList();
+        });
+      } else {
+        throw Exception('Failed to fetch cities: Invalid response format');
+      }
     } else {
-      throw Exception('Failed to fetch cities');
+      throw Exception('Failed to fetch cities: ${response.statusCode}');
     }
   }
+
 
   void _onScroll() {
     if (_scrollController.offset > 50 && !_showAppbarColor) {
@@ -129,15 +134,13 @@ class _HomePageState extends State<home_page> {
             color: Colors.white,
           ),
         ),
-
-
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
               showSearch<String>(
                 context: context,
-                delegate: CustomSearchDelegate(context: context, token: widget.token),
+                delegate: CustomSearchDelegate(context: context, token: widget.token, decodeToken: decodeToken),
               );
             },
           ),
@@ -194,7 +197,7 @@ class _HomePageState extends State<home_page> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => favorite_page(authToken: widget.token),
+                      builder: (context) => FavoritePage(authToken: widget.token),
                     ),
                   );
                 },
@@ -205,7 +208,7 @@ class _HomePageState extends State<home_page> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => history_page(token: widget.token),
+                      builder: (context) => HistoryPage(token: widget.token),
                     ),
                   );
                 },
@@ -220,6 +223,7 @@ class _HomePageState extends State<home_page> {
       ),
     );
   }
+
 
   Widget _buildCard(BuildContext context, Map<String, dynamic> city) {
     return GestureDetector(
@@ -273,8 +277,9 @@ class _HomePageState extends State<home_page> {
 class CustomSearchDelegate extends SearchDelegate<String> {
   final BuildContext context;
   final String token;
+  final Function(String) decodeToken;
 
-  CustomSearchDelegate({required this.context, required this.token});
+  CustomSearchDelegate({required this.context, required this.token, required this.decodeToken});
 
   @override
   ThemeData appBarTheme(BuildContext context) {
@@ -335,12 +340,58 @@ class CustomSearchDelegate extends SearchDelegate<String> {
             shrinkWrap: true,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              crossAxisSpacing: 10.0,
-              mainAxisSpacing: 10.0,
+              crossAxisSpacing: 16.0,
+              mainAxisSpacing: 16.0,
             ),
             itemCount: snapshot.data!.length,
             itemBuilder: (BuildContext context, int index) {
-              return _buildSearchCard(context, snapshot.data![index]);
+              final city = snapshot.data![index];
+              return GestureDetector(
+                onTap: () {
+                  close(context, city['name']);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CityPage(title: city['name'], token: token),
+                    ),
+                  );
+                },
+                child: Card(
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(30.0),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        city['imagePath'] != null
+                            ? Image.network(
+                          city['imagePath'],
+                          fit: BoxFit.cover,
+                        )
+                            : Container(),
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              city['name'] ?? '', // Provide default value if null
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
             },
           );
         } else {
@@ -350,58 +401,14 @@ class CustomSearchDelegate extends SearchDelegate<String> {
     );
   }
 
-
-  Widget _buildSearchCard(BuildContext context, Map<String, dynamic> result) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CityPage(title: result['name'], token: token),
-          ),
-        );
-      },
-      child: Card(
-        elevation: 3,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30.0),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(30.0),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              result['imagePath'] != null
-                  ? Image.network(
-                result['imagePath'],
-                fit: BoxFit.cover,
-              )
-                  : Container(),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    result['name'] ?? '', // Provide default value if null
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<List<Map<String, dynamic>>> _fetchSearchResults(String query) async {
+    if (query.isEmpty) {
+      return [];
+    }
+
+    String touristName = decodeToken(token); // Decode the token to get the tourist name
     final response = await http.get(
-      Uri.parse('http://guide-me.somee.com/api/City/SearchCities?searchString=$query'),
+      Uri.parse('http://guideme.somee.com/api/City/SearchCity/$query/$touristName'),
       headers: {
         'Authorization': 'Bearer $token',
       },
@@ -417,7 +424,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
         };
       }).toList();
     } else {
-      throw Exception('Failed to load search results');
+      throw Exception('Failed to fetch search results');
     }
   }
 }

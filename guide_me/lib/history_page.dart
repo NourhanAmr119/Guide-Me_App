@@ -5,16 +5,16 @@ import 'favorite_page.dart';
 import 'home_page.dart';
 import 'package:jwt_decode/jwt_decode.dart'; 
 
-class history_page extends StatefulWidget {
+class HistoryPage extends StatefulWidget {
   final String token;
 
-  const history_page({Key? key, required this.token}) : super(key: key);
+  const HistoryPage({Key? key, required this.token}) : super(key: key);
 
   @override
   _HistoryPageState createState() => _HistoryPageState();
 }
 
-class _HistoryPageState extends State<history_page> {
+class _HistoryPageState extends State<HistoryPage> {
   List<dynamic> history = [];
   late String touristName;
 
@@ -164,7 +164,7 @@ class _HistoryPageState extends State<history_page> {
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => home_page(token: widget.token)),
+                        builder: (context) => HomePage(token: widget.token)),
                     (Route<dynamic> route) => false,
                   );
                 },
@@ -176,7 +176,7 @@ class _HistoryPageState extends State<history_page> {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          favorite_page(authToken: widget.token),
+                          FavoritePage(authToken: widget.token),
                     ),
                   );
                 },

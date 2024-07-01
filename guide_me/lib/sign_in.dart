@@ -159,7 +159,7 @@ class _SignInPageState extends State<SignInPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://guide-me.somee.com/api/Tourist/signin'),
+        Uri.parse('http://guideme.somee.com/api/Tourist/signin'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -174,7 +174,7 @@ class _SignInPageState extends State<SignInPage> {
         final token = responseData['token'];
 
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => home_page(token: token)),
+          MaterialPageRoute(builder: (context) => HomePage(token: token)),
         );
       } else {
         _showErrorDialog(context, 'Invalid username or password.');
