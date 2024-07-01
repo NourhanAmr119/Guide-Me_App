@@ -224,6 +224,18 @@ class _SignUpPageState extends State<SignUpPage> {
                         value: 'fr',
                         child: Text('French'),
                       ),
+                      DropdownMenuItem(
+                        value: 'it',
+                        child: Text('Italy'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'es',
+                        child: Text('Spanish'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'de',
+                        child: Text('German'),
+                      ),
                     ],
                     onChanged: (String? newValue) {
                       setState(() {

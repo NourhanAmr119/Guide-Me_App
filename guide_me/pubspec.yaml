@@ -89,6 +89,9 @@ flutter:
     - assets/scan_icon.jpg
     - assets/i18n/en.json
     - assets/i18n/es.json
+    - assets/i18n/ar.json
+    - assets/i18n/it.json
+
 
 
 

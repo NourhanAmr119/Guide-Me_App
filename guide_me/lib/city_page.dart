@@ -2,26 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:jwt_decode/jwt_decode.dart';
-import 'favorite_page.dart'; // Import FavoritePage if not imported already
-import 'place_page.dart'; // Import PlacePage
+import 'favorite_page.dart';
+import 'place_page.dart';
 import 'history_page.dart';
 import 'profile_page.dart';
 import 'package:provider/provider.dart';
 import 'favorite_places_model.dart';
-import 'suggest_place.dart'; // Add this import
+import 'suggest_place.dart';
+import 'AppLocalization.dart'; // Import your localization class
 
 class CityPage extends StatefulWidget {
   final String title;
   final String token;
-
-  const CityPage({Key? key, required this.title, required this.token})
-      : super(key: key);
+  final Locale? locale;
+  final AppLocalization appLocalization; // Receive AppLocalization here
+  const CityPage({
+    Key? key,
+    required this.title,
+    required this.token,
+    required this.appLocalization,
+    this.locale,
+  }) : super(key: key);
 
   @override
   _CityPageState createState() => _CityPageState();
 }
 
 class _CityPageState extends State<CityPage> {
+  final Locale? locale; // Add locale property
+  _CityPageState({this.locale}); // Update constructor to accept locale
   List<dynamic> places = [];
   List<String> categories = [];
   int _currentIndex = 0;
@@ -38,8 +47,7 @@ class _CityPageState extends State<CityPage> {
   Future<void> fetchData(String cityName, String userName) async {
     try {
       var response = await http.get(
-        Uri.parse(
-            'http://guide-me.somee.com/api/Place/$cityName/$userName/Allplaces'),
+        Uri.parse('http://guideme.somee.com/api/Place/$cityName/$userName/Allplaces'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': '/',
@@ -47,7 +55,7 @@ class _CityPageState extends State<CityPage> {
       );
       if (response.statusCode == 200) {
         setState(() {
-          places = jsonDecode(response.body);
+          places = jsonDecode(response.body)['\$values'];
           categories = places
               .map<String>((place) => place['category'].toString())
               .toSet()
@@ -60,6 +68,7 @@ class _CityPageState extends State<CityPage> {
       print('Exception caught: $e');
     }
   }
+
 
   void _onScroll() {
     if (_scrollController.offset > 50 && !_showAppbarColor) {
@@ -78,7 +87,7 @@ class _CityPageState extends State<CityPage> {
       final String touristName = decodeToken(token);
       final response = await http.post(
         Uri.parse(
-            'http://guide-me.somee.com/api/TouristHistory?placename=${place['name']}&touristname=$touristName'),
+            'http://guideme.somee.com/api/TouristHistory?placename=${place['name']}&touristname=$touristName'),
         headers: {
           'Authorization': 'Bearer $token',
           'accept': '/',
@@ -124,7 +133,7 @@ class _CityPageState extends State<CityPage> {
     try {
       var response = await http.get(
         Uri.parse(
-            'http://guide-me.somee.com/api/Rating/$placeName/OverAllRating'),
+            'http://guideme.somee.com/api/Rating/$placeName/OverAllRating'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
         },
@@ -150,7 +159,7 @@ class _CityPageState extends State<CityPage> {
 
     final response = await http.post(
       Uri.parse(
-          'http://guide-me.somee.com/api/TouristFavourites/${isFavorite ? "AddFavoritePlace" : "RemoveFavoritePlace"}'),
+          'http://guideme.somee.com/api/TouristFavourites/${isFavorite ? "AddFavoritePlace" : "RemoveFavoritePlace"}'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Content-Type': 'application/json',
@@ -177,6 +186,10 @@ class _CityPageState extends State<CityPage> {
 
   @override
   Widget build(BuildContext context) {
+    final appLocalization = widget.appLocalization; // Access AppLocalization instance
+
+    // Example usage
+    print('Current language code: ${appLocalization.locale.languageCode}');
     return DefaultTabController(
       length: categories.length,
       child: Scaffold(
@@ -198,7 +211,7 @@ class _CityPageState extends State<CityPage> {
                 Icon(Icons.lightbulb_outline, color: Colors.white),
                 SizedBox(height: 2),
                 Text(
-                  'Suggest',
+                  appLocalization.translate('suggest'),
                   style: TextStyle(color: Colors.white, fontSize: 9),
                 ),
               ],
@@ -226,7 +239,7 @@ class _CityPageState extends State<CityPage> {
                     // color: Colors.white, // Apply color filter if necessary
                   ),
                   SizedBox(height: 2), // Adjust the height as needed for spacing
-                  Text('Scan', style: TextStyle(color: Colors.white, fontSize: 9)),
+                  Text(appLocalization.translate('scan'), style: TextStyle(color: Colors.white, fontSize: 9)),
                 ],
               ),
             ),
@@ -237,7 +250,7 @@ class _CityPageState extends State<CityPage> {
                 showSearch<String>(
                   context: context,
                   delegate:
-                  CustomSearchDelegate(context: context, token: widget.token, cityName: widget.title,touristName:decodeToken(widget.token)),
+                  CustomSearchDelegate(context: context, token: widget.token, cityName: widget.title, touristName: decodeToken(widget.token)),
                 );
               },
             ),
@@ -307,13 +320,16 @@ class _CityPageState extends State<CityPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => HistoryPage(token: widget.token),
+                        builder: (context) => HistoryPage(
+                          token: widget.token,
+
+                        ),
                       ),
                     );
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.account_circle),
+                  icon: const Icon(Icons.person),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -331,167 +347,91 @@ class _CityPageState extends State<CityPage> {
     );
   }
 
-
-
-
-  // Future<Map<String, dynamic>> searchPlace(String placeName, String cityName, String token) async {
-  //   final url = Uri.parse('http://guide-me.somee.com/api/Place/${Uri.encodeComponent(placeName)}/${Uri.encodeComponent(cityName)}/SearchPlace');
-  //   final response = await http.get(
-  //     url,
-  //     headers: {
-  //       'accept': 'application/json',
-  //       'Authorization': 'Bearer $token',
-  //     },
-  //   );
-  //
-  //   if (response.statusCode == 200) {
-  //     return jsonDecode(response.body);
-  //   } else {
-  //     throw Exception('Failed to load place');
-  //   }
-  // }
-
   List<Widget> buildCategoryCards(String category) {
-    List<Widget> cards = [];
-    final model = Provider.of<FavoritePlacesModel>(context);
-    for (var place in places) {
-      if (place['category'] == category) {
-        bool isFavorite = place['favoriteFlag'] ==
-            1; // Initialize favorite state based on favoriteFlag
-        cards.add(
-          GestureDetector(
-            onTap: () {
-              _onTapCard(place, widget.token); // Pass the entire place object
-            },
-            child: SizedBox(
-              height: 250,
-              child: Card(
-                elevation: 5,
-                margin:
-                const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15.0),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(15.0),
-                        child: Image.network(
-                          place['media'][0]['mediaContent'],
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 10,
-                      right: 10,
-                      child: IconButton(
-                        icon: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: Colors.white,
-                        ),
-                        onPressed: () async {
-                          if (isFavorite) {
-                            model.remove(place['name']);
-                          } else {
-                            model.add(place['name']);
-                          }
-                          await updateFavoritePlace(place['name'], !isFavorite);
-                          setState(() {
-                            // Update favorite state after adding/removing from favorites
-                            place['favoriteFlag'] = isFavorite ? 0 : 1;
-                          });
-                        },
-                      ),
-                    ),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.only(
-                            bottomLeft: Radius.circular(15.0),
-                            bottomRight: Radius.circular(15.0),
+    return places
+        .where((place) => place['category'] == category)
+        .map<Widget>((place) => GestureDetector(
+      onTap: () {
+        _onTapCard(place, widget.token);
+      },
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: Column(
+          children: [
+            Image.network(
+              place['imageUrl'],
+              height: 200,
+              fit: BoxFit.cover,
+            ),
+            ListTile(
+              title: Text(place['name']),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(place['description']),
+                  FutureBuilder<double>(
+                    future: fetchRating(place['name']),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return CircularProgressIndicator();
+                      } else if (snapshot.hasError) {
+                        return Text('Error loading rating');
+                      } else {
+                        return _buildRatingStars(snapshot.data ?? 0.0);
+                      }
+                    },
+                  ),
+                  ChangeNotifierProvider(
+                    create: (context) => FavoritePlacesModel(),
+                    child: Consumer<FavoritePlacesModel>(
+                      builder: (context, favoritePlacesModel, child) {
+                        bool isFavorite = favoritePlacesModel.favoritePlaces
+                            .contains(place['name']);
+                        return IconButton(
+                          icon: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
                           ),
-                          color: Colors.black54
-                              .withOpacity(_showAppbarColor ? 0.5 : 0.8),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              place['name'],
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            FutureBuilder<double>(
-                              future: fetchRating(place[
-                              'name']), // Fetch the rating for the place
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return CircularProgressIndicator();
-                                } else if (snapshot.hasError) {
-                                  return Text('Error: ${snapshot.error}');
-                                } else {
-                                  return _buildRatingStars(snapshot.data ??
-                                      0); // Use the fetched rating to display stars
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
+                          onPressed: () {
+                            setState(() {
+                              isFavorite
+                                  ? favoritePlacesModel
+                                  .remove(place['name'])
+                                  : favoritePlacesModel
+                                  .add(place['name']);
+                              updateFavoritePlace(
+                                  place['name'], !isFavorite);
+                            });
+                          },
+                        );
+                      },
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ),
-        );
-      }
-    }
-    return cards;
+          ],
+        ),
+      ),
+    ))
+        .toList();
   }
 }
 
-
-
-
-
-
 class CustomSearchDelegate extends SearchDelegate<String> {
+  final BuildContext context;
+  final String token;
   final String cityName;
   final String touristName;
-  final String token;
-  final BuildContext context; // Add context here
 
   CustomSearchDelegate({
     required this.context,
+    required this.token,
     required this.cityName,
     required this.touristName,
-    required this.token,
   });
 
   @override
-  ThemeData appBarTheme(BuildContext context) {
-    return Theme.of(context).copyWith(
-      scaffoldBackgroundColor: const Color.fromARGB(255, 246, 243, 177),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color.fromARGB(140, 21, 82, 113),
-      ),
-    );
-  }
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
+  List<Widget>? buildActions(BuildContext context) {
     return [
       IconButton(
         icon: const Icon(Icons.clear),
@@ -503,7 +443,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
   }
 
   @override
-  Widget buildLeading(BuildContext context) {
+  Widget? buildLeading(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
       onPressed: () {
@@ -514,173 +454,113 @@ class CustomSearchDelegate extends SearchDelegate<String> {
 
   @override
   Widget buildResults(BuildContext context) {
-    return _buildSearchResults(context);
+    final appLocalization = AppLocalization.of(context);
+
+    if (query.isEmpty) {
+      return Center(
+        child: Text(appLocalization.translate('search')),
+      );
+    } else {
+      return FutureBuilder<List<dynamic>>(
+        future: searchPlaces(query),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text(appLocalization.translate('fetch_search_results_error')));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text(appLocalization.translate('no_results')));
+          } else {
+            return ListView(
+              children: snapshot.data!.map((place) {
+                return ListTile(
+                  title: Text(place['name']),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PlacePage(
+                          touristName: touristName,
+                          cityName: cityName,
+                          place: place,
+                          token: token,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              }).toList(),
+            );
+          }
+        },
+      );
+    }
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return _buildSearchResults(context);
-  }
+    final appLocalization = AppLocalization.of(context);
 
-  Future<void> addPlaceToHistory(String placeName) async {
-    try {
-      final url = Uri.parse(
-          'http://guide-me.somee.com/api/TouristHistory?placename=${Uri.encodeComponent(placeName)}&touristname=${Uri.encodeComponent(touristName)}');
-
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'accept': '*/*',
-          'Content-Type': 'application/json',
+    if (query.isEmpty) {
+      return Center(
+        child: Text(appLocalization.translate('search_hint')),
+      );
+    } else {
+      return FutureBuilder<List<dynamic>>(
+        future: searchPlaces(query),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text(appLocalization.translate('fetch_search_results_error')));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text(appLocalization.translate('no_results')));
+          } else {
+            return ListView(
+              children: snapshot.data!.map((place) {
+                return ListTile(
+                  title: Text(place['name']),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PlacePage(
+                          touristName: touristName,
+                          cityName: cityName,
+                          place: place,
+                          token: token,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              }).toList(),
+            );
+          }
         },
       );
+    }
+  }
 
-      print('Request URL: $url');
-      print('Response Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-
+  Future<List<dynamic>> searchPlaces(String query) async {
+    try {
+      var response = await http.get(
+        Uri.parse(
+            'http://guide-me.somee.com/api/Place/$cityName/$touristName/search/$query'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'accept': '/',
+        },
+      );
       if (response.statusCode == 200) {
-        print('Place added to history successfully');
-        // Handle success as needed, e.g., navigate to a new page
+        return jsonDecode(response.body);
       } else {
-        print('Failed to add place to history: ${response.statusCode}');
-        // Handle failure, e.g., show a SnackBar with an error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to add place to history: ${response.statusCode}'),
-            duration: Duration(seconds: 3),
-          ),
-        );
+        print('Failed to search places: ${response.statusCode}');
+        return [];
       }
     } catch (e) {
       print('Exception caught: $e');
-      // Handle exceptions, e.g., show a SnackBar with the exception message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Exception: $e'),
-          duration: Duration(seconds: 3),
-        ),
-      );
+      return [];
     }
   }
-
-  Widget _buildSearchResults(BuildContext context) {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: searchPlace(query),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-          final places = snapshot.data!;
-
-          return ListView.builder(
-            itemCount: places.length,
-            itemBuilder: (context, index) {
-              final place = places[index];
-
-              return GestureDetector(
-                onTap: () {
-                  _onTapCard(place);
-                },
-                child: ListTile(
-                  title: Text(place['placeName'] ?? 'Unknown Place'),
-                  leading: place['placeImage'] != null
-                      ? Image.network(
-                    place['placeImage'],
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                  )
-                      : Placeholder(
-                    fallbackWidth: 50,
-                    fallbackHeight: 50,
-                  ),
-                ),
-              );
-            },
-          );
-        } else {
-          return Center(child: Text('No results found.'));
-        }
-      },
-    );
-  }
-
-  Future<List<Map<String, dynamic>>> searchPlace(String placeName) async {
-    final url = Uri.parse(
-        'http://guide-me.somee.com/api/Place/${Uri.encodeComponent(placeName)}/${Uri.encodeComponent(cityName)}/SearchPlace');
-    final response = await http.get(
-      url,
-      headers: {
-        'accept': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      dynamic jsonData = jsonDecode(response.body);
-
-      if (jsonData is List) {
-        List<Map<String, dynamic>> places = [];
-        for (var item in jsonData) {
-          if (item is Map<String, dynamic>) {
-            places.add(item);
-          }
-        }
-        return places;
-      } else if (jsonData is Map<String, dynamic>) {
-        return [jsonData];
-      } else {
-        throw Exception('Unexpected response format');
-      }
-    } else {
-      throw Exception('Failed to load places: ${response.statusCode}');
-    }
-  }
-
-  void _onTapCard(Map<String, dynamic> place) async {
-    try {
-      final String placeName = place['placeName'] ?? 'Unknown Place';
-
-      await addPlaceToHistory(placeName);
-
-      // Print the parameters before navigating
-      print('Navigating to PlacePage with parameters:');
-      print('touristName: $touristName');
-      print('cityName: $cityName');
-      print('place: $place');
-      print('token: $token');
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PlacePage(
-            touristName: touristName,
-            cityName: cityName,
-            place: {
-              'name': place['placeName'],
-              'image': place['placeImage'],
-            },
-            token: token,
-          ),
-        ),
-      );
-    } catch (e) {
-      print('Error tapping card: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          duration: Duration(seconds: 3),
-        ),
-      );
-    }
-  }
-
 }
-
-
-
-

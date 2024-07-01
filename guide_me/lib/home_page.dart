@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
+
 import 'AppLocalization.dart';
 import 'city_page.dart';
 import 'favorite_page.dart';
@@ -20,15 +21,15 @@ class _HomePageState extends State<HomePage> {
   final ScrollController _scrollController = ScrollController();
   bool _showAppbarColor = false;
   List<Map<String, dynamic>> cities = [];
-  String language = 'en';
   Locale? _locale;
+  late AppLocalization _appLocalization = AppLocalization(Locale('en'));
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
     _fetchCities();
-    _fetchLanguage();
+    _scrollController.addListener(_onScroll);
+    _fetchInitialData();
   }
 
   @override
@@ -39,26 +40,38 @@ class _HomePageState extends State<HomePage> {
 
   String decodeToken(String token) {
     Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
+    return decodedToken[
+    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
+  }
+
+  Future<void> _fetchInitialData() async {
+    await _fetchLanguage();
   }
 
   Future<void> _fetchLanguage() async {
     String touristName = decodeToken(widget.token);
     try {
       final response = await http.get(
-        Uri.parse('http://guideme.somee.com/api/Tourist/GetTouristInfo/$touristName'),
+        Uri.parse(
+            'http://guideme.somee.com/api/Tourist/GetTouristInfo/$touristName'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
-          'accept': '*/*',
+          'accept': '/',
         },
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        String userLanguage = data['language']
+            .toLowerCase(); // Language code like 'es', 'fr', 'ar', 'en'
+
         setState(() {
-          _locale = Locale(data['language'] == 'Spanish' ? 'es' : 'en');
+          _locale = Locale(userLanguage);
+          _appLocalization = AppLocalization(_locale!);
         });
-        _setLocale();
+
+        await _appLocalization.load(); // Load localized strings
+// Load localized strings
       } else {
         throw Exception('Failed to fetch tourist info');
       }
@@ -67,11 +80,16 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _setLocale() {
-    AppLocalization appLocalization = AppLocalization(_locale!);
-    appLocalization.load().then((_) {
-      setState(() {});
-    });
+  void _onScroll() {
+    if (_scrollController.offset > 50 && !_showAppbarColor) {
+      setState(() {
+        _showAppbarColor = true;
+      });
+    } else if (_scrollController.offset <= 50 && _showAppbarColor) {
+      setState(() {
+        _showAppbarColor = false;
+      });
+    }
   }
 
   void _fetchCities() async {
@@ -105,29 +123,27 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-
-  void _onScroll() {
-    if (_scrollController.offset > 50 && !_showAppbarColor) {
-      setState(() {
-        _showAppbarColor = true;
-      });
-    } else if (_scrollController.offset <= 50 && _showAppbarColor) {
-      setState(() {
-        _showAppbarColor = false;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    if (_appLocalization == null) {
+      // Show loading indicator or handle uninitialized state
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: _showAppbarColor
-            ? Theme.of(context).primaryColor
+            ? Theme
+            .of(context)
+            .primaryColor
             : Colors.transparent,
         title: Text(
-          AppLocalization.of(context).translate('app_title') ?? '',
+          _appLocalization.translate('app_title') ?? '',
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -140,7 +156,16 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               showSearch<String>(
                 context: context,
-                delegate: CustomSearchDelegate(context: context, token: widget.token, decodeToken: decodeToken),
+                delegate: CustomSearchDelegate(
+                  context: context,
+                  token: widget.token,
+                  touristName: decodeToken(widget.token),
+                  appLocalization: _appLocalization,
+                  searchHint: _appLocalization.translate('search') ?? '',
+                  noResultsMessage:
+                  _appLocalization.translate('no_results') ?? '',
+                  locale: _locale,
+                ),
               );
             },
           ),
@@ -159,7 +184,10 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(height: MediaQuery.of(context).padding.top),
+                SizedBox(height: MediaQuery
+                    .of(context)
+                    .padding
+                    .top),
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -197,7 +225,8 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => FavoritePage(authToken: widget.token),
+                      builder: (context) =>
+                          FavoritePage(authToken: widget.token),
                     ),
                   );
                 },
@@ -224,16 +253,27 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
   Widget _buildCard(BuildContext context, Map<String, dynamic> city) {
     return GestureDetector(
       onTap: () {
+        print('Navigating to CityPage with parameters:');
+        print('Title: ${city['name']}');
+        print('Token: ${widget.token}');
+        print('Locale: $_locale');
+        print('AppLocalization: $_appLocalization');
+
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => CityPage(title: city['name'], token: widget.token),
+            builder: (context) => CityPage(
+              title: city['name'],
+              token: widget.token,
+              locale: _locale,
+              appLocalization: _appLocalization,
+            ),
           ),
         );
+
       },
       child: Card(
         elevation: 3,
@@ -273,13 +313,24 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
 class CustomSearchDelegate extends SearchDelegate<String> {
   final BuildContext context;
   final String token;
-  final Function(String) decodeToken;
+  final String touristName;
+  final AppLocalization appLocalization;
+  final String searchHint;
+  final String noResultsMessage;
+  final Locale? locale; // Add locale here
 
-  CustomSearchDelegate({required this.context, required this.token, required this.decodeToken});
+  CustomSearchDelegate({
+    required this.context,
+    required this.token,
+    required this.touristName,
+    required this.appLocalization,
+    required this.searchHint,
+    required this.noResultsMessage,
+    this.locale, // Include locale in constructor
+  });
 
   @override
   ThemeData appBarTheme(BuildContext context) {
@@ -329,102 +380,117 @@ class CustomSearchDelegate extends SearchDelegate<String> {
 
   Widget _buildSearchResults(BuildContext context) {
     return FutureBuilder<List<Map<String, dynamic>>>(
-      future: _fetchSearchResults(query),
-      builder: (BuildContext context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
+      future: _fetchSearchResults(query, touristName),
+      builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(child: Text(AppLocalization.of(context).translate('no_results')));
+          return Center(
+              child: Text(
+                  appLocalization.translate('fetch_search_results_error') ??
+                      ''));
         } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+          final results = snapshot.data!;
           return GridView.builder(
-            shrinkWrap: true,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              crossAxisSpacing: 16.0,
-              mainAxisSpacing: 16.0,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
             ),
-            itemCount: snapshot.data!.length,
-            itemBuilder: (BuildContext context, int index) {
-              final city = snapshot.data![index];
+            itemCount: results.length,
+            itemBuilder: (context, index) {
+              final city = results[index];
               return GestureDetector(
-                onTap: () {
-                  close(context, city['name']);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CityPage(title: city['name'], token: token),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CityPage(
+                        title: city['name'],
+                        token: token,
+                        locale: locale,
+                      appLocalization: appLocalization,
                     ),
-                  );
-                },
-                child: Card(
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30.0),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(30.0),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        city['imagePath'] != null
+                ),
+                child: Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Expanded(
+                        child: city['imagePath'] != null
                             ? Image.network(
-                          city['imagePath'],
-                          fit: BoxFit.cover,
-                        )
+                                city['imagePath'],
+                                fit: BoxFit.cover,
+                              )
                             : Container(),
-                        Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              city['name'] ?? '', // Provide default value if null
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          city['name'] ?? '',
+                          style: Theme.of(context).textTheme.subtitle1,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               );
             },
           );
         } else {
-          return Center(child: Text(AppLocalization.of(context).translate('no_results')));
+          return Center(
+            child: Text(
+              appLocalization.translate('no_results') ?? '',
+              style: Theme.of(context).textTheme.headline6,
+            ),
+          );
         }
       },
     );
   }
 
-  Future<List<Map<String, dynamic>>> _fetchSearchResults(String query) async {
-    if (query.isEmpty) {
-      return [];
-    }
+  Future<List<Map<String, dynamic>>> _fetchSearchResults(
+      String query, String touristName) async {
+    final url = Uri.parse(
+        'http://guideme.somee.com/api/City/SearchCity/$query/$touristName');
 
-    String touristName = decodeToken(token); // Decode the token to get the tourist name
-    final response = await http.get(
-      Uri.parse('http://guideme.somee.com/api/City/SearchCity/$query/$touristName'),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
-    );
+    try {
+      final response = await http.get(url,
+          headers: {'accept': '/', 'Authorization': 'Bearer ${token}'});
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map<Map<String, dynamic>>((city) {
-        return {
-          'id': city['id'],
-          'name': city['name'],
-          'imagePath': city['cityImage'],
-        };
-      }).toList();
-    } else {
-      throw Exception('Failed to fetch search results');
+      if (response.statusCode == 200) {
+        final dynamic data = json.decode(response.body);
+
+        if (data is List) {
+          // Case when API returns an array of objects
+          return data.map<Map<String, dynamic>>((city) {
+            return {
+              'id': city['id'],
+              'name': city['name'],
+              'imagePath': city['cityImage'],
+            };
+          }).toList();
+        } else if (data is Map<String, dynamic>) {
+          // Case when API returns a single object
+          return [
+            {
+              'id': data['id'],
+              'name': data['name'],
+              'imagePath': data['cityImage'],
+            }
+          ];
+        } else {
+          throw Exception(
+              appLocalization.translate('fetch_search_results_error') ?? '');
+        }
+      } else {
+        throw Exception(
+            appLocalization.translate('fetch_search_results_error') ?? '');
+      }
+    } catch (e) {
+      throw Exception(
+          appLocalization.translate('fetch_search_results_error') ?? '');
     }
   }
 }
