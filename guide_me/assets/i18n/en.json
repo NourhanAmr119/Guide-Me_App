@@ -4,5 +4,14 @@
   "no_results": "No results found.",
   "fetch_search_results_error": "Failed to load search results",
   "scan": "Scan",
-  "suggest": "Suggest"
+  "suggest": "Suggest",
+  "places_you_might_like": "Places You Might Like",
+  "view_on_map": "View on Map",
+  "rate_this_place": "Rate This Place",
+  "change_rate": "Change Rate",
+  "video": "Video",
+  "audio": "Audio",
+  "Reviews": "Reviews",
+  "profile": "Profile",
+  "logout": "Logout"
 }

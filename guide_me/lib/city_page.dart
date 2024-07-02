@@ -45,35 +45,60 @@ class _CityPageState extends State<CityPage> {
     fetchData(widget.title, decodeToken(widget.token));
   }
 
+  // Future<void> fetchData(String cityName, String userName) async {
+  //   try {
+  //     print('Token: ${widget.token}');
+  //     print('URL: http://guideme.runasp.net/api/Place/$cityName/$userName/Allplaces');
+  //
+  //     var response = await http.get(
+  //       Uri.parse('http://guideme.runasp.net/api/Place/$cityName/$userName/Allplaces'),
+  //       headers: {
+  //         'Authorization': 'Bearer ${widget.token}',
+  //         'accept': '/',
+  //       },
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       setState(() {
+  //         var responseBody = jsonDecode(response.body);
+  //         if (responseBody is Map && responseBody.containsKey('\$values')) {
+  //           places = responseBody['\$values'];
+  //           categories = places
+  //               .map<String>((place) => place['category'].toString())
+  //               .toSet()
+  //               .toList();
+  //         } else {
+  //           print('Key \$values not found in response body');
+  //         }
+  //       });
+  //     } else {
+  //       print('Failed to load data: ${response.statusCode}');
+  //       print('Response body: ${response.body}');
+  //     }
+  //   } catch (e) {
+  //     print('Exception caught: $e');
+  //   }
+  // }
   Future<void> fetchData(String cityName, String userName) async {
     try {
-      print('Token: ${widget.token}');
-      print('URL: http://guideme.somee.com/api/Place/$cityName/$userName/Allplaces');
-
       var response = await http.get(
-        Uri.parse('http://guideme.somee.com/api/Place/$cityName/$userName/Allplaces'),
+        Uri.parse(
+            'http://guideme.runasp.net/api/Place/$cityName/$userName/Allplaces'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': '/',
         },
       );
-
       if (response.statusCode == 200) {
         setState(() {
-          var responseBody = jsonDecode(response.body);
-          if (responseBody is Map && responseBody.containsKey('\$values')) {
-            places = responseBody['\$values'];
-            categories = places
-                .map<String>((place) => place['category'].toString())
-                .toSet()
-                .toList();
-          } else {
-            print('Key \$values not found in response body');
-          }
+          places = jsonDecode(response.body);
+          categories = places
+              .map<String>((place) => place['category'].toString())
+              .toSet()
+              .toList();
         });
       } else {
         print('Failed to load data: ${response.statusCode}');
-        print('Response body: ${response.body}');
       }
     } catch (e) {
       print('Exception caught: $e');
@@ -99,7 +124,7 @@ class _CityPageState extends State<CityPage> {
       final String touristName = decodeToken(token);
       final response = await http.post(
         Uri.parse(
-            'http://guideme.somee.com/api/TouristHistory?placename=${place['name']}&touristname=$touristName'),
+            'http://guideme.runasp.net/api/TouristHistory?placename=${place['name']}&touristname=$touristName'),
         headers: {
           'Authorization': 'Bearer $token',
           'accept': '/',
@@ -116,6 +141,8 @@ class _CityPageState extends State<CityPage> {
               cityName: widget.title,
               place: place,
               token: widget.token,
+              appLocalization: widget.appLocalization, // Pass the localization instance
+              locale: widget.locale, // Pass the locale
             ),
           ),
         );
@@ -145,7 +172,7 @@ class _CityPageState extends State<CityPage> {
     try {
       var response = await http.get(
         Uri.parse(
-            'http://guideme.somee.com/api/Rating/$placeName/OverAllRating'),
+            'http://guideme.runasp.net/api/Rating/$placeName/OverAllRating'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
         },
@@ -171,7 +198,7 @@ class _CityPageState extends State<CityPage> {
 
     final response = await http.post(
       Uri.parse(
-          'http://guideme.somee.com/api/TouristFavourites/${isFavorite ? "AddFavoritePlace" : "RemoveFavoritePlace"}'),
+          'http://guideme.runasp.net/api/TouristFavourites/${isFavorite ? "AddFavoritePlace" : "RemoveFavoritePlace"}'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Content-Type': 'application/json',
@@ -262,7 +289,8 @@ class _CityPageState extends State<CityPage> {
                 showSearch<String>(
                   context: context,
                   delegate:
-                  CustomSearchDelegate(context: context, token: widget.token, cityName: widget.title, touristName: decodeToken(widget.token)),
+                  CustomSearchDelegate(context: context, token: widget.token, cityName: widget.title, touristName: decodeToken(widget.token),appLocalization: widget.appLocalization, // Pass the localization instance
+                    locale: widget.locale),
                 );
               },
             ),
@@ -346,7 +374,7 @@ class _CityPageState extends State<CityPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ProfilePage(token: widget.token),
+                        builder: (context) => ProfilePage(token: widget.token,appLocalization: widget.appLocalization, locale: widget.locale),
                       ),
                     );
                   },
@@ -361,24 +389,11 @@ class _CityPageState extends State<CityPage> {
 
   List<Widget> buildCategoryCards(String category) {
     List<Widget> cards = [];
-    final model = Provider.of<FavoritePlacesModel>(context, listen: false);
-
+    final model = Provider.of<FavoritePlacesModel>(context);
     for (var place in places) {
       if (place['category'] == category) {
-        bool isFavorite = place['favoriteFlag'] == 1; // Initialize favorite state based on favoriteFlag
-
-        // Check if the media list and mediaContent are not null
-        String imageUrl = '';
-        if (place['media'] != null &&
-            place['media']['\$values'] != null &&
-            place['media']['\$values'].isNotEmpty &&
-            place['media']['\$values'][0] != null &&
-            place['media']['\$values'][0]['mediaContent'] != null) {
-          imageUrl = place['media']['\$values'][0]['mediaContent'];
-        } else {
-          imageUrl = 'https://via.placeholder.com/150'; // Provide a default placeholder image URL
-        }
-
+        bool isFavorite = place['favoriteFlag'] ==
+            1; // Initialize favorite state based on favoriteFlag
         cards.add(
           GestureDetector(
             onTap: () {
@@ -388,7 +403,8 @@ class _CityPageState extends State<CityPage> {
               height: 250,
               child: Card(
                 elevation: 5,
-                margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                margin:
+                const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15.0),
                 ),
@@ -398,7 +414,7 @@ class _CityPageState extends State<CityPage> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(15.0),
                         child: Image.network(
-                          imageUrl,
+                          place['media'][0]['mediaContent'],
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -436,13 +452,14 @@ class _CityPageState extends State<CityPage> {
                             bottomLeft: Radius.circular(15.0),
                             bottomRight: Radius.circular(15.0),
                           ),
-                          color: Colors.black54.withOpacity(0.8),
+                          color: Colors.black54
+                              .withOpacity(_showAppbarColor ? 0.5 : 0.8),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Text(
-                              place['name'] ?? 'No Name',
+                              place['name'],
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 18,
@@ -451,14 +468,17 @@ class _CityPageState extends State<CityPage> {
                               textAlign: TextAlign.center,
                             ),
                             FutureBuilder<double>(
-                              future: fetchRating(place['name'] ?? ''), // Fetch the rating for the place
+                              future: fetchRating(place[
+                              'name']), // Fetch the rating for the place
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
                                   return CircularProgressIndicator();
                                 } else if (snapshot.hasError) {
                                   return Text('Error: ${snapshot.error}');
                                 } else {
-                                  return _buildRatingStars(snapshot.data ?? 0); // Use the fetched rating to display stars
+                                  return _buildRatingStars(snapshot.data ??
+                                      0); // Use the fetched rating to display stars
                                 }
                               },
                             ),
@@ -476,23 +496,28 @@ class _CityPageState extends State<CityPage> {
     }
     return cards;
   }
-
-
-
-
 }
+
+
+
+
+
 
 class CustomSearchDelegate extends SearchDelegate<String> {
   final String cityName;
   final String touristName;
   final String token;
-  final BuildContext context; // Add context here
+  final BuildContext context;
+  final Locale? locale;
+  final AppLocalization appLocalization;// Add context here
 
   CustomSearchDelegate({
     required this.context,
     required this.cityName,
     required this.touristName,
     required this.token,
+    required this.appLocalization, // Add this line
+    this.locale,
   });
 
   @override
@@ -541,7 +566,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
   Future<void> addPlaceToHistory(String placeName) async {
     try {
       final url = Uri.parse(
-          'http://guide-me.somee.com/api/TouristHistory?placename=${Uri.encodeComponent(placeName)}&touristname=${Uri.encodeComponent(touristName)}');
+          'http://guideme.runasp.net/api/TouristHistory?placename=${Uri.encodeComponent(placeName)}&touristname=${Uri.encodeComponent(touristName)}');
 
       final response = await http.post(
         url,
@@ -648,7 +673,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
 
   Future<List<Map<String, dynamic>>> searchPlace(String placeName) async {
     final url = Uri.parse(
-        'http://guideme.somee.com/api/Place/${Uri.encodeComponent(placeName)}/${Uri.encodeComponent(cityName)}/SearchPlace');
+        'http://guideme.runasp.net/api/Place/${Uri.encodeComponent(placeName)}/${Uri.encodeComponent(cityName)}/SearchPlace');
     final response = await http.get(
       url,
       headers: {
@@ -702,6 +727,8 @@ class CustomSearchDelegate extends SearchDelegate<String> {
               'image': place['placeImage'],
             },
             token: token,
+            appLocalization: appLocalization, // Pass the localization instance
+            locale: locale,
           ),
         ),
       );

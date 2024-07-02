@@ -7,13 +7,16 @@ import 'package:audioplayers/audioplayers.dart';
 import 'map_page.dart';
 import 'package:jwt_decode/jwt_decode.dart';
 import "rate_page.dart";
+import 'AppLocalization.dart';
 
 class Recommendation {
   final String placeName; // Assuming 'placeName' represents the name of the place
   final String cityName;
   final String image;
   final double rate;
-  final String touristName; // Assuming this field represents the tourist's name
+  final String touristName;
+  // final Locale? locale;
+  // final AppLocalization appLocalization;// Assuming this field represents the tourist's name
 
   Recommendation({
     required this.placeName,
@@ -21,15 +24,19 @@ class Recommendation {
     required this.image,
     required this.rate,
     required this.touristName,
+    // required this.appLocalization,
+    // this.locale,
   });
 
   factory Recommendation.fromJson(Map<String, dynamic> json) {
     return Recommendation(
       placeName: json['placeName'] ?? '',
-      cityName: json['cityName'] ?? '', // Ensure cityName defaults to empty string if null
+      cityName: json['cityName'] ?? '',
       image: json['image'] ?? '',
-      touristName: json['touristName'] ?? '', // Handle touristName from JSON
       rate: (json['rate'] ?? 0).toDouble(),
+      touristName: json['touristName'] ?? '',
+      // appLocalization: appLocalization,
+      // locale: locale,
     );
   }
 }
@@ -41,6 +48,8 @@ class PlacePage extends StatefulWidget {
   final String cityName;
   final Map<String, dynamic> place;
   final String token;
+  final Locale? locale;
+  final AppLocalization appLocalization;
 
   const PlacePage({
     Key? key,
@@ -48,6 +57,9 @@ class PlacePage extends StatefulWidget {
     required this.cityName,
     required this.place,
     required this.token,
+    required this.appLocalization, // Add this line
+    this.locale
+
   }) : super(key: key);
 
   @override
@@ -76,6 +88,7 @@ class _PlacePageState extends State<PlacePage> {
       print('Failed to decode tourist name from token.');
     }
     fetchRecommendations(); // Fetch recommendations on init
+    print('Locale: ${widget.locale}');
   }
 
   Future<void> fetchRecommendations() async {
@@ -318,7 +331,7 @@ class _PlacePageState extends State<PlacePage> {
                       backgroundColor: Colors.black, // Gold background
                     ),
                     child: Text(
-                      _rating == 0 ? 'Rate This Place' : 'Change Rate',
+                      _rating == 0 ? widget.appLocalization.translate('rate_this_place') : widget.appLocalization.translate('change_rate'),
                       // Conditional button text
                       style: TextStyle(color: Colors.white), // Black text
                     ),
@@ -412,7 +425,10 @@ class _PlacePageState extends State<PlacePage> {
                     builder: (context) =>
                         ReviewPage(
                             placeName: widget.place['name'],
-                            token: widget.token),
+                            token: widget.token,
+                            appLocalization: widget.appLocalization, // Pass the localization instance
+                            locale: widget.locale,
+                        ),
                   ),
                 );
               },
@@ -456,7 +472,7 @@ class _PlacePageState extends State<PlacePage> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Text(
-            'Places You Might Like',
+            widget.appLocalization.translate('places_you_might_like'),
             style: TextStyle(
               color: Colors.black,
               fontSize: 25,
@@ -476,7 +492,10 @@ class _PlacePageState extends State<PlacePage> {
                   recommendation: recommendation,
                   token: widget.token, // Pass the token to RecommendationCard
                   cityName: widget.cityName,
-                  touristName:widget.touristName// Pass the cityName to RecommendationCard
+                  touristName:widget.touristName,
+                  appLocalization: widget.appLocalization, // Pass the localization instanc
+                  locale: widget.locale,
+                // Pass the cityName to RecommendationCard
               );
             },
           ),
@@ -490,12 +509,16 @@ class RecommendationCard extends StatelessWidget {
   final String cityName;
   final String token;
   final String touristName;
+  final Locale? locale;
+  final AppLocalization appLocalization;
 
   RecommendationCard({
     required this.recommendation,
     required this.cityName,
     required this.token,
     required this.touristName,
+    required this.appLocalization, // Add this line
+    this.locale,
   });
 
   @override
@@ -514,6 +537,8 @@ class RecommendationCard extends StatelessWidget {
                 'name': recommendation.placeName,
               },
               token: token,
+              appLocalization: appLocalization, // Pass the localization instance
+              locale: locale,
             ),
           ),
         ).then((_) {
@@ -632,12 +657,13 @@ class AudioWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalization appLocalization = AppLocalization.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ListTile(
           title: Text(
-            'Audio',
+            appLocalization.translate('audio'),
             style: TextStyle(
                 color: Colors.black, fontSize: 25, fontWeight: FontWeight.bold),
           ),
@@ -731,8 +757,10 @@ class _VideoWidgetState extends State<VideoWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalization appLocalization = AppLocalization.of(context)!;
+
     return ListTile(
-      title: Text('Video',
+      title: Text(appLocalization.translate('video'),
           style: TextStyle(
               color: Colors.black, fontSize: 25, fontWeight: FontWeight.bold)),
       subtitle: _controller.value.isInitialized
@@ -797,34 +825,35 @@ class _VideoProgressBar extends StatelessWidget {
   }
 }
 
-class ReviewButton extends StatelessWidget {
-  final String placeName;
-  final String token;
-
-  ReviewButton({required this.placeName, required this.token});
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  ReviewPage(placeName: placeName, token: token)),
-        );
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blueGrey[700],
-      ),
-      child: Text(
-        'Reviews',
-        style: TextStyle(
-            fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-}
+// class ReviewButton extends StatelessWidget {
+//   final String placeName;
+//   final String token;
+//
+//   ReviewButton({required this.placeName, required this.token});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return ElevatedButton(
+//       onPressed: () {
+//         Navigator.push(
+//           context,
+//           MaterialPageRoute(
+//               builder: (context) =>
+//                   ReviewPage(placeName: placeName, token: token,appLocalization: appLocalization, // Pass the localization instance
+//                     locale: widget.locale,)),
+//         );
+//       },
+//       style: ElevatedButton.styleFrom(
+//         backgroundColor: Colors.blueGrey[700],
+//       ),
+//       child: Text(
+//         'Reviews',
+//         style: TextStyle(
+//             fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
+//       ),
+//     );
+//   }
+// }
 
 extension DurationExtensions on Duration {
   String get formattedDuration {

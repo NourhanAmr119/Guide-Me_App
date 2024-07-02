@@ -7,11 +7,16 @@ import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decode/jwt_decode.dart';
+import 'AppLocalization.dart';
+
 class EditProfilePage extends StatefulWidget {
   final String token;
   final Map<String, dynamic> initialData;
+  final Locale? locale;
+  final AppLocalization appLocalization;
 
-  EditProfilePage({required this.token, required this.initialData});
+  EditProfilePage({required this.token, required this.initialData,required this.appLocalization, // Add this line
+    this.locale});
 
   @override
   _EditProfilePageState createState() => _EditProfilePageState();

@@ -2,12 +2,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decode/jwt_decode.dart';
+import 'AppLocalization.dart';
 
 class ReviewPage extends StatefulWidget {
   final String token;
   final String placeName;
+  final Locale? locale;
+  final AppLocalization appLocalization;
 
-  ReviewPage({required this.token, required this.placeName});
+  ReviewPage({required this.token, required this.placeName,required this.appLocalization, // Add this line
+    this.locale,});
 
   @override
   _ReviewPageState createState() => _ReviewPageState();
@@ -25,7 +29,7 @@ class _ReviewPageState extends State<ReviewPage> {
 
   Future<void> fetchReviews() async {
     final response = await http.get(
-      Uri.parse('http://guideme.somee.com/api/Review/GetReviews?placeName=${widget.placeName}'),
+      Uri.parse('http://guideme.runasp.net/api/Review/GetReviews?placeName=${widget.placeName}'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': '/',
@@ -44,9 +48,10 @@ class _ReviewPageState extends State<ReviewPage> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalization appLocalization = AppLocalization.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reviews'),
+        title: Text(appLocalization.translate('Reviews')),
         titleTextStyle: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
         backgroundColor: Color.fromARGB(255, 246, 243, 177),
         iconTheme: IconThemeData(color: Colors.black),
@@ -149,7 +154,7 @@ class _ReviewPageState extends State<ReviewPage> {
 
   Future<void> addReview(String comment) async {
     final response = await http.post(
-      Uri.parse('http://guideme.somee.com/api/Review/AddReview'),
+      Uri.parse('http://guideme.runasp.net/api/Review/AddReview'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Content-Type': 'application/json',

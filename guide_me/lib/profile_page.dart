@@ -6,11 +6,19 @@ import 'edit_profile_page.dart';
 import 'favorite_page.dart';
 import 'history_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'AppLocalization.dart';
 
 class ProfilePage extends StatefulWidget {
   final String token;
+  final Locale? locale;
+  final AppLocalization appLocalization;
 
-  ProfilePage({required this.token});
+
+  ProfilePage({
+    required this.token,
+    required this.appLocalization,
+    this.locale,
+  });
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -47,7 +55,7 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       String touristName = decodeToken(widget.token);
       final response = await http.get(
-        Uri.parse('http://guideme.somee.com/api/Tourist/GetTouristInfo/$touristName'),
+        Uri.parse('http://guideme.runasp.net/api/Tourist/GetTouristInfo/$touristName'),
         headers: {'Authorization': 'Bearer ${widget.token}'},
       );
       if (response.statusCode == 200) {
@@ -81,7 +89,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Profile Page',
+            widget.appLocalization.translate('profile'),
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Color.fromARGB(255, 246, 243, 177),
@@ -100,7 +108,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => EditProfilePage(token: widget.token, initialData: userInfo),
+                      builder: (context) => EditProfilePage(token: widget.token, initialData: userInfo,appLocalization: widget.appLocalization, locale: widget.locale),
                     ),
                   ).then((_) {
                     _fetchTouristInfoFromApi();
@@ -196,7 +204,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: ElevatedButton(
                       onPressed: _logout,
                       child: Text(
-                        'Logout',
+                        widget.appLocalization.translate('logout'),
                         style: TextStyle(fontSize: 18, color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
@@ -261,7 +269,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ProfilePage(token: widget.token),
+                      builder: (context) => ProfilePage(token: widget.token,appLocalization: widget.appLocalization, locale: widget.locale),
                     ),
                   );
                 },

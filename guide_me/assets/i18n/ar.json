@@ -4,5 +4,14 @@
   "no_results": "لا يوجد نتائج",
   "fetch_search_results_error": "تعذر تحميل نتائج البحث",
   "scan": "مسح ضوئي",
-  "suggest": "اقترح"
+  "suggest": "اقترح",
+  "places_you_might_like": "الأماكن التي قد تعجبك",
+  "view_on_map": "عرض على الخريطة",
+  "rate_this_place": "قيم هذا المكان",
+  "change_rate": "تغيير التقييم",
+  "video": "فيديو",
+  "audio": "تسجيل صوتي",
+  "Reviews": "اراء",
+  "profile": "الملف الشخصي",
+  "logout": "تسجيل خروج"
 }

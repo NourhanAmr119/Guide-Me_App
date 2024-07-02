@@ -54,7 +54,7 @@ class _SignUpPageState extends State<SignUpPage> {
     final String? language = _selectedLanguage;
 
     final response = await http.post(
-      Uri.parse('http://guideme.somee.com/api/Tourist/signup'),
+      Uri.parse('http://guideme.runasp.net/api/Tourist/signup'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },

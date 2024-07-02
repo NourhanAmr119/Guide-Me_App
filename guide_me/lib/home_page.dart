@@ -53,7 +53,7 @@ class _HomePageState extends State<HomePage> {
     try {
       final response = await http.get(
         Uri.parse(
-            'http://guideme.somee.com/api/Tourist/GetTouristInfo/$touristName'),
+            'http://guideme.runasp.net/api/Tourist/GetTouristInfo/$touristName'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': '/',
@@ -92,37 +92,44 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+
   void _fetchCities() async {
-    String touristName = decodeToken(widget.token);
+    String touristName = decodeToken(widget.token);  // Implement your token decoding logic
     final response = await http.get(
-      Uri.parse('http://guideme.somee.com/api/City/AllCities/$touristName'),
+      Uri.parse('http://guideme.runasp.net/api/City/AllCities/$touristName'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
       },
     );
+
     if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
-
-      if (responseData.containsKey('\$values')) {
-        final List<dynamic> cityData = responseData['\$values'];
-
-        setState(() {
-          cities = cityData.map<Map<String, dynamic>>((city) {
-            return {
-              'id': city['id'],
-              'name': city['name'],
-              'imagePath': city['cityImage'],
-            };
-          }).toList();
-        });
-      } else {
-        throw Exception('Failed to fetch cities: Invalid response format');
-      }
+      final List<dynamic> data = json.decode(response.body);
+      setState(() {
+        cities = data.map<Map<String, dynamic>>((city) {
+          return {
+            'id': city['id'],
+            'name': city['name'],
+            'imagePath': city['cityImage'],
+          };
+        }).toList();
+      });
     } else {
-      throw Exception('Failed to fetch cities: ${response.statusCode}');
+      throw Exception('Failed to fetch cities');
     }
   }
 
+  // // Example implementation of decodeToken function
+  // String decodeToken(String token) {
+  //   // Your logic to decode the JWT token and extract touristName
+  //   // For example:
+  //   // final payload = token.split('.')[1];
+  //   // final decoded = utf8.decode(base64Url.decode(base64Url.normalize(payload)));
+  //   // final touristName = json.decode(decoded)['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
+  //   // return touristName;
+  //
+  //   // Placeholder return value, replace with actual logic
+  //   return "touristName";
+  // }
   @override
   Widget build(BuildContext context) {
     if (_appLocalization == null) {
@@ -453,7 +460,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
   Future<List<Map<String, dynamic>>> _fetchSearchResults(
       String query, String touristName) async {
     final url = Uri.parse(
-        'http://guideme.somee.com/api/City/SearchCity/$query/$touristName');
+        'http://guideme.runasp.net/api/City/SearchCity/$query/$touristName');
 
     try {
       final response = await http.get(url,
