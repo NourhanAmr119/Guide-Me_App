@@ -29,7 +29,7 @@ class _FavoritePageState extends State<FavoritePage> {
 
       final response = await http.post(
         Uri.parse(
-            'http://guide-me.somee.com/api/TouristFavourites/GetTouristFavoritePlaces?touristname=$userName'),
+            'http://guideme.somee.com/api/TouristFavourites/GetTouristFavoritePlaces?touristname=$userName'),
         headers: {
           'Authorization': 'Bearer ${widget.authToken}',
           'Content-Type': 'application/json',
@@ -63,7 +63,7 @@ class _FavoritePageState extends State<FavoritePage> {
       String userName = decodeToken(widget.authToken);
 
       final response = await http.post(
-        Uri.parse('http://guide-me.somee.com/api/TouristFavourites/RemoveFavoritePlace'),
+        Uri.parse('http://guideme.somee.com/api/TouristFavourites/RemoveFavoritePlace'),
         headers: {
           'Authorization': 'Bearer ${widget.authToken}',
           'Content-Type': 'application/json',

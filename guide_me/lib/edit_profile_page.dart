@@ -41,7 +41,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Future<void> _getDefaultPhotoUrl() async {
     try {
       final response = await http.get(
-        Uri.parse('http://guide-me.somee.com/api/Tourist/default_photo'),
+        Uri.parse('http://guideme.somee.com/api/Tourist/default_photo'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Future<void> _updateProfile() async {
     if (_formKey.currentState!.validate()) {
       final uri = Uri.parse(
-          'http://guide-me.somee.com/api/Tourist/update/${_userNameController.text}');
+          'http://guideme.somee.com/api/Tourist/update/${_userNameController.text}');
       final headers = {
         'Authorization': 'Bearer ${widget.token}',
         'Content-Type': 'multipart/form-data',

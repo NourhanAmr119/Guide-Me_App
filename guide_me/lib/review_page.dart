@@ -25,7 +25,7 @@ class _ReviewPageState extends State<ReviewPage> {
 
   Future<void> fetchReviews() async {
     final response = await http.get(
-      Uri.parse('http://guide-me.somee.com/api/Review/GetReviews?placeName=${widget.placeName}'),
+      Uri.parse('http://guideme.somee.com/api/Review/GetReviews?placeName=${widget.placeName}'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': '/',
@@ -149,7 +149,7 @@ class _ReviewPageState extends State<ReviewPage> {
 
   Future<void> addReview(String comment) async {
     final response = await http.post(
-      Uri.parse('http://guide-me.somee.com/api/Review/AddReview'),
+      Uri.parse('http://guideme.somee.com/api/Review/AddReview'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Content-Type': 'application/json',
@@ -163,6 +163,7 @@ class _ReviewPageState extends State<ReviewPage> {
 
     if (response.statusCode == 200) {
       fetchReviews();
+      print('success add review');
     } else {
       print('Failed to add review: ${response.statusCode}');
     }

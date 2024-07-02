@@ -121,10 +121,10 @@ class _SuggestionPageState extends State<SuggestionPage> {
 
       if (_latitude != null && _longitude != null) {
         apiUrl =
-        'http://guide-me.somee.com/api/SuggestionPlaces?placeName=$placeName&latitude=$_latitude&longitude=$_longitude&touristName=$touristName';
+        'http://guideme.somee.com/api/SuggestionPlaces?placeName=$placeName&latitude=$_latitude&longitude=$_longitude&touristName=$touristName';
       } else {
         apiUrl =
-        'http://guide-me.somee.com/api/SuggestionPlaces?placeName=$placeName&address=$_address&touristName=$touristName';
+        'http://guideme.somee.com/api/SuggestionPlaces?placeName=$placeName&address=$_address&touristName=$touristName';
       }
 
       try {

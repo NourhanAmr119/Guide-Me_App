@@ -473,10 +473,10 @@ class _PlacePageState extends State<PlacePage> {
             itemBuilder: (context, index) {
               final recommendation = recommendations[index];
               return RecommendationCard(
-                recommendation: recommendation,
-                token: widget.token, // Pass the token to RecommendationCard
-                cityName: widget.cityName,
-                touristName:widget.touristName// Pass the cityName to RecommendationCard
+                  recommendation: recommendation,
+                  token: widget.token, // Pass the token to RecommendationCard
+                  cityName: widget.cityName,
+                  touristName:widget.touristName// Pass the cityName to RecommendationCard
               );
             },
           ),

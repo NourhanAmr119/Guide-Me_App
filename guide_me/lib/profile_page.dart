@@ -47,7 +47,7 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       String touristName = decodeToken(widget.token);
       final response = await http.get(
-        Uri.parse('http://guide-me.somee.com/api/Tourist/GetTouristInfo/$touristName'),
+        Uri.parse('http://guideme.somee.com/api/Tourist/GetTouristInfo/$touristName'),
         headers: {'Authorization': 'Bearer ${widget.token}'},
       );
       if (response.statusCode == 200) {

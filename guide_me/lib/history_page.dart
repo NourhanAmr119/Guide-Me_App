@@ -34,7 +34,7 @@ class _HistoryPageState extends State<HistoryPage> {
   Future<void> fetchHistory() async {
     try {
       var response = await http.get(
-        Uri.parse('http://guide-me.somee.com/api/TouristHistory/$touristName'),
+        Uri.parse('http://guideme.somee.com/api/TouristHistory/$touristName'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': '*/*',

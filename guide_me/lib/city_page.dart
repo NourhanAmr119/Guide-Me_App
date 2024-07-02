@@ -41,11 +41,15 @@ class _CityPageState extends State<CityPage> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+
     fetchData(widget.title, decodeToken(widget.token));
   }
 
   Future<void> fetchData(String cityName, String userName) async {
     try {
+      print('Token: ${widget.token}');
+      print('URL: http://guideme.somee.com/api/Place/$cityName/$userName/Allplaces');
+
       var response = await http.get(
         Uri.parse('http://guideme.somee.com/api/Place/$cityName/$userName/Allplaces'),
         headers: {
@@ -53,21 +57,29 @@ class _CityPageState extends State<CityPage> {
           'accept': '/',
         },
       );
+
       if (response.statusCode == 200) {
         setState(() {
-          places = jsonDecode(response.body)['\$values'];
-          categories = places
-              .map<String>((place) => place['category'].toString())
-              .toSet()
-              .toList();
+          var responseBody = jsonDecode(response.body);
+          if (responseBody is Map && responseBody.containsKey('\$values')) {
+            places = responseBody['\$values'];
+            categories = places
+                .map<String>((place) => place['category'].toString())
+                .toSet()
+                .toList();
+          } else {
+            print('Key \$values not found in response body');
+          }
         });
       } else {
         print('Failed to load data: ${response.statusCode}');
+        print('Response body: ${response.body}');
       }
     } catch (e) {
       print('Exception caught: $e');
     }
   }
+
 
 
   void _onScroll() {
@@ -348,90 +360,154 @@ class _CityPageState extends State<CityPage> {
   }
 
   List<Widget> buildCategoryCards(String category) {
-    return places
-        .where((place) => place['category'] == category)
-        .map<Widget>((place) => GestureDetector(
-      onTap: () {
-        _onTapCard(place, widget.token);
-      },
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        child: Column(
-          children: [
-            Image.network(
-              place['imageUrl'],
-              height: 200,
-              fit: BoxFit.cover,
-            ),
-            ListTile(
-              title: Text(place['name']),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(place['description']),
-                  FutureBuilder<double>(
-                    future: fetchRating(place['name']),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator();
-                      } else if (snapshot.hasError) {
-                        return Text('Error loading rating');
-                      } else {
-                        return _buildRatingStars(snapshot.data ?? 0.0);
-                      }
-                    },
-                  ),
-                  ChangeNotifierProvider(
-                    create: (context) => FavoritePlacesModel(),
-                    child: Consumer<FavoritePlacesModel>(
-                      builder: (context, favoritePlacesModel, child) {
-                        bool isFavorite = favoritePlacesModel.favoritePlaces
-                            .contains(place['name']);
-                        return IconButton(
-                          icon: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              isFavorite
-                                  ? favoritePlacesModel
-                                  .remove(place['name'])
-                                  : favoritePlacesModel
-                                  .add(place['name']);
-                              updateFavoritePlace(
-                                  place['name'], !isFavorite);
-                            });
-                          },
-                        );
-                      },
+    List<Widget> cards = [];
+    final model = Provider.of<FavoritePlacesModel>(context, listen: false);
+
+    for (var place in places) {
+      if (place['category'] == category) {
+        bool isFavorite = place['favoriteFlag'] == 1; // Initialize favorite state based on favoriteFlag
+
+        // Check if the media list and mediaContent are not null
+        String imageUrl = '';
+        if (place['media'] != null &&
+            place['media']['\$values'] != null &&
+            place['media']['\$values'].isNotEmpty &&
+            place['media']['\$values'][0] != null &&
+            place['media']['\$values'][0]['mediaContent'] != null) {
+          imageUrl = place['media']['\$values'][0]['mediaContent'];
+        } else {
+          imageUrl = 'https://via.placeholder.com/150'; // Provide a default placeholder image URL
+        }
+
+        cards.add(
+          GestureDetector(
+            onTap: () {
+              _onTapCard(place, widget.token); // Pass the entire place object
+            },
+            child: SizedBox(
+              height: 250,
+              child: Card(
+                elevation: 5,
+                margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15.0),
+                        child: Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: IconButton(
+                        icon: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: Colors.white,
+                        ),
+                        onPressed: () async {
+                          if (isFavorite) {
+                            model.remove(place['name']);
+                          } else {
+                            model.add(place['name']);
+                          }
+                          await updateFavoritePlace(place['name'], !isFavorite);
+                          setState(() {
+                            // Update favorite state after adding/removing from favorites
+                            place['favoriteFlag'] = isFavorite ? 0 : 1;
+                          });
+                        },
+                      ),
+                    ),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(15.0),
+                            bottomRight: Radius.circular(15.0),
+                          ),
+                          color: Colors.black54.withOpacity(0.8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              place['name'] ?? 'No Name',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            FutureBuilder<double>(
+                              future: fetchRating(place['name'] ?? ''), // Fetch the rating for the place
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return CircularProgressIndicator();
+                                } else if (snapshot.hasError) {
+                                  return Text('Error: ${snapshot.error}');
+                                } else {
+                                  return _buildRatingStars(snapshot.data ?? 0); // Use the fetched rating to display stars
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
-      ),
-    ))
-        .toList();
+          ),
+        );
+      }
+    }
+    return cards;
   }
+
+
+
+
 }
 
 class CustomSearchDelegate extends SearchDelegate<String> {
-  final BuildContext context;
-  final String token;
   final String cityName;
   final String touristName;
+  final String token;
+  final BuildContext context; // Add context here
 
   CustomSearchDelegate({
     required this.context,
-    required this.token,
     required this.cityName,
     required this.touristName,
+    required this.token,
   });
 
   @override
-  List<Widget>? buildActions(BuildContext context) {
+  ThemeData appBarTheme(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return theme.copyWith(
+      scaffoldBackgroundColor: const Color.fromARGB(255, 21, 82, 113),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color.fromARGB(140, 21, 82, 113),
+      ),
+    );
+  }
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
     return [
       IconButton(
         icon: const Icon(Icons.clear),
@@ -443,7 +519,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
   }
 
   @override
-  Widget? buildLeading(BuildContext context) {
+  Widget buildLeading(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
       onPressed: () {
@@ -454,113 +530,190 @@ class CustomSearchDelegate extends SearchDelegate<String> {
 
   @override
   Widget buildResults(BuildContext context) {
-    final appLocalization = AppLocalization.of(context);
-
-    if (query.isEmpty) {
-      return Center(
-        child: Text(appLocalization.translate('search')),
-      );
-    } else {
-      return FutureBuilder<List<dynamic>>(
-        future: searchPlaces(query),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text(appLocalization.translate('fetch_search_results_error')));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text(appLocalization.translate('no_results')));
-          } else {
-            return ListView(
-              children: snapshot.data!.map((place) {
-                return ListTile(
-                  title: Text(place['name']),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PlacePage(
-                          touristName: touristName,
-                          cityName: cityName,
-                          place: place,
-                          token: token,
-                        ),
-                      ),
-                    );
-                  },
-                );
-              }).toList(),
-            );
-          }
-        },
-      );
-    }
+    return _buildSearchResults(context);
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    final appLocalization = AppLocalization.of(context);
-
-    if (query.isEmpty) {
-      return Center(
-        child: Text(appLocalization.translate('search_hint')),
-      );
-    } else {
-      return FutureBuilder<List<dynamic>>(
-        future: searchPlaces(query),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text(appLocalization.translate('fetch_search_results_error')));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text(appLocalization.translate('no_results')));
-          } else {
-            return ListView(
-              children: snapshot.data!.map((place) {
-                return ListTile(
-                  title: Text(place['name']),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PlacePage(
-                          touristName: touristName,
-                          cityName: cityName,
-                          place: place,
-                          token: token,
-                        ),
-                      ),
-                    );
-                  },
-                );
-              }).toList(),
-            );
-          }
-        },
-      );
-    }
+    return _buildSearchResults(context);
   }
 
-  Future<List<dynamic>> searchPlaces(String query) async {
+  Future<void> addPlaceToHistory(String placeName) async {
     try {
-      var response = await http.get(
-        Uri.parse(
-            'http://guide-me.somee.com/api/Place/$cityName/$touristName/search/$query'),
+      final url = Uri.parse(
+          'http://guide-me.somee.com/api/TouristHistory?placename=${Uri.encodeComponent(placeName)}&touristname=${Uri.encodeComponent(touristName)}');
+
+      final response = await http.post(
+        url,
         headers: {
           'Authorization': 'Bearer $token',
           'accept': '/',
+          'Content-Type': 'application/json',
         },
       );
+
+      print('Request URL: $url');
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        print('Place added to history successfully');
+        // Handle success as needed, e.g., navigate to a new page
       } else {
-        print('Failed to search places: ${response.statusCode}');
-        return [];
+        print('Failed to add place to history: ${response.statusCode}');
+        // Handle failure, e.g., show a SnackBar with an error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to add place to history: ${response.statusCode}'),
+            duration: Duration(seconds: 3),
+          ),
+        );
       }
     } catch (e) {
       print('Exception caught: $e');
-      return [];
+      // Handle exceptions, e.g., show a SnackBar with the exception message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Exception: $e'),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
+
+  Widget _buildSearchResults(BuildContext context) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: searchPlace(query),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+          final places = snapshot.data!;
+
+          return ListView.builder(
+            itemCount: places.length,
+            itemBuilder: (context, index) {
+              final place = places[index];
+
+              return GestureDetector(
+                  onTap: () {
+                    _onTapCard(place);
+                  },
+                  child:Card(
+                    margin: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                    clipBehavior: Clip.antiAlias,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.7, // Adjust the width as needed
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          Image.network(
+                            place['placeImage'] ?? '', // Ensure place['placeImage'] is not null
+                            width: 50,
+                            height: 100,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Placeholder(
+                              fallbackWidth: 50,
+                              fallbackHeight: 50,
+                            ),
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(child: CircularProgressIndicator());
+                            },
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              place['placeName'] ?? 'Unknown Place',
+                              style: Theme.of(context).textTheme.subtitle1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+
+              );
+            },
+          );
+        } else {
+          return Center(child: Text('No results found.'));
+        }
+      },
+    );
+  }
+
+
+  Future<List<Map<String, dynamic>>> searchPlace(String placeName) async {
+    final url = Uri.parse(
+        'http://guideme.somee.com/api/Place/${Uri.encodeComponent(placeName)}/${Uri.encodeComponent(cityName)}/SearchPlace');
+    final response = await http.get(
+      url,
+      headers: {
+        'accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      dynamic jsonData = jsonDecode(response.body);
+
+      if (jsonData is List) {
+        List<Map<String, dynamic>> places = [];
+        for (var item in jsonData) {
+          if (item is Map<String, dynamic>) {
+            places.add(item);
+          }
+        }
+        return places;
+      } else if (jsonData is Map<String, dynamic>) {
+        return [jsonData];
+      } else {
+        throw Exception('Unexpected response format');
+      }
+    } else {
+      throw Exception('Failed to load places: ${response.statusCode}');
+    }
+  }
+
+  void _onTapCard(Map<String, dynamic> place) async {
+    try {
+      final String placeName = place['placeName'] ?? 'Unknown Place';
+
+      await addPlaceToHistory(placeName);
+
+      // Print the parameters before navigating
+      print('Navigating to PlacePage with parameters:');
+      print('touristName: $touristName');
+      print('cityName: $cityName');
+      print('place: $place');
+      print('token: $token');
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PlacePage(
+            touristName: touristName,
+            cityName: cityName,
+            place: {
+              'name': place['placeName'],
+              'image': place['placeImage'],
+            },
+            token: token,
+          ),
+        ),
+      );
+    } catch (e) {
+      print('Error tapping card: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
 }
