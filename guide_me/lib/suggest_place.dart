@@ -3,11 +3,16 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:jwt_decode/jwt_decode.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'AppLocalization.dart';
+
 
 class SuggestionPage extends StatefulWidget {
   final String token;
+  final Locale? locale;
+  final AppLocalization appLocalization;
 
-  const SuggestionPage({Key? key, required this.token}) : super(key: key);
+  const SuggestionPage({Key? key, required this.token,required this.appLocalization,
+    this.locale}) : super(key: key);
 
   @override
   _SuggestionPageState createState() => _SuggestionPageState();
@@ -46,12 +51,12 @@ class _SuggestionPageState extends State<SuggestionPage> {
             _showManualAddressInput();
           }
         } else {
-          _showAlertDialog('Failed to fetch location',
-              'Failed to fetch location from OpenStreetMap.');
+          _showAlertDialog(widget.appLocalization.translate('Failed to fetch location'),
+              widget.appLocalization.translate('Failed to fetch location from OpenStreetMap'));
         }
       } catch (e) {
         print('Error: $e'); // Debug statement
-        _showAlertDialog('An error occurred', e.toString());
+        _showAlertDialog(widget.appLocalization.translate('An error occurred'), e.toString());
       }
     }
   }
@@ -60,15 +65,15 @@ class _SuggestionPageState extends State<SuggestionPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(' Place not found you can Enter Address Manually'),
+          title: Text(widget.appLocalization.translate(' Place not found you can Enter Address Manually')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextFormField(
                 controller: _manualAddressController,
                 decoration: InputDecoration(
-                  labelText: 'Address',
-                  hintText: 'Enter the address manually',
+                  labelText: widget.appLocalization.translate('Address'),
+                  hintText: widget.appLocalization.translate('Enter the address manually'),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -82,7 +87,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
           actions: <Widget>[
             TextButton(
               child: Text(
-                'Cancel',
+                widget.appLocalization.translate('Cancel'),
                 style: TextStyle(color: Colors.white), // Keep original color
               ),
               onPressed: () {
@@ -91,7 +96,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
             ),
             TextButton(
               child: Text(
-                'Confirm',
+                widget.appLocalization.translate('Confirm'),
                 style: TextStyle(color: Colors.white), // Change color to white
               ),
               onPressed: () {
@@ -141,9 +146,11 @@ class _SuggestionPageState extends State<SuggestionPage> {
 
         if (apiResponse.statusCode == 200) {
           ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Your suggestion sent successfully')));
+              SnackBar(content: Text(widget.appLocalization.translate('Your suggestion sent successfully'))));
+
         } else {
-          _showAlertDialog('Failed to send suggestion', apiResponse.body);
+          _showAlertDialog(widget.appLocalization.translate('Failed to send suggestion'), apiResponse.body);
+
         }
       } catch (e) {
         print('Error: $e'); // Debug statement
@@ -184,7 +191,8 @@ class _SuggestionPageState extends State<SuggestionPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Suggest a Place',
+            widget.appLocalization.translate('Suggest Place'),
+
           style: TextStyle(
             color: Colors.black,
             fontSize: 20,
@@ -201,21 +209,22 @@ class _SuggestionPageState extends State<SuggestionPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20.0),
-                  child: Text(
-                    'Thank you for helping us \n add more places',
-                    style: GoogleFonts.lato(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              SizedBox(height: 26),
+          Center(
+          child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20.0),
+          child: Text(
+            widget.appLocalization.translate('Thank you for helping us add more places'),
+            style: GoogleFonts.lato(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+
+        SizedBox(height: 26),
               Form(
                 key: _formKey,
                 child: Column(
@@ -225,7 +234,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
                       controller: _placeController,
                       textAlign: TextAlign.center, // Center the text field
                       decoration: InputDecoration(
-                        labelText: 'Place Name',
+                        labelText: widget.appLocalization.translate('PlaceName'),
                         labelStyle: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
@@ -255,14 +264,14 @@ class _SuggestionPageState extends State<SuggestionPage> {
                             foregroundColor: Colors.white,
                           ),
                           onPressed: _searchPlace,
-                          child: Text('Search'),
+                          child: Text(widget.appLocalization.translate('Search')),
                         ),
                       ),
                     ),
                     SizedBox(height: 30),
                     if (_address != null) ...[
                       Text(
-                        'Address:',
+                        widget.appLocalization.translate('Address'),
                         style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
@@ -284,7 +293,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
                               minimumSize: Size(40, 40), // Set smaller button size
                             ),
                             onPressed: _confirmSuggestion,
-                            child: Text('Confirm'),
+                            child: Text(widget.appLocalization.translate('Confirm')),
                           ),
                         ),
                       ),

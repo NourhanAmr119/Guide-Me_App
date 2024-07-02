@@ -13,5 +13,19 @@
   "audio": "تسجيل صوتي",
   "Reviews": "اراء",
   "profile": "الملف الشخصي",
-  "logout": "تسجيل خروج"
+  "logout": "تسجيل خروج",
+  "PlaceName": "اسم المكان ",
+  "Thank you for helping us add more places": "شكرا لتقديم المساعدة",
+  "Suggest Place": "اقترح مكان ",
+  "Search": "بحث",
+  "Address": "العنوان",
+  "Confirm": "تاكيد",
+  "Your suggestion sent successfully": "تم الارسال بنجاح",
+  "Failed to send suggestion": "تعذر الارسال",
+  " Enter the address manually": "ادخل العنوان",
+  "Place not found you can Enter Address Manually": "المكان ليس موجود من فضلك ادخل العنوان",
+  "An error occurred": "حدث خطا",
+  "Failed to fetch location": "تعذر تحديد الموقع",
+  "Failed to fetch location from OpenStreetMap":"",
+  "Cancel": "الغاء"
 }

@@ -9,7 +9,9 @@ import 'profile_page.dart';
 import 'package:provider/provider.dart';
 import 'favorite_places_model.dart';
 import 'suggest_place.dart';
-import 'AppLocalization.dart'; // Import your localization class
+import 'AppLocalization.dart';
+
+// Import your localization class
 
 class CityPage extends StatefulWidget {
   final String title;
@@ -259,7 +261,8 @@ class _CityPageState extends State<CityPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => SuggestionPage(token: widget.token), // Navigate to SuggestionPage with token
+                  builder: (context) => SuggestionPage(token: widget.token,appLocalization: widget.appLocalization, // Pass the localization instance
+                      locale: widget.locale), // Navigate to SuggestionPage with token
                 ),
               );
             },

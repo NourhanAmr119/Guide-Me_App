@@ -3,12 +3,16 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:jwt_decode/jwt_decode.dart';
+import 'AppLocalization.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class RatePage extends StatefulWidget {
   final String placeName;
   final String token;
+  final Locale? locale;
+  final AppLocalization appLocalization;
 
-  RatePage({required this.placeName, required this.token});
+  RatePage({required this.placeName, required this.token, required this.appLocalization, this.locale});
 
   @override
   _RatePageState createState() => _RatePageState();
@@ -38,7 +42,7 @@ class _RatePageState extends State<RatePage> {
   Future<void> fetchSuggestions() async {
     final response = await http.get(
       Uri.parse(
-          'http://guide-me.somee.com/api/Rating/$rating/Rating/Suggestion'),
+          'http://guideme.runasp.net/api/Rating/$rating/Rating/Suggestion'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -66,7 +70,7 @@ class _RatePageState extends State<RatePage> {
 
   Future<void> submitSuggestions() async {
     final response = await http.post(
-      Uri.parse('http://guide-me.somee.com/Rating/Suggestion'),
+      Uri.parse('http://guideme.runasp.net/api/Rating/Suggestion'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Content-Type': 'application/json',
@@ -86,13 +90,13 @@ class _RatePageState extends State<RatePage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Thanks for rating'),
+            title: Text(widget.appLocalization.translate('Thanks for rating')),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('OK'),
+                child: Text(widget.appLocalization.translate('OK')),
               ),
             ],
           );
@@ -106,7 +110,7 @@ class _RatePageState extends State<RatePage> {
   void ratePlace() async {
     // Call API to submit rating
     final response = await http.post(
-      Uri.parse('http://guide-me.somee.com/api/Rating/RatePlace'),
+      Uri.parse('http://guideme.runasp.net/api/Rating/RatePlace'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Content-Type': 'application/json',
@@ -130,7 +134,7 @@ class _RatePageState extends State<RatePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Rate Place'),
+        title: Text(widget.appLocalization.translate('Rate Place')),
         titleTextStyle: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
         backgroundColor: Color.fromARGB(255, 246, 243, 177),
         iconTheme: IconThemeData(color: Colors.black),
@@ -146,8 +150,13 @@ class _RatePageState extends State<RatePage> {
             children: <Widget>[
               Center(
                 child: Text(
-                  'Your Rating ',
-                  style: TextStyle(fontSize: 30, color: Colors.black),
+                  widget.appLocalization.translate('Your Rating '),
+                  style: GoogleFonts.lato(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
               SizedBox(height: 60),
@@ -171,11 +180,13 @@ class _RatePageState extends State<RatePage> {
               ),
               SizedBox(height: 30),
               Text(
-                'If you like, share with us the reasons',
-                style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black),
+                widget.appLocalization.translate('If you like, share with us the reasons'),
+                style: GoogleFonts.lato(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+                textAlign: TextAlign.center,
               ),
               SizedBox(height: 30),
               Wrap(
@@ -210,7 +221,7 @@ class _RatePageState extends State<RatePage> {
                   padding: EdgeInsets.symmetric(
                       horizontal: 30, vertical: 10), // Larger submit button
                 ),
-                child: Text('Submit Rating',
+                child: Text(widget.appLocalization.translate('Submit Rating'),
                     style: TextStyle(fontSize: 20)), // Larger text
               ),
             ],

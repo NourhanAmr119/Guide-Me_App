@@ -218,12 +218,10 @@ class _SignInPageState extends State<SignInPage> {
     required IconData prefixIcon,
     TextInputType keyboardType = TextInputType.text,
     bool isPassword = false,
-    Function? toggleVisibility,
-    bool isObscure = true,
     String? Function(String?)? validator,
-    String hintText = 'Required',
-    required bool Function(dynamic _) onChanged,
+    required void Function(String) onChanged,
     String? errorText,
+    bool isObscure = false, // Add this parameter to control the visibility of the password
   }) {
     String fieldHintText = 'Enter your $labelText';
 
@@ -236,7 +234,7 @@ class _SignInPageState extends State<SignInPage> {
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
-        obscureText: isPassword ? isObscure : false,
+        obscureText: isPassword ? isObscure : false, // Use isObscure to control password visibility
         onChanged: (value) {
           setState(() {
             _errorStatus[controller.toString()] = validator!(value) != null;
@@ -250,9 +248,7 @@ class _SignInPageState extends State<SignInPage> {
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(25.0),
           ),
-          errorText: _errorStatus[controller.toString()] ?? false
-              ? validator!(controller.text)
-              : null,
+          errorText: errorText,
           errorStyle: TextStyle(color: Colors.red),
           errorBorder: OutlineInputBorder(
             borderSide: BorderSide(color: Colors.red),
@@ -265,12 +261,12 @@ class _SignInPageState extends State<SignInPage> {
           suffixIcon: isPassword
               ? IconButton(
             icon: Icon(
-              isObscure ? Icons.visibility : Icons.visibility_off,
+              isObscure ? Icons.visibility_off : Icons.visibility,
               color: Colors.white, // Set icon color here
             ),
             onPressed: () {
               setState(() {
-                isObscure = !isObscure; // Toggle password visibility
+                _isObscure = !_isObscure; // Toggle password visibility
               });
             },
           )
@@ -281,4 +277,5 @@ class _SignInPageState extends State<SignInPage> {
       ),
     );
   }
+
 }

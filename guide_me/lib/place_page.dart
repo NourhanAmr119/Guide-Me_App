@@ -323,6 +323,8 @@ class _PlacePageState extends State<PlacePage> {
                               RatePage(
                                 placeName: widget.place['name'],
                                 token: widget.token,
+                                  appLocalization: widget.appLocalization, // Pass the localization instance
+                                  locale: widget.locale
                               ),
                         ),
                       );

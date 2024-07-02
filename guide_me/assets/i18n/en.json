@@ -13,5 +13,19 @@
   "audio": "Audio",
   "Reviews": "Reviews",
   "profile": "Profile",
-  "logout": "Logout"
+  "logout": "Logout",
+  "PlaceName": "PlaceName",
+  "Thank you for helping us add more places": "Thank you for helping us add more places",
+  "Suggest Place":"Suggest Place",
+  "Search": "Search",
+  "Address": "Address",
+  "Confirm": "Confirm",
+  "Your suggestion sent successfully": "Your suggestion sent successfully",
+  "Failed to send suggestion": "Failed to send suggestion",
+ " Enter the address manually": "Enter the address manually",
+  "Place not found you can Enter Address Manually": "Place not found you can Enter Address Manually",
+  "An error occurred": "An error occurred",
+  "Failed to fetch location": "Failed to fetch location",
+  "Failed to fetch location from OpenStreetMap": "Failed to fetch location from OpenStreetMap",
+  "Cancel": "Cancel"
 }

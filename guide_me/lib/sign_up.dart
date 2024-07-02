@@ -255,6 +255,8 @@ class _SignUpPageState extends State<SignUpPage> {
                       }
                       return null;
                     },
+                    dropdownColor: Color.fromARGB(255, 35, 110, 172),
+                    // Set the background color to blue
                   ),
                   SizedBox(height: 30.0),
                   Center(
