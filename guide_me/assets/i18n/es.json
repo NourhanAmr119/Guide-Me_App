@@ -4,8 +4,10 @@
   "no_results": "No se han encontrado resultados.",
   "fetch_search_results_error": "No se pudieron cargar los resultados de la búsqueda",
   "scan": "escanear",
-  "suggest": "sugerir"
-
+  "suggest": "sugerir",
+  "Rate":"Califica este lugar",
+  "ChangeRate": "Tasa de cambio",
+  "Recommendations": "Lugares que te pueden gustar"
 
 
 }

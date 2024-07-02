@@ -27,5 +27,18 @@
   "An error occurred": "An error occurred",
   "Failed to fetch location": "Failed to fetch location",
   "Failed to fetch location from OpenStreetMap": "Failed to fetch location from OpenStreetMap",
-  "Cancel": "Cancel"
+  "Cancel": "Cancel",
+  "EditProfile": "Edit Profile",
+  "UserName": "User Name",
+  "PlaceHolder1": "Please Enter User Name",
+  "Email": "Email",
+  "PlaceHolder2": "Please Enter Email ",
+  "Language":"Language",
+  "CurrentPass":"Current Password",
+  "NewPass":"New Password",
+  "UpdateProfile": "Update Profile",
+  "Ok":"Ok",
+  "FailedUpdate": "Failed to Update Profile. Please Try Again",
+  "UknownResponse": "an error occurred. Try later",
+  "ProfileSucess": "Profile Updated Sucessfully"
 }

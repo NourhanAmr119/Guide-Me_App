@@ -27,5 +27,18 @@
   "An error occurred": "حدث خطا",
   "Failed to fetch location": "تعذر تحديد الموقع",
   "Failed to fetch location from OpenStreetMap":"",
-  "Cancel": "الغاء"
+  "Cancel": "الغاء",
+  "EditProfile": "تعديل الملف الشخصي",
+  "UserName": "اسم المستخدم",
+  "PlaceHolder1": "من فضلك ادخل اسم المستخدم",
+  "Email": "الايميل",
+  "PlaceHolder2": "من فضلك ادخل الايميل ",
+  "Language":"اللغة",
+  "CurrentPass":"الباسورد الحالي",
+  "NewPass":"الباسورد الجديد",
+  "UpdateProfile": "تحديث البروفايل",
+  "Ok":"حسنا",
+  "FailedUpdate": "تعذر تحديث الملف الشخصي .من فضلك حاول مرة اخري",
+  "UknownResponse": "حدث خطأ. جرب في وقت لاحق",
+  "ProfileSucess": "تم تحديث الملف الشخصي بنجاح"
 }

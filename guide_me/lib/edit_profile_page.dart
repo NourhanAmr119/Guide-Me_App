@@ -15,6 +15,7 @@ class EditProfilePage extends StatefulWidget {
   final Locale? locale;
   final AppLocalization appLocalization;
 
+
   EditProfilePage({required this.token, required this.initialData,required this.appLocalization, // Add this line
     this.locale});
 
@@ -33,15 +34,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
   String? _defaultPhotoUrl;
   bool _obscureTextCurrent = true;
   bool _obscureTextNew = true;
+  String? _selectedLanguage;
 
   @override
   void initState() {
     super.initState();
     _userNameController.text = widget.initialData['userName'];
     _emailController.text = widget.initialData['email'];
-    _languageController.text = widget.initialData['language'];
+    _selectedLanguage = widget.initialData['language'];
     _getDefaultPhotoUrl();
   }
+
 
   Future<void> _getDefaultPhotoUrl() async {
     try {
@@ -78,7 +81,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Future<void> _updateProfile() async {
     if (_formKey.currentState!.validate()) {
       final uri = Uri.parse(
-          'http://guideme.somee.com/api/Tourist/update/${_userNameController.text}');
+          'http://guideme.runasp.net/api/Tourist/update/${_userNameController.text}');
       final headers = {
         'Authorization': 'Bearer ${widget.token}',
         'Content-Type': 'multipart/form-data',
@@ -90,7 +93,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
         request.fields['userName'] = _userNameController.text;
         request.fields['email'] = _emailController.text;
-        request.fields['language'] = _languageController.text;
+        request.fields['language'] = _selectedLanguage ?? '';
+
         request.fields['newPass'] = _newPasswordController.text;
         request.fields['currentPass'] = _currentPasswordController.text;
 
@@ -116,10 +120,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
           print('Response Body: $value');
           if (response.statusCode == 200) {
             if (value.contains('Tourist Data Updated Successfully')) {
-              _showCustomDialog('Profile updated successfully');
+              _showCustomDialog(widget.appLocalization.translate('ProfileSucess'));
               Navigator.pop(context);
             } else {
-              _showCustomDialog('Unknown response from server');
+              _showCustomDialog(widget.appLocalization.translate('UknownResponse'));
             }
           } else {
             _showCustomDialog(value);
@@ -127,7 +131,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         });
       } catch (e) {
         print('Error updating profile: $e');
-        _showCustomDialog('Failed to update profile. Please try again.');
+        _showCustomDialog( widget.appLocalization.translate('FailedUpdate'));
       }
     }
   }
@@ -171,7 +175,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           actions: <Widget>[
             TextButton(
               child: Text(
-                'OK',
+                widget.appLocalization.translate('Ok'),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -193,7 +197,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Edit Profile',
+          widget.appLocalization.translate('EditProfile'),
           style: TextStyle(
             color: Colors.black,
             fontSize: 25,
@@ -261,7 +265,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 TextFormField(
                   controller: _userNameController,
                   decoration: InputDecoration(
-                    labelText: 'User Name',
+                    labelText:  widget.appLocalization.translate('UserName'),
                     labelStyle: TextStyle(
                       color: Colors.black,
                       fontSize: 22,
@@ -276,7 +280,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter a username';
+                      return   widget.appLocalization.translate('PlaceHolder1');
                     }
                     return null;
                   },
@@ -290,7 +294,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
-                    labelText: 'Email',
+                    labelText:  widget.appLocalization.translate('Email'),
                     labelStyle: TextStyle(
                       color: Colors.black,
                       fontSize: 22,
@@ -305,7 +309,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter an email';
+                      return   widget.appLocalization.translate('PlaceHolder2');
                     }
                     return null;
                   },
@@ -316,10 +320,37 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                 ),
                 SizedBox(height: 16),
-                TextFormField(
-                  controller: _languageController,
+
+                DropdownButtonFormField<String>(
+                  value: _selectedLanguage,
+                  items: [
+                    DropdownMenuItem(
+                      value: 'en',
+                      child: Text('English'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'ar',
+                      child: Text('Arabic'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'fr',
+                      child: Text('French'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'it',
+                      child: Text('Italian'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'es',
+                      child: Text('Spanish'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'de',
+                      child: Text('German'),
+                    ),
+                  ],
                   decoration: InputDecoration(
-                    labelText: 'Language',
+                    labelText: widget.appLocalization.translate('Language'),
                     labelStyle: TextStyle(
                       color: Colors.black,
                       fontSize: 22,
@@ -331,18 +362,45 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     focusedBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.black),
                     ),
+                    suffixIcon: Icon(Icons.arrow_drop_down, color: Colors.black),
                   ),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedLanguage = newValue;
+                    });
+                  },
+                  dropdownColor: Colors.black, // Optional: Set dropdown background color
                   style: TextStyle(
-                    color: Colors.black,
+                    // color: Colors.black, // Set dropdown button text color
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
+                  selectedItemBuilder: (BuildContext context) {
+                    return [
+                      'English',
+                      'Arabic',
+                      'French',
+                      'Italian',
+                      'Spanish',
+                      'German',
+                    ].map<Widget>((String item) {
+                      return Text(
+                        item,
+                        style: TextStyle(
+                          color: _selectedLanguage == item.toLowerCase() ? Colors.white : Colors.black, // Set selected item text color to white when selected
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    }).toList();
+                  },
                 ),
+
                 SizedBox(height: 16),
                 TextFormField(
                   controller: _currentPasswordController,
                   decoration: InputDecoration(
-                    labelText: 'Current Password',
+                    labelText: widget.appLocalization.translate('CurrentPass'),
                     labelStyle: TextStyle(
                       color: Colors.black,
                       fontSize: 18,
@@ -379,7 +437,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 TextFormField(
                   controller: _newPasswordController,
                   decoration: InputDecoration(
-                    labelText: 'New Password',
+                    labelText: widget.appLocalization.translate('NewPass'),
                     labelStyle: TextStyle(
                       color: Colors.black,
                       fontSize: 18,
@@ -416,7 +474,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 ElevatedButton(
                   onPressed: _updateProfile,
                   child: Text(
-                    'Update Profile',
+                    widget.appLocalization.translate('UpdateProfile'),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,

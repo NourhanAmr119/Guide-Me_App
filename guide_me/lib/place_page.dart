@@ -387,6 +387,7 @@ class _PlacePageState extends State<PlacePage> {
 
   @override
   Widget build(BuildContext context) {
+    final appLocalization = widget.appLocalization; // Access AppLocalization instance
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.black),
@@ -407,15 +408,14 @@ class _PlacePageState extends State<PlacePage> {
               },
               icon: Column(
                 children: [
-                  Icon(Icons.qr_code,
-                      color: Colors.black),
-                  // Replace with your reviews icon
-                  SizedBox(
-                      height: 2),
-                  // Adjust the height as needed for spacing
-                  Text('Scan',
-                      style: TextStyle(color: Colors.black)),
-                  // Title of the icon
+                  Image.asset(
+                    'assets/scan_icon.jpg',
+                    width: 34,  // Adjust the width as needed
+                    height: 24, // Adjust the height as needed
+                    // color: Colors.white, // Apply color filter if necessary
+                  ),
+                  SizedBox(height: 2), // Adjust the height as needed for spacing
+                  Text(appLocalization.translate('scan'), style: TextStyle(color: Colors.white, fontSize: 9)),
                 ],
               ),
             ),
@@ -426,10 +426,10 @@ class _PlacePageState extends State<PlacePage> {
                   MaterialPageRoute(
                     builder: (context) =>
                         ReviewPage(
-                            placeName: widget.place['name'],
-                            token: widget.token,
-                            appLocalization: widget.appLocalization, // Pass the localization instance
-                            locale: widget.locale,
+                          placeName: widget.place['name'],
+                          token: widget.token,
+                          appLocalization: widget.appLocalization, // Pass the localization instance
+                          locale: widget.locale,
                         ),
                   ),
                 );
@@ -491,12 +491,12 @@ class _PlacePageState extends State<PlacePage> {
             itemBuilder: (context, index) {
               final recommendation = recommendations[index];
               return RecommendationCard(
-                  recommendation: recommendation,
-                  token: widget.token, // Pass the token to RecommendationCard
-                  cityName: widget.cityName,
-                  touristName:widget.touristName,
-                  appLocalization: widget.appLocalization, // Pass the localization instanc
-                  locale: widget.locale,
+                recommendation: recommendation,
+                token: widget.token, // Pass the token to RecommendationCard
+                cityName: widget.cityName,
+                touristName:widget.touristName,
+                appLocalization: widget.appLocalization, // Pass the localization instanc
+                locale: widget.locale,
                 // Pass the cityName to RecommendationCard
               );
             },
