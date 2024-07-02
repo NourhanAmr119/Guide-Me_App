@@ -5,10 +5,14 @@ import 'package:jwt_decode/jwt_decode.dart';
 import 'package:guide_me/city_page.dart';
 import 'history_page.dart';
 import 'home_page.dart';
+import 'AppLocalization.dart';
 
 class FavoritePage extends StatefulWidget {
   final String authToken;
-  const FavoritePage({Key? key, required this.authToken}) : super(key: key);
+  final Locale? locale;
+  final AppLocalization appLocalization;
+
+  const FavoritePage({Key? key, required this.authToken, required this.appLocalization, this.locale}) : super(key: key);
 
   @override
   _FavoritePageState createState() => _FavoritePageState();
@@ -171,7 +175,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomAppBar(
+     return BottomAppBar(
       elevation: 0,
       color: Color.fromARGB(255, 21, 82, 113),
       child: Container(
@@ -200,12 +204,13 @@ class CustomBottomNavigationBar extends StatelessWidget {
             IconButton(
               icon: Icon(Icons.history),
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => HistoryPage(token: authToken),
-                  ),
-                );
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => HistoryPage(token: authToken, appLocalization: appLocalization,
+                //         locale: locale),
+                //   ),
+                // );
               },
             ),
             IconButton(

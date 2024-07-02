@@ -352,6 +352,8 @@ class _CityPageState extends State<CityPage> {
                       MaterialPageRoute(
                         builder: (context) => FavoritePage(
                           authToken: widget.token,
+                            appLocalization: widget.appLocalization,
+                            locale: widget.locale
                         ),
                       ),
                     );
@@ -365,6 +367,8 @@ class _CityPageState extends State<CityPage> {
                       MaterialPageRoute(
                         builder: (context) => HistoryPage(
                           token: widget.token,
+                            appLocalization: widget.appLocalization, // Pass the localization instance
+                            locale: widget.locale
 
                         ),
                       ),

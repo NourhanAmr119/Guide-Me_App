@@ -246,7 +246,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => FavoritePage(
-                        authToken: widget.token,
+                        authToken: widget.token,appLocalization: widget.appLocalization, // Pass the localization instance
+                          locale: widget.locale
                       ),
                     ),
                   );
@@ -258,7 +259,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => HistoryPage(token: widget.token),
+                      builder: (context) => HistoryPage(token: widget.token,appLocalization: widget.appLocalization, // Pass the localization instance
+                          locale: widget.locale),
                     ),
                   );
                 },

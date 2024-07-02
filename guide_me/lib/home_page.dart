@@ -233,7 +233,8 @@ class _HomePageState extends State<HomePage> {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          FavoritePage(authToken: widget.token),
+                          FavoritePage(authToken: widget.token,locale: _locale,
+                            appLocalization: _appLocalization),
                     ),
                   );
                 },
@@ -244,7 +245,8 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => HistoryPage(token: widget.token),
+                      builder: (context) => HistoryPage(token: widget.token,locale: _locale,
+                        appLocalization: _appLocalization),
                     ),
                   );
                 },

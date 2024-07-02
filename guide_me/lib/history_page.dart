@@ -3,12 +3,15 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'favorite_page.dart';
 import 'home_page.dart';
-import 'package:jwt_decode/jwt_decode.dart'; 
+import 'package:jwt_decode/jwt_decode.dart';
+import 'AppLocalization.dart';
 
 class HistoryPage extends StatefulWidget {
   final String token;
+  final Locale? locale;
+  final AppLocalization appLocalization;
 
-  const HistoryPage({Key? key, required this.token}) : super(key: key);
+  const HistoryPage({Key? key, required this.token, required this.appLocalization, this.locale}) : super(key: key);
 
   @override
   _HistoryPageState createState() => _HistoryPageState();
@@ -54,7 +57,6 @@ class _HistoryPageState extends State<HistoryPage> {
 
 
   @override
-  @override
   Widget build(BuildContext context) {
     // Grouping history by date
     Map<String, List<dynamic>> groupedHistory = {};
@@ -72,7 +74,7 @@ class _HistoryPageState extends State<HistoryPage> {
       appBar: AppBar(
         backgroundColor:
             Color.fromARGB(255, 21, 82, 113), // Set app bar background color
-        title: Text('History'),
+        title: Text(widget.appLocalization.translate('History')),
       ),
       backgroundColor:
           Color.fromARGB(255, 21, 82, 113), // Set scaffold background color
@@ -176,7 +178,8 @@ class _HistoryPageState extends State<HistoryPage> {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          FavoritePage(authToken: widget.token),
+                          FavoritePage(authToken: widget.token,appLocalization: widget.appLocalization, // Pass the localization instance
+                              locale: widget.locale),
                     ),
                   );
                 },
