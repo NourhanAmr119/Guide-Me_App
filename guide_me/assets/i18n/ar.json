@@ -1,6 +1,6 @@
 {
   "app_title": "أرشدني",
-  "search_hint": "بحث...",
+  "search": "بحث",
   "no_results": "لا يوجد نتائج",
   "fetch_search_results_error": "تعذر تحميل نتائج البحث",
   "scan": "مسح ضوئي",

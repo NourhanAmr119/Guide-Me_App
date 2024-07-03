@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:jwt_decode/jwt_decode.dart';
-import 'package:guide_me/city_page.dart';
-import 'history_page.dart';
-import 'home_page.dart';
 import 'AppLocalization.dart';
+import 'bottom_nav_bar.dart';
 
 class FavoritePage extends StatefulWidget {
   final String authToken;
@@ -162,66 +160,12 @@ class _FavoritePageState extends State<FavoritePage> {
           },
         ),
       ),
-      bottomNavigationBar: CustomBottomNavigationBar(authToken: widget.authToken),
-    );
-  }
-}
-
-class CustomBottomNavigationBar extends StatelessWidget {
-  final String authToken;
-
-  const CustomBottomNavigationBar({Key? key, required this.authToken})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-     return BottomAppBar(
-      elevation: 0,
-      color: Color.fromARGB(255, 21, 82, 113),
-      child: Container(
-        height: 60,
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.home),
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => HomePage(token: authToken)),
-                      (Route<dynamic> route) => false,
-                );
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.favorite),
-              onPressed: () {
-                // Do nothing as we are already on the favorite page
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.history),
-              onPressed: () {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //     builder: (context) => HistoryPage(token: authToken, appLocalization: appLocalization,
-                //         locale: locale),
-                //   ),
-                // );
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.account_circle),
-              onPressed: () {
-                // Navigate to account page
-              },
-            ),
-          ],
-        ),
+      bottomNavigationBar: BottomNavBar(
+        token: widget.authToken,
+        appLocalization: widget.appLocalization,
+        locale: widget.locale,
       ),
     );
   }
 }
+

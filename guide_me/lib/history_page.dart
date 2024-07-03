@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'favorite_page.dart';
-import 'home_page.dart';
 import 'package:jwt_decode/jwt_decode.dart';
 import 'AppLocalization.dart';
+import 'bottom_nav_bar.dart';
 
 class HistoryPage extends StatefulWidget {
   final String token;
@@ -151,54 +150,10 @@ class _HistoryPageState extends State<HistoryPage> {
           );
         },
       ),
-      bottomNavigationBar: BottomAppBar(
-        elevation: 0,
-        color: const Color.fromARGB(255, 21, 82, 113),
-        child: Container(
-          height: 60,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.home),
-                onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => HomePage(token: widget.token)),
-                    (Route<dynamic> route) => false,
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.favorite),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          FavoritePage(authToken: widget.token,appLocalization: widget.appLocalization, // Pass the localization instance
-                              locale: widget.locale),
-                    ),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.history),
-                onPressed: () {
-                  // Do nothing as we are already on the history page
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.account_circle),
-                onPressed: () {
-                  // Navigate to account page
-                },
-              ),
-            ],
-          ),
-        ),
+      bottomNavigationBar: BottomNavBar(
+        token: widget.token,
+        appLocalization: widget.appLocalization,
+        locale: widget.locale,
       ),
     );
   }

@@ -2,11 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
-
 import 'AppLocalization.dart';
 import 'city_page.dart';
-import 'favorite_page.dart';
-import 'history_page.dart';
+import 'bottom_nav_bar.dart';
 
 class HomePage extends StatefulWidget {
   final String token;
@@ -213,51 +211,10 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      bottomNavigationBar: BottomAppBar(
-        elevation: 0,
-        color: const Color.fromARGB(255, 21, 82, 113),
-        child: Container(
-          height: 60,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.home),
-                onPressed: () {},
-              ),
-              IconButton(
-                icon: const Icon(Icons.favorite),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          FavoritePage(authToken: widget.token,locale: _locale,
-                            appLocalization: _appLocalization),
-                    ),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.history),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => HistoryPage(token: widget.token,locale: _locale,
-                        appLocalization: _appLocalization),
-                    ),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.account_circle),
-                onPressed: () {},
-              ),
-            ],
-          ),
-        ),
+      bottomNavigationBar: BottomNavBar(
+        token: widget.token,
+        appLocalization: _appLocalization,
+        locale: _locale,
       ),
     );
   }

@@ -1,6 +1,6 @@
 {
   "app_title": "Guíame",
-  "search": "Buscar...",
+  "search": "Buscar",
   "no_results": "No se han encontrado resultados.",
   "fetch_search_results_error": "No se pudieron cargar los resultados de la búsqueda",
   "scan": "escanear",

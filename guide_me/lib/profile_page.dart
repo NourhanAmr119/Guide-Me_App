@@ -7,6 +7,7 @@ import 'favorite_page.dart';
 import 'history_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'AppLocalization.dart';
+import 'bottom_nav_bar.dart';
 
 class ProfilePage extends StatefulWidget {
   final String token;
@@ -224,61 +225,10 @@ class _ProfilePageState extends State<ProfilePage> {
         },
       ),
       backgroundColor: Color.fromARGB(255, 246, 243, 177),
-      bottomNavigationBar: BottomAppBar(
-        elevation: 0,
-        color: Colors.transparent,
-        child: Container(
-          height: 60,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: Icon(Icons.home, size: 30, color: Colors.black),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.favorite, size: 30, color: Colors.black),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => FavoritePage(
-                        authToken: widget.token,appLocalization: widget.appLocalization, // Pass the localization instance
-                          locale: widget.locale
-                      ),
-                    ),
-                  );
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.history, size: 30, color: Colors.black),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => HistoryPage(token: widget.token,appLocalization: widget.appLocalization, // Pass the localization instance
-                          locale: widget.locale),
-                    ),
-                  );
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.account_circle, size: 30, color: Colors.black),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProfilePage(token: widget.token,appLocalization: widget.appLocalization, locale: widget.locale),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
+      bottomNavigationBar: BottomNavBar(
+        token: widget.token,
+        appLocalization: widget.appLocalization,
+        locale: widget.locale,
       ),
     );
   }

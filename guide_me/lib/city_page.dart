@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'favorite_places_model.dart';
 import 'suggest_place.dart';
 import 'AppLocalization.dart';
+import 'bottom_nav_bar.dart';
 
 // Import your localization class
 
@@ -287,7 +288,17 @@ class _CityPageState extends State<CityPage> {
             ),
             SizedBox(width: 8), // Space between icons
             IconButton(
-              icon: const Icon(Icons.search),
+              icon: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.search, color: Colors.white),
+                  SizedBox(height: 2),
+                  Text(
+                    appLocalization.translate('search'),
+                    style: TextStyle(color: Colors.white, fontSize: 9),
+                  ),
+                ],
+              ),
               onPressed: () {
                 showSearch<String>(
                   context: context,
@@ -329,66 +340,10 @@ class _CityPageState extends State<CityPage> {
                 : Center(child: CircularProgressIndicator()),
           ),
         ),
-        bottomNavigationBar: BottomAppBar(
-          elevation: 0,
-          color: const Color.fromARGB(255, 21, 82, 113),
-          child: Container(
-            height: 60,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.home),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.favorite),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => FavoritePage(
-                          authToken: widget.token,
-                            appLocalization: widget.appLocalization,
-                            locale: widget.locale
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.history),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => HistoryPage(
-                          token: widget.token,
-                            appLocalization: widget.appLocalization, // Pass the localization instance
-                            locale: widget.locale
-
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.person),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProfilePage(token: widget.token,appLocalization: widget.appLocalization, locale: widget.locale),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
+        bottomNavigationBar: BottomNavBar(
+          token: widget.token,
+          appLocalization: widget.appLocalization,
+          locale: widget.locale,
         ),
       ),
     );
@@ -504,11 +459,6 @@ class _CityPageState extends State<CityPage> {
     return cards;
   }
 }
-
-
-
-
-
 
 class CustomSearchDelegate extends SearchDelegate<String> {
   final String cityName;

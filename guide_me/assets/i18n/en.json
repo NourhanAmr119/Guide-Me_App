@@ -1,6 +1,6 @@
 {
   "app_title": "Guide Me",
-  "search_hint": "Search...",
+  "search": "Search",
   "no_results": "No results found.",
   "fetch_search_results_error": "Failed to load search results",
   "scan": "Scan",
