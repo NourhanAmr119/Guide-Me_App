@@ -1,0 +1,18 @@
+{
+  "app_title": "Guide-moi",
+  "search": "Chercher",
+  "no_results": "Aucun résultat trouvé.",
+  "fetch_search_results_error": "Impossible de charger les résultats de recherche",
+  "scan": "scanner",
+  "suggest": "suggérer",
+  "audio": "l'audio",
+  "video": "vidéo",
+  "about_the_place": "à propos de l'endroit",
+  "thanks_for_rating": "Merci pour l'évaluation",
+  "your_rating": "Votre note",
+  "if_you_like_,_share_with_us_the_reasons": "Si vous le souhaitez, partagez avec nous les raisons",
+  "submit_rating": "Submit Rating",
+  "rate_place": "Tarif Lieu",
+  "History":"Histoire",
+  "Favorites":"Favoris"
+}

@@ -53,40 +53,47 @@ class _SignUpPageState extends State<SignUpPage> {
     final String confirmPassword = _confirmPasswordController.text;
     final String? language = _selectedLanguage;
 
-    final response = await http.post(
-      Uri.parse('http://guideme.runasp.net/api/Tourist/signup'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'username': username,
-        'email': email,
-        'password': password,
-        'confirmPassword': confirmPassword,
-        'language': language!,
-      }),
-    );
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      final token = responseData['token']; // Get the token from response
-
-      // Navigate to HomePage with the token
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(token: token),
-        ),
+    try {
+      final response = await http.post(
+        Uri.parse('http://guideme.runasp.net/api/Tourist/signup'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          'username': username,
+          'email': email,
+          'password': password,
+          'confirmPassword': confirmPassword,
+          'language': language!,
+        }),
       );
-    } else {
-      String errorMessage = 'An error occurred';
-      if (response.body != null && response.body.isNotEmpty) {
-        final errorResponse = jsonDecode(response.body);
-        errorMessage = errorResponse['message'] ?? 'An error occurred';
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        final token = responseData['token']; // Get the token from response
+
+        // Navigate to HomePage with the token
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(token: token),
+          ),
+        );
+      } else {
+        String errorMessage = 'An error occurred';
+        if (response.body.isNotEmpty) {
+          final errorResponse = jsonDecode(response.body);
+          errorMessage = errorResponse['message'] ?? 'An error occurred';
+
+          // Check if the error message indicates that the username already exists
+          if (errorResponse['message'] != null && errorResponse['message'].contains('username already exists')) {
+            errorMessage = 'The username already exists. Please choose a different username.';
+          }
+        }
 
         showDialog(
           context: context,
@@ -96,18 +103,53 @@ class _SignUpPageState extends State<SignUpPage> {
               content: Text(errorMessage),
               actions: <Widget>[
                 TextButton(
-                  child: Text('OK'),
+                  child: Text(
+                    'OK',
+                    style: TextStyle(
+                      color: Colors.white, // Set text color to white
+                    ),
+                  ),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                 ),
               ],
+              backgroundColor: Color.fromARGB(255, 21, 82, 113),
             );
           },
         );
       }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text('username already exists'),
+            actions: <Widget>[
+              TextButton(
+                child: Text(
+                  'OK',
+                  style: TextStyle(
+                    color: Colors.white, // Set text color to white
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+            backgroundColor: Color.fromARGB(255, 21, 82, 113),
+          );
+        },
+      );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -214,27 +256,51 @@ class _SignUpPageState extends State<SignUpPage> {
                     items: [
                       DropdownMenuItem(
                         value: 'en',
-                        child: Text('English'),
+                        child: Column(
+                          children: [
+                            Text('English'),
+                          ],
+                        ),
                       ),
                       DropdownMenuItem(
                         value: 'ar',
-                        child: Text('Arabic'),
+                        child: Column(
+                          children: [
+                            Text('Arabic'),
+                          ],
+                        ),
                       ),
                       DropdownMenuItem(
                         value: 'fr',
-                        child: Text('French'),
+                        child: Column(
+                          children: [
+                            Text('French'),
+                          ],
+                        ),
                       ),
                       DropdownMenuItem(
                         value: 'it',
-                        child: Text('Italy'),
+                        child: Column(
+                          children: [
+                            Text('Italy'),
+                          ],
+                        ),
                       ),
                       DropdownMenuItem(
                         value: 'es',
-                        child: Text('Spanish'),
+                        child: Column(
+                          children: [
+                            Text('Spanish'),
+                          ],
+                        ),
                       ),
                       DropdownMenuItem(
                         value: 'de',
-                        child: Text('German'),
+                        child: Column(
+                          children: [
+                            Text('German'),
+                          ],
+                        ),
                       ),
                     ],
                     onChanged: (String? newValue) {
@@ -249,14 +315,14 @@ class _SignUpPageState extends State<SignUpPage> {
                         borderRadius: BorderRadius.circular(25.0),
                       ),
                     ),
+                    dropdownColor: Color.fromARGB(255, 21, 82, 113),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please select a language';
                       }
                       return null;
                     },
-                    dropdownColor: Color.fromARGB(255, 35, 110, 172),
-                    // Set the background color to blue
+                    style: TextStyle(color: Colors.white), // Set text color for dropdown items
                   ),
                   SizedBox(height: 30.0),
                   Center(

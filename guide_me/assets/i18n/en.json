@@ -22,7 +22,7 @@
   "Confirm": "Confirm",
   "Your suggestion sent successfully": "Your suggestion sent successfully",
   "Failed to send suggestion": "Failed to send suggestion",
- " Enter the address manually": "Enter the address manually",
+  "Enter the address manually": "Enter the address manually",
   "Place not found you can Enter Address Manually": "Place not found you can Enter Address Manually",
   "An error occurred": "An error occurred",
   "Failed to fetch location": "Failed to fetch location",
@@ -40,5 +40,14 @@
   "Ok":"Ok",
   "FailedUpdate": "Failed to Update Profile. Please Try Again",
   "UknownResponse": "an error occurred. Try later",
-  "ProfileSucess": "Profile Updated Sucessfully"
+  "ProfileSucess": "Profile Updated Sucessfully",
+  "about_the_place": "About the place",
+  "thanks_for_rating": "Thanks for rating",
+  "your_rating": "Your Rating",
+  "if_you_like_,_share_with_us_the_reasons": "If you like, share with us the reasons",
+  "submit_rating": "Submit Rating",
+  "History":"History",
+  "rate_place":"Rate Place",
+  "Favorites":"Favorites"
+
 }

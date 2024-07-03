@@ -22,7 +22,7 @@
   "Confirm": "تاكيد",
   "Your suggestion sent successfully": "تم الارسال بنجاح",
   "Failed to send suggestion": "تعذر الارسال",
-  " Enter the address manually": "ادخل العنوان",
+  "Enter the address manually": "ادخل العنوان",
   "Place not found you can Enter Address Manually": "المكان ليس موجود من فضلك ادخل العنوان",
   "An error occurred": "حدث خطا",
   "Failed to fetch location": "تعذر تحديد الموقع",
@@ -40,5 +40,13 @@
   "Ok":"حسنا",
   "FailedUpdate": "تعذر تحديث الملف الشخصي .من فضلك حاول مرة اخري",
   "UknownResponse": "حدث خطأ. جرب في وقت لاحق",
-  "ProfileSucess": "تم تحديث الملف الشخصي بنجاح"
+  "ProfileSucess": "تم تحديث الملف الشخصي بنجاح",
+  "about_the_place": "عن المكان",
+  "thanks_for_rating": "شكرا للتقييم",
+  "your_rating": "تقييمك",
+  "if_you_like_,_share_with_us_the_reasons": "إذا أردت، شاركنا بالأسباب",
+  "submit_rating": "إرسال التقييم",
+  "rate_place": "تقييم المكان",
+  "History":"السجل",
+  "Favorites":"المفضلة"
 }

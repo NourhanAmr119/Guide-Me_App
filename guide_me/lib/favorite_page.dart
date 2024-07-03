@@ -97,7 +97,7 @@ class _FavoritePageState extends State<FavoritePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Favorites"),
+        title: Text(widget.appLocalization.translate("Favorites")),
         backgroundColor: Color.fromARGB(255, 21, 82, 113),
       ),
       body: Container(

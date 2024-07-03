@@ -65,7 +65,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(widget.appLocalization.translate(' Place not found you can Enter Address Manually')),
+          title: Text(widget.appLocalization.translate('Place not found you can Enter Address Manually')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

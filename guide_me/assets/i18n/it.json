@@ -7,7 +7,15 @@
   "suggest": "suggerire",
   "Rate":"Valuta questo posto",
   "ChangeRate": "Tasso di modifica",
-  "Recommendations": "Luoghi che potrebbero piacerti"
-
-
+  "Recommendations": "Luoghi che potrebbero piacerti",
+  "audio": "Audio",
+  "video": "Video",
+  "about_the_place": "riguardo al posto",
+  "thanks_for_rating": "Grazie per la valutazione",
+  "your_rating": "Il tuo punteggio",
+  "if_you_like_,_share_with_us_the_reasons": "Se ti va condividi con noi le ragioni",
+  "submit_rating": "Submit Rating",
+  "rate_place": "Valuta il posto",
+  "History":"Storia",
+  "Favorites":"Preferiti"
 }
