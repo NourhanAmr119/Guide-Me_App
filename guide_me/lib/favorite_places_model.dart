@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-
 class FavoritePlacesModel extends ChangeNotifier {
   List<String> _favoritePlaces = [];
 
@@ -11,13 +10,14 @@ class FavoritePlacesModel extends ChangeNotifier {
 
   void add(String placeName) {
     _favoritePlaces.add(placeName);
-    notifyListeners();
+    notifyListeners(); // Notify listeners when a place is added
   }
 
   void remove(String placeName) {
     _favoritePlaces.remove(placeName);
-    notifyListeners();
+    notifyListeners(); // Notify listeners when a place is removed
   }
+
 
   void logout() {}
 }

@@ -48,40 +48,6 @@ class _CityPageState extends State<CityPage> {
     fetchData(widget.title, decodeToken(widget.token));
   }
 
-  // Future<void> fetchData(String cityName, String userName) async {
-  //   try {
-  //     print('Token: ${widget.token}');
-  //     print('URL: http://guideme.runasp.net/api/Place/$cityName/$userName/Allplaces');
-  //
-  //     var response = await http.get(
-  //       Uri.parse('http://guideme.runasp.net/api/Place/$cityName/$userName/Allplaces'),
-  //       headers: {
-  //         'Authorization': 'Bearer ${widget.token}',
-  //         'accept': '/',
-  //       },
-  //     );
-  //
-  //     if (response.statusCode == 200) {
-  //       setState(() {
-  //         var responseBody = jsonDecode(response.body);
-  //         if (responseBody is Map && responseBody.containsKey('\$values')) {
-  //           places = responseBody['\$values'];
-  //           categories = places
-  //               .map<String>((place) => place['category'].toString())
-  //               .toSet()
-  //               .toList();
-  //         } else {
-  //           print('Key \$values not found in response body');
-  //         }
-  //       });
-  //     } else {
-  //       print('Failed to load data: ${response.statusCode}');
-  //       print('Response body: ${response.body}');
-  //     }
-  //   } catch (e) {
-  //     print('Exception caught: $e');
-  //   }
-  // }
   Future<void> fetchData(String cityName, String userName) async {
     try {
       var response = await http.get(
@@ -171,11 +137,11 @@ class _CityPageState extends State<CityPage> {
     );
   }
 
-  Future<double> fetchRating(String placeName) async {
+  Future<double> fetchRating(String placeName, String touristName) async {
     try {
       var response = await http.get(
         Uri.parse(
-            'http://guideme.runasp.net/api/Rating/$placeName/OverAllRating'),
+            'http://guideme.runasp.net/api/Rating/$placeName/$touristName/OverAllRating'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
         },
@@ -191,6 +157,7 @@ class _CityPageState extends State<CityPage> {
       return 0.0;
     }
   }
+
 
   Future<void> updateFavoritePlace(String placeName, bool isFavorite) async {
     final String touristName = decodeToken(widget.token);
@@ -229,7 +196,7 @@ class _CityPageState extends State<CityPage> {
   @override
   Widget build(BuildContext context) {
     final appLocalization = widget.appLocalization; // Access AppLocalization instance
-
+    final favoritePlacesModel = Provider.of<FavoritePlacesModel>(context);
     // Example usage
     print('Current language code: ${appLocalization.locale.languageCode}');
     return DefaultTabController(
@@ -417,7 +384,7 @@ class _CityPageState extends State<CityPage> {
                           color: Colors.black54
                               .withOpacity(_showAppbarColor ? 0.5 : 0.8),
                         ),
-                        child: Column(
+                        child:Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Text(
@@ -430,17 +397,15 @@ class _CityPageState extends State<CityPage> {
                               textAlign: TextAlign.center,
                             ),
                             FutureBuilder<double>(
-                              future: fetchRating(place[
-                              'name']), // Fetch the rating for the place
+                              future: fetchRating(place['name'], decodeToken(widget.token)),
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
                                   return CircularProgressIndicator();
                                 } else if (snapshot.hasError) {
-                                  return Text('Error: ${snapshot.error}');
+                                  return Text(widget.appLocalization.translate('error_loading_rating'));
                                 } else {
-                                  return _buildRatingStars(snapshot.data ??
-                                      0); // Use the fetched rating to display stars
+                                  final rating = snapshot.data ?? 0.0;
+                                  return _buildRatingStars(rating);
                                 }
                               },
                             ),
@@ -565,7 +530,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
 
   Widget _buildSearchResults(BuildContext context) {
     return FutureBuilder<List<Map<String, dynamic>>>(
-      future: searchPlace(query),
+      future:searchPlace(query, cityName, touristName, token),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -627,10 +592,13 @@ class CustomSearchDelegate extends SearchDelegate<String> {
     );
   }
 
-
-  Future<List<Map<String, dynamic>>> searchPlace(String placeName) async {
+  Future<List<Map<String, dynamic>>> searchPlace(String placeName, String cityName, String touristName, String token) async {
     final url = Uri.parse(
-        'http://guideme.runasp.net/api/Place/${Uri.encodeComponent(placeName)}/${Uri.encodeComponent(cityName)}/SearchPlace');
+        'http://guideme.runasp.net/api/Place/${Uri.encodeComponent(placeName)}/${Uri.encodeComponent(cityName)}/${Uri.encodeComponent(touristName)}/SearchPlace');
+
+    print('API URL: $url');  // Debugging statement
+    print('Token: $token');  // Debugging statement
+
     final response = await http.get(
       url,
       headers: {
@@ -638,6 +606,9 @@ class CustomSearchDelegate extends SearchDelegate<String> {
         'Authorization': 'Bearer $token',
       },
     );
+
+    print('Response Status: ${response.statusCode}');  // Debugging statement
+    print('Response Body: ${response.body}');  // Debugging statement
 
     if (response.statusCode == 200) {
       dynamic jsonData = jsonDecode(response.body);
@@ -659,7 +630,6 @@ class CustomSearchDelegate extends SearchDelegate<String> {
       throw Exception('Failed to load places: ${response.statusCode}');
     }
   }
-
   void _onTapCard(Map<String, dynamic> place) async {
     try {
       final String placeName = place['placeName'] ?? 'Unknown Place';

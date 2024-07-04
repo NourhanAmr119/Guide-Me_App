@@ -17,6 +17,46 @@
   "submit_rating": "Enviar calificación",
   "rate_place": "Calificar lugar",
   "History":"Historia",
-  "Favorites":"Favoritos"
+  "Favorites":"Favoritos",
+  "Write your comment":"Escribe tu comentario",
+
+  "places_you_might_like": "Lugares que te pueden gustar",
+  "view_on_map": "Ver en el mapa",
+  "rate_this_place": "Califica este lugar",
+  "change_rate": "Cambiar calificación",
+  "Reviews": "Reseñas",
+  "profile": "Perfil",
+  "logout": "Cerrar sesión",
+  "PlaceName": "Nombre del lugar",
+  "Thank you for helping us add more places": "Gracias por ayudarnos a agregar más lugares",
+  "Suggest Place": "Sugerir lugar",
+  "Search": "Buscar",
+  "Address": "Dirección",
+  "Confirm": "Confirmar",
+  "Your suggestion sent successfully": "Tu sugerencia se envió con éxito",
+  "Failed to send suggestion": "No se pudo enviar la sugerencia",
+  "Enter the address manually": "Ingrese la dirección manualmente",
+  "Place not found you can Enter Address Manually": "Lugar no encontrado, puede ingresar la dirección manualmente",
+  "An error occurred": "Ocurrió un error",
+  "Failed to fetch location": "No se pudo obtener la ubicación",
+  "Failed to fetch location from OpenStreetMap": "No se pudo obtener la ubicación de OpenStreetMap",
+  "Cancel": "Cancelar",
+  "EditProfile": "Editar perfil",
+  "UserName": "Nombre de usuario",
+  "PlaceHolder1": "Por favor ingrese el nombre de usuario",
+  "Email": "Correo electrónico",
+  "PlaceHolder2": "Por favor ingrese el correo electrónico",
+  "Language": "Idioma",
+  "CurrentPass": "Contraseña actual",
+  "NewPass": "Nueva contraseña",
+  "UpdateProfile": "Actualizar perfil",
+  "Ok": "Ok",
+  "FailedUpdate": "No se pudo actualizar el perfil. Por favor, inténtelo de nuevo",
+  "UknownResponse": "Ocurrió un error. Inténtelo más tarde",
+  "ProfileSucess": "Perfil actualizado con éxito",
+
+
+
+
 
 }

@@ -77,11 +77,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
         _image = image;
       });
     }
-  }
-  Future<void> _updateProfile() async {
+  }Future<void> _updateProfile() async {
     if (_formKey.currentState!.validate()) {
-      final uri = Uri.parse(
-          'http://guideme.runasp.net/api/Tourist/update/${_userNameController.text}');
+      final uri = Uri.parse('http://guideme.runasp.net/api/Tourist/update/${_userNameController.text}');
       final headers = {
         'Authorization': 'Bearer ${widget.token}',
         'Content-Type': 'multipart/form-data',
@@ -94,7 +92,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
         request.fields['userName'] = _userNameController.text;
         request.fields['email'] = _emailController.text;
         request.fields['language'] = _selectedLanguage ?? '';
-
         request.fields['newPass'] = _newPasswordController.text;
         request.fields['currentPass'] = _currentPasswordController.text;
 
@@ -111,27 +108,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
           }
         }
 
-
         final response = await request.send();
 
         print('Response Status Code: ${response.statusCode}');
 
-        response.stream.transform(utf8.decoder).listen((value) {
+        response.stream.transform(utf8.decoder).listen((value) async {
           print('Response Body: $value');
           if (response.statusCode == 200) {
-            if (value.contains('Tourist Data Updated Successfully')) {
-              _showCustomDialog(widget.appLocalization.translate('ProfileSucess'));
-              Navigator.pop(context);
+            // Successful response
+            final responseBody = await response.stream.bytesToString();
+            if (responseBody.contains('Tourist Data Updated Successfully')) {
+              _showCustomDialog(widget.appLocalization.translate('ProfileSuccess'));
+              Navigator.pop(context); // Close the edit profile page
             } else {
-              _showCustomDialog(widget.appLocalization.translate('UknownResponse'));
+              _showCustomDialog(widget.appLocalization.translate('UnknownResponse'));
             }
           } else {
-            _showCustomDialog(value);
+            _showCustomDialog(widget.appLocalization.translate('FailedUpdate'));
           }
         });
       } catch (e) {
         print('Error updating profile: $e');
-        _showCustomDialog( widget.appLocalization.translate('FailedUpdate'));
+        _showCustomDialog(widget.appLocalization.translate('FailedUpdate'));
       }
     }
   }
@@ -156,8 +154,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
         '';
   }
-
-
   void _showCustomDialog(String message) {
     showDialog(
       context: context,
@@ -183,7 +179,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 ),
               ),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Dismiss the dialog
               },
             ),
           ],
@@ -229,19 +225,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         ),
                         child: _image != null
                             ? ClipOval(
-                                child: Image.file(File(_image!.path),
-                                    fit: BoxFit.cover),
-                              )
+                          child: Image.file(File(_image!.path),
+                              fit: BoxFit.cover),
+                        )
                             : _defaultPhotoUrl != null
-                                ? ClipOval(
-                                    child: Image.network(_defaultPhotoUrl!,
-                                        fit: BoxFit.cover),
-                                  )
-                                : Icon(
-                                    Icons.person,
-                                    size: 120, // Icon size
-                                    color: Colors.black,
-                                  ),
+                            ? ClipOval(
+                          child: Image.network(_defaultPhotoUrl!,
+                              fit: BoxFit.cover),
+                        )
+                            : Icon(
+                          Icons.person,
+                          size: 120, // Icon size
+                          color: Colors.black,
+                        ),
                       ),
                       Positioned(
                         right: 0,
@@ -261,40 +257,38 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     ],
                   ),
                 ),
-                SizedBox(height: 16),
-                TextFormField(
-                  controller: _userNameController,
-                  decoration: InputDecoration(
-                    labelText:  widget.appLocalization.translate('UserName'),
-                    labelStyle: TextStyle(
-                      color: Colors.black,
-                      fontSize: 22,
+                SizedBox(height:16),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Colors.grey, width: 1.0), // Grey bottom border, 1 pixel thick
+                    ),
+                  ),
+                  child: TextFormField(
+                    controller: _userNameController,
+                    enabled: false, // Make it not editable
+                    decoration: InputDecoration(
+                      labelText: 'Username',
+                      labelStyle: TextStyle(
+                        color: Colors.black,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      border: InputBorder.none, // Remove the default border
+                      focusedBorder: InputBorder.none, // Remove the focused border
+                    ),
+                    style: TextStyle(
+                      color: Colors.grey, // Black text color
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return   widget.appLocalization.translate('PlaceHolder1');
-                    }
-                    return null;
-                  },
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 13),
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
-                    labelText:  widget.appLocalization.translate('Email'),
+                    labelText: widget.appLocalization.translate('Email'),
                     labelStyle: TextStyle(
                       color: Colors.black,
                       fontSize: 22,
@@ -309,7 +303,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return   widget.appLocalization.translate('PlaceHolder2');
+                      return widget.appLocalization.translate('PlaceHolder2');
                     }
                     return null;
                   },
@@ -387,7 +381,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       return Text(
                         item,
                         style: TextStyle(
-                          color: _selectedLanguage == item.toLowerCase() ? Colors.white : Colors.black, // Set selected item text color to white when selected
+                          color: _selectedLanguage == item.toLowerCase()
+                              ? Colors.white
+                              : Colors.black, // Set selected item text color to white when selected
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -395,7 +391,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     }).toList();
                   },
                 ),
-
                 SizedBox(height: 16),
                 TextFormField(
                   controller: _currentPasswordController,

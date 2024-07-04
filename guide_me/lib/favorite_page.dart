@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:jwt_decode/jwt_decode.dart';
+import 'package:provider/provider.dart';
 import 'AppLocalization.dart';
 import 'bottom_nav_bar.dart';
+import 'favorite_places_model.dart';
 
 class FavoritePage extends StatefulWidget {
   final String authToken;
@@ -28,7 +30,7 @@ class _FavoritePageState extends State<FavoritePage> {
   void fetchFavorites() async {
     try {
       String userName = decodeToken(widget.authToken);
-
+      final model = Provider.of<FavoritePlacesModel>(context, listen: false);
       final response = await http.post(
         Uri.parse(
             'http://guideme.runasp.net/api/TouristFavourites/GetTouristFavoritePlaces?touristname=$userName'),
@@ -63,7 +65,7 @@ class _FavoritePageState extends State<FavoritePage> {
   void removeFavorite(int index) async {
     try {
       String userName = decodeToken(widget.authToken);
-
+      final model = Provider.of<FavoritePlacesModel>(context, listen: false);
       final response = await http.post(
         Uri.parse('http://guideme.runasp.net/api/TouristFavourites/RemoveFavoritePlace'),
         headers: {

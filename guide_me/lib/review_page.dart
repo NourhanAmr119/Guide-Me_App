@@ -11,7 +11,7 @@ class ReviewPage extends StatefulWidget {
   final AppLocalization appLocalization;
 
   ReviewPage({required this.token, required this.placeName,required this.appLocalization, // Add this line
-    this.locale,});
+    this.locale});
 
   @override
   _ReviewPageState createState() => _ReviewPageState();
@@ -20,16 +20,18 @@ class ReviewPage extends StatefulWidget {
 class _ReviewPageState extends State<ReviewPage> {
   List<dynamic> reviews = [];
   TextEditingController _commentController = TextEditingController();
+  late String touristName;
 
   @override
   void initState() {
     super.initState();
+    touristName = decodeToken(widget.token);
     fetchReviews();
   }
 
   Future<void> fetchReviews() async {
     final response = await http.get(
-      Uri.parse('http://guideme.runasp.net/api/Review/GetReviews?placeName=${widget.placeName}'),
+      Uri.parse('http://guideme.runasp.net/api/Review/GetReviews?placeName=${widget.placeName}&touristName=$touristName'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': '/',
@@ -57,97 +59,97 @@ class _ReviewPageState extends State<ReviewPage> {
         iconTheme: IconThemeData(color: Colors.black),
       ),
       body: Column(
-          children: [
-      Expanded(
-      child: Container(
-      color: Color.fromARGB(255, 246, 243, 177),
-      child: ListView.builder(
-        itemCount: reviews.length,
-        itemBuilder: (context, index) {
-          String photoUrl = reviews[index]['photoUrl'] ?? '';
-          String touristName = reviews[index]['touristName'] ?? 'Unknown';
-          String comment = reviews[index]['comment'] ?? '';
-          print('Review $index: photoUrl=$photoUrl, touristName=$touristName');
+        children: [
+          Expanded(
+            child: Container(
+              color: Color.fromARGB(255, 246, 243, 177),
+              child: ListView.builder(
+                itemCount: reviews.length,
+                itemBuilder: (context, index) {
+                  String photoUrl = reviews[index]['photoUrl'] ?? '';
+                  String touristName = reviews[index]['touristName'] ?? 'Unknown';
+                  String comment = reviews[index]['comment'] ?? '';
+                  print('Review $index: photoUrl=$photoUrl, touristName=$touristName');
 
-          return Card(
-            color: Colors.white,
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            elevation: 4,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: Colors.white, // Set background color to white
-                        backgroundImage: photoUrl.isNotEmpty
-                            ? NetworkImage(photoUrl)
-                            : null,
-                        child: photoUrl.isEmpty
-                            ? Icon(Icons.person, color: Colors.black, size: 30) // Default icon is black
-                            : null,
+                  return Card(
+                    color: Colors.white,
+                    margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 24,
+                                backgroundColor: Colors.white, // Set background color to white
+                                backgroundImage: photoUrl.isNotEmpty
+                                    ? NetworkImage(photoUrl)
+                                    : null,
+                                child: photoUrl.isEmpty
+                                    ? Icon(Icons.person, color: Colors.black, size: 30) // Default icon is black
+                                    : null,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                touristName,
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.black),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 55), // Change the horizontal padding as needed
+                            child: Text(
+                              comment,
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 8),
-                      Text(
-                        touristName,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.black),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 55), // Change the horizontal padding as needed
-                    child: Text(
-                      comment,
-                      style: TextStyle(color: Colors.black),
                     ),
-                  ),
-                ],
+                  );
+                },
               ),
             ),
-          );
-        },
-      ),
-    ),
-    ),
-    Container(
-    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    color: Color.fromARGB(255, 246, 243, 177),
-    child: Row(
-    children: [
-    Expanded(
-    child: TextField(
-    controller: _commentController,
-    decoration: InputDecoration(
-    hintText: 'Enter your comment',
-      hintStyle: TextStyle(color: Colors.grey),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(20.0), // Add border radius for rounded corners
-      ),
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: EdgeInsets.symmetric(vertical: 22, horizontal: 12),
-    ),
-      style: TextStyle(color: Colors.black),
-    ),
-    ),
-      IconButton(
-        icon: Icon(Icons.send, color: Colors.black),
-        onPressed: () {
-          String comment = _commentController.text;
-          if (comment.isNotEmpty) {
-            addReview(comment);
-            _commentController.clear();
-          }
-        },
-      ),
-    ],
-    ),
-    ),
-          ],
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: Color.fromARGB(255, 246, 243, 177),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _commentController,
+                    decoration: InputDecoration(
+                      hintText:widget.appLocalization.translate('Write your comment'),
+                      hintStyle: TextStyle(color: Colors.grey),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20.0), // Add border radius for rounded corners
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: EdgeInsets.symmetric(vertical: 22, horizontal: 12),
+                    ),
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.send, color: Colors.black),
+                  onPressed: () {
+                    String comment = _commentController.text;
+                    if (comment.isNotEmpty) {
+                      addReview(comment);
+                      _commentController.clear();
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
