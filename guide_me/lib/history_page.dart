@@ -39,7 +39,7 @@ class _HistoryPageState extends State<HistoryPage> {
         Uri.parse('http://guideme.runasp.net/api/TouristHistory/$touristName'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
-          'accept': '*/*',
+          'accept': '/',
         },
       );
       if (response.statusCode == 200) {
@@ -54,34 +54,37 @@ class _HistoryPageState extends State<HistoryPage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     // Grouping history by date
     Map<String, List<dynamic>> groupedHistory = {};
     history.forEach((visit) {
-      var date = _formatDate(DateTime.parse(visit['date']));
+      var place = visit['place'];
+      var date = visit['date'].substring(0, 10); // Extract only date part
+
       groupedHistory.putIfAbsent(date, () => []);
-      groupedHistory[date]!.add(visit);
+      groupedHistory[date]!.add(place);
     });
 
-    // Sorting grouped history by date
+    // Sorting grouped history by date in descending order
     List<String> sortedDates = groupedHistory.keys.toList();
-    sortedDates.sort((a, b) => DateTime.parse(a).compareTo(DateTime.parse(b)));
+    sortedDates.sort((a, b) => DateTime.parse(b).compareTo(DateTime.parse(a)));
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor:
-            Color.fromARGB(255, 21, 82, 113), // Set app bar background color
+        backgroundColor: Color.fromARGB(255, 21, 82, 113), // Set app bar background color
         title: Text(widget.appLocalization.translate('History')),
       ),
-      backgroundColor:
-          Color.fromARGB(255, 21, 82, 113), // Set scaffold background color
+      backgroundColor: Color.fromARGB(255, 21, 82, 113), // Set scaffold background color
       body: ListView.builder(
         itemCount: sortedDates.length,
         itemBuilder: (context, index) {
           var date = sortedDates[index];
-          var visits = groupedHistory[date]!;
+          var places = groupedHistory[date]!;
+
+          // Sort places in descending order by appearance order in API response
+          places.sort((a, b) => history.indexWhere((visit) => visit['place'] == b).compareTo(
+              history.indexWhere((visit) => visit['place'] == a)));
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,10 +105,9 @@ class _HistoryPageState extends State<HistoryPage> {
               ListView.builder(
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
-                itemCount: visits.length,
+                itemCount: places.length,
                 itemBuilder: (context, index) {
-                  var visit = visits[index];
-                  var place = visit['place'];
+                  var place = places[index];
                   return GestureDetector(
                     onTap: () {
                       // Navigate to the place page if needed
@@ -156,9 +158,5 @@ class _HistoryPageState extends State<HistoryPage> {
         locale: widget.locale,
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }

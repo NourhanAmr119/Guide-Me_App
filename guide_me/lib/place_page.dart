@@ -80,6 +80,7 @@ class _PlacePageState extends State<PlacePage> {
   void initState() {
     super.initState();
     fetchMedia();
+    fetchAudio();
     initPlayer();
     _touristName = decodeToken(widget.token);
     if (_touristName.isNotEmpty) {
@@ -101,7 +102,7 @@ class _PlacePageState extends State<PlacePage> {
     try {
       final response = await http.get(
         Uri.parse(
-          'http://guide-me.somee.com/api/Recommendation/GetRecommendations'
+          'http://guideme.runasp.net/api/Recommendation/GetRecommendations'
               '?touristName=${Uri.encodeComponent(widget.touristName)}'
               '&cityName=${Uri.encodeComponent(widget.cityName)}'
               '&placeName=${Uri.encodeComponent(widget.place['name'])}',
@@ -131,8 +132,8 @@ class _PlacePageState extends State<PlacePage> {
   Future<void> fetchMedia() async {
     final response = await http.get(
       Uri.parse(
-          'http://guide-me.somee.com/api/Place/${widget
-              .place['name']}/places/media'),
+        'http://guideme.runasp.net/api/Place/${widget.place['name']}/${widget.touristName}/places/media',
+      ),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Accept': 'application/json',
@@ -140,13 +141,65 @@ class _PlacePageState extends State<PlacePage> {
     );
 
     if (response.statusCode == 200) {
+      final List<dynamic> fetchedMedia = json.decode(response.body);
+
+      // Separate audio and other media types
+      List<dynamic> processedMedia = [];
+
+      // Add other media types to processedMedia
+      fetchedMedia.forEach((media) {
+        if (media['mediaType'] != 'audio') {
+          processedMedia.add(media);
+        }
+      });
+
+      // Fetch audio separately
+      await fetchAudio().then((audioUrl) {
+        if (audioUrl != null) {
+          processedMedia.add({'mediaType': 'audio', 'mediaContent': audioUrl});
+        }
+      });
+
       setState(() {
-        mediaList = json.decode(response.body);
+        mediaList = processedMedia;
       });
     } else {
       print('Failed to fetch media: ${response.statusCode}');
     }
   }
+
+  Future<String?> fetchAudio() async {
+    try {
+      final response = await http.post(
+        Uri.parse(
+          'http://guideme.runasp.net/api/AudioTranslation/translate-audio/${widget.place['name']}/${widget.touristName}',
+        ),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data.containsKey('path')) {
+          return data['path']; // Assuming 'path' contains the audio URL
+        } else {
+          print('Failed to fetch audio: Response does not contain audio path');
+          return null;
+        }
+      } else {
+        print('Failed to fetch audio: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Failed to fetch audio: $e');
+      return null;
+    }
+  }
+
+
+
 
   Future<void> initPlayer() async {
     player = AudioPlayer();
@@ -163,6 +216,7 @@ class _PlacePageState extends State<PlacePage> {
     });
   }
 
+
   void playPause(String url) async {
     if (isPlaying) {
       player.pause();
@@ -174,11 +228,13 @@ class _PlacePageState extends State<PlacePage> {
     setState(() {});
   }
 
+
+
   Future<void> fetchLocationAndNavigate() async {
     final response = await http.get(
       Uri.parse(
-          'http://guide-me.somee.com/api/Place/${widget
-              .place['name']}/places/location'),
+          'http://guideme.runasp.net/api/Place/${widget.place['name']}/${widget.touristName}/places/location'
+      ),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Accept': 'application/json',
@@ -193,18 +249,18 @@ class _PlacePageState extends State<PlacePage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              MapPage(
-                latitude: latitude,
-                longitude: longitude,
-                locationName: '',
-              ),
+          builder: (context) => MapPage(
+            latitude: latitude,
+            longitude: longitude,
+            locationName: '',
+          ),
         ),
       );
     } else {
       print('Failed to fetch location: ${response.statusCode}');
     }
   }
+
 
   String decodeToken(String token) {
     Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
@@ -230,7 +286,7 @@ class _PlacePageState extends State<PlacePage> {
     try {
       final response = await http.get(
         Uri.parse(
-          'http://guide-me.somee.com/Rating/GetLatestRate?TouristName=${Uri
+          'http://guideme.runasp.net/Rating/GetLatestRate?TouristName=${Uri
               .encodeComponent(_touristName)}&PlaceName=${Uri.encodeComponent(
               placeName)}',
         ),
@@ -268,7 +324,7 @@ class _PlacePageState extends State<PlacePage> {
           if (index < roundedRating) {
             return Row(
               children: [
-                Icon(Icons.star, color: Colors.yellow, size: 40),
+                Icon(Icons.star, color: Colors.yellow, size: 30),
                 // Increase star size
                 if (index < 4) SizedBox(width: 4),
                 // Adjust spacing as needed
@@ -277,7 +333,7 @@ class _PlacePageState extends State<PlacePage> {
           } else {
             return Row(
               children: [
-                Icon(Icons.star_border, color: Colors.grey, size: 40),
+                Icon(Icons.star_border, color: Colors.grey, size: 30),
                 // Increase star size
                 if (index < 4) SizedBox(width: 4),
                 // Adjust spacing as needed
@@ -295,7 +351,6 @@ class _PlacePageState extends State<PlacePage> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Display the image
             AspectRatio(
               aspectRatio: 16 / 9,
               child: Image.network(
@@ -303,45 +358,40 @@ class _PlacePageState extends State<PlacePage> {
                 fit: BoxFit.cover,
               ),
             ),
-            SizedBox(height: 10), // Space between the image and rating elements
-            // Display the rating stars and rate button in a row
+            SizedBox(height: 10),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              // Add padding on the sides
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Rating stars
                   _buildRatingStars(_rating),
-                  // Rate button
                   ElevatedButton(
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              RatePage(
-                                placeName: widget.place['name'],
-                                token: widget.token,
-                                  appLocalization: widget.appLocalization, // Pass the localization instance
-                                  locale: widget.locale
-                              ),
+                          builder: (context) => RatePage(
+                            placeName: widget.place['name'],
+                            token: widget.token,
+                            appLocalization: widget.appLocalization,
+                            locale: widget.locale,
+                          ),
                         ),
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black, // Gold background
+                      backgroundColor: Colors.black,
                     ),
                     child: Text(
-                      _rating == 0 ? widget.appLocalization.translate('rate_this_place') : widget.appLocalization.translate('change_rate'),
-                      // Conditional button text
-                      style: TextStyle(color: Colors.white), // Black text
+                      _rating == 0
+                          ? widget.appLocalization.translate('rate_this_place')
+                          : widget.appLocalization.translate('change_rate'),
+                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                 ],
               ),
             ),
-
             SizedBox(height: 10),
             TextButton(
               onPressed: fetchLocationAndNavigate,
@@ -368,22 +418,38 @@ class _PlacePageState extends State<PlacePage> {
           ],
         );
       case 'audio':
-        return AudioWidget(
-          audioUrl: media['mediaContent'],
-          playPause: playPause,
-          isPlaying: isPlaying,
-          duration: _duration,
-          position: _position,
-          player: player,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ElevatedButton(
+              onPressed: () => playPause(media['mediaContent']),
+              child: Text(isPlaying ? 'Pause Audio' : 'Play Audio'),
+            ),
+            SizedBox(height: 10),
+          ],
         );
       case 'text':
         return TextWidget(textContent: media['mediaContent']);
       case 'video':
-        return VideoWidget(videoUrl: media['mediaContent']);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            VideoWidget(videoUrl: media['mediaContent']),
+            SizedBox(height: 10),
+          ],
+        );
       default:
         return SizedBox();
     }
   }
+
+
+
+
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -415,7 +481,7 @@ class _PlacePageState extends State<PlacePage> {
                     // color: Colors.white, // Apply color filter if necessary
                   ),
                   SizedBox(height: 2), // Adjust the height as needed for spacing
-                  Text(appLocalization.translate('scan'), style: TextStyle(color: Colors.white, fontSize: 9)),
+                  Text(appLocalization.translate('scan'), style: TextStyle(color: Colors.black, fontSize: 9)),
                 ],
               ),
             ),
@@ -442,7 +508,7 @@ class _PlacePageState extends State<PlacePage> {
                   SizedBox(
                       height: 2),
                   // Adjust the height as needed for spacing
-                  Text('Reviews',
+                  Text(appLocalization.translate('Reviews'),
                       style: TextStyle(color: Colors.black)),
                   // Title of the icon
                 ],
@@ -805,6 +871,7 @@ class _VideoWidgetState extends State<VideoWidget> {
   void dispose() {
     _controller.removeListener(_updateState);
     _controller.dispose();
+
     super.dispose();
   }
 }
@@ -827,35 +894,7 @@ class _VideoProgressBar extends StatelessWidget {
   }
 }
 
-// class ReviewButton extends StatelessWidget {
-//   final String placeName;
-//   final String token;
-//
-//   ReviewButton({required this.placeName, required this.token});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return ElevatedButton(
-//       onPressed: () {
-//         Navigator.push(
-//           context,
-//           MaterialPageRoute(
-//               builder: (context) =>
-//                   ReviewPage(placeName: placeName, token: token,appLocalization: appLocalization, // Pass the localization instance
-//                     locale: widget.locale,)),
-//         );
-//       },
-//       style: ElevatedButton.styleFrom(
-//         backgroundColor: Colors.blueGrey[700],
-//       ),
-//       child: Text(
-//         'Reviews',
-//         style: TextStyle(
-//             fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
-//       ),
-//     );
-//   }
-// }
+
 
 extension DurationExtensions on Duration {
   String get formattedDuration {
