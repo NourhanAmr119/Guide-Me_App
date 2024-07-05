@@ -51,8 +51,8 @@
   "UpdateProfile": "Aggiorna profilo",
   "Ok": "Ok",
   "FailedUpdate": "Impossibile aggiornare il profilo. Per favore riprova",
-  "UknownResponse": "Si è verificato un errore. Riprova più tardi",
-  "ProfileSucess": "Profilo aggiornato con successo",
+  "UnknownResponse": "Si è verificato un errore. Riprova più tardi",
+  "ProfileSuccess": "Profilo aggiornato con successo",
   "submit_rating": "Invia valutazione"
 
 

@@ -77,7 +77,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         _image = image;
       });
     }
-  }Future<void> _updateProfile() async {
+  }Future<void> _updateProfile(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       final uri = Uri.parse('http://guideme.runasp.net/api/Tourist/update/${_userNameController.text}');
       final headers = {
@@ -108,25 +108,53 @@ class _EditProfilePageState extends State<EditProfilePage> {
           }
         }
 
-        final response = await request.send();
+        final streamedResponse = await request.send();
+        final response = await http.Response.fromStream(streamedResponse);
 
         print('Response Status Code: ${response.statusCode}');
+        print('Response Body: ${response.body}');
 
-        response.stream.transform(utf8.decoder).listen((value) async {
-          print('Response Body: $value');
-          if (response.statusCode == 200) {
-            // Successful response
-            final responseBody = await response.stream.bytesToString();
-            if (responseBody.contains('Tourist Data Updated Successfully')) {
-              _showCustomDialog(widget.appLocalization.translate('ProfileSuccess'));
-              Navigator.pop(context); // Close the edit profile page
-            } else {
-              _showCustomDialog(widget.appLocalization.translate('UnknownResponse'));
-            }
+        if (response.statusCode == 200) {
+          final responseBody = response.body;
+          if (responseBody.contains('Tourist Data Updated Successfully')) {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  backgroundColor: Colors.black,
+                  content: Text(
+                    'Tourist Data Updated Successfully',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text(
+                        widget.appLocalization.translate('Ok'),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Dismiss the dialog
+                        Navigator.pop(context); // Close the edit profile page
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
           } else {
-            _showCustomDialog(widget.appLocalization.translate('FailedUpdate'));
+            _showCustomDialog(responseBody); // Show the success message
           }
-        });
+        } else {
+          _showCustomDialog(response.body); // Show the actual error message from the API
+        }
       } catch (e) {
         print('Error updating profile: $e');
         _showCustomDialog(widget.appLocalization.translate('FailedUpdate'));
@@ -342,6 +370,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       value: 'de',
                       child: Text('German'),
                     ),
+                    DropdownMenuItem(
+                      value: 'ru',
+                      child: Text('Russian'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'zh',
+                      child: Text('Chinese'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'ja',
+                      child: Text('Japanese'),
+                    ),
                   ],
                   decoration: InputDecoration(
                     labelText: widget.appLocalization.translate('Language'),
@@ -356,16 +396,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     focusedBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.black),
                     ),
-                    suffixIcon: Icon(Icons.arrow_drop_down, color: Colors.black),
+                    suffixIcon: Icon(
+                      Icons.arrow_drop_down,
+                      color: Colors.black,
+                    ),
                   ),
                   onChanged: (String? newValue) {
                     setState(() {
                       _selectedLanguage = newValue;
                     });
                   },
-                  dropdownColor: Colors.black, // Optional: Set dropdown background color
+                  dropdownColor: Colors.black,
                   style: TextStyle(
-                    // color: Colors.black, // Set dropdown button text color
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -377,13 +419,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       'Italian',
                       'Spanish',
                       'German',
+                      'Russian',
+                      'Chinese',
+                      'Japanese',
                     ].map<Widget>((String item) {
                       return Text(
                         item,
                         style: TextStyle(
                           color: _selectedLanguage == item.toLowerCase()
                               ? Colors.white
-                              : Colors.black, // Set selected item text color to white when selected
+                              : Colors.black,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -467,7 +512,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 ),
                 SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: _updateProfile,
+                  onPressed: () {
+                    _updateProfile(context); // Ensure context is passed correctly if needed
+                  },
                   child: Text(
                     widget.appLocalization.translate('UpdateProfile'),
                     style: TextStyle(

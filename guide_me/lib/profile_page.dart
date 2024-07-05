@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decode/jwt_decode.dart';
 import 'edit_profile_page.dart';
-import 'favorite_page.dart';
-import 'history_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'AppLocalization.dart';
 import 'bottom_nav_bar.dart';
@@ -229,6 +227,7 @@ class _ProfilePageState extends State<ProfilePage> {
         token: widget.token,
         appLocalization: widget.appLocalization,
         locale: widget.locale,
+        isProfilePage: true,
       ),
     );
   }

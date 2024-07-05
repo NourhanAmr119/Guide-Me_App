@@ -48,8 +48,8 @@
   "UpdateProfile": "Mettre à jour le profil",
   "Ok": "D'accord",
   "FailedUpdate": "Échec de la mise à jour du profil. Veuillez réessayer",
-  "UknownResponse": "Une erreur s'est produite. Réessayez plus tard",
-  "ProfileSucess": "Profil mis à jour avec succès",
+  "UnknownResponse": "Une erreur s'est produite. Réessayez plus tard",
+  "ProfileSuccess": "Profil mis à jour avec succès",
   "submit_rating": "Soumettre la note"
 
 

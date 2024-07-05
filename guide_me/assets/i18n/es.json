@@ -52,11 +52,8 @@
   "UpdateProfile": "Actualizar perfil",
   "Ok": "Ok",
   "FailedUpdate": "No se pudo actualizar el perfil. Por favor, inténtelo de nuevo",
-  "UknownResponse": "Ocurrió un error. Inténtelo más tarde",
-  "ProfileSucess": "Perfil actualizado con éxito",
-
-
-
+  "UnknownResponse": "Ocurrió un error. Inténtelo más tarde",
+  "ProfileSuccess": "Perfil actualizado con éxito"
 
 
 }
