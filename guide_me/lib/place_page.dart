@@ -10,7 +10,8 @@ import "rate_page.dart";
 import 'AppLocalization.dart';
 
 class Recommendation {
-  final String placeName; // Assuming 'placeName' represents the name of the place
+  final String
+      placeName; // Assuming 'placeName' represents the name of the place
   final String cityName;
   final String image;
   final double rate;
@@ -41,8 +42,6 @@ class Recommendation {
   }
 }
 
-
-
 class PlacePage extends StatefulWidget {
   final String touristName;
   final String cityName;
@@ -51,16 +50,15 @@ class PlacePage extends StatefulWidget {
   final Locale? locale;
   final AppLocalization appLocalization;
 
-  const PlacePage({
-    Key? key,
-    required this.touristName,
-    required this.cityName,
-    required this.place,
-    required this.token,
-    required this.appLocalization, // Add this line
-    this.locale
-
-  }) : super(key: key);
+  const PlacePage(
+      {Key? key,
+      required this.touristName,
+      required this.cityName,
+      required this.place,
+      required this.token,
+      required this.appLocalization, // Add this line
+      this.locale})
+      : super(key: key);
 
   @override
   _PlacePageState createState() => _PlacePageState();
@@ -103,9 +101,9 @@ class _PlacePageState extends State<PlacePage> {
       final response = await http.get(
         Uri.parse(
           'http://guideme.runasp.net/api/Recommendation/GetRecommendations'
-              '?touristName=${Uri.encodeComponent(widget.touristName)}'
-              '&cityName=${Uri.encodeComponent(widget.cityName)}'
-              '&placeName=${Uri.encodeComponent(widget.place['name'])}',
+          '?touristName=${Uri.encodeComponent(widget.touristName)}'
+          '&cityName=${Uri.encodeComponent(widget.cityName)}'
+          '&placeName=${Uri.encodeComponent(widget.place['name'])}',
         ),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
@@ -128,7 +126,6 @@ class _PlacePageState extends State<PlacePage> {
     }
   }
 
-
   Future<void> fetchMedia() async {
     final response = await http.get(
       Uri.parse(
@@ -143,20 +140,40 @@ class _PlacePageState extends State<PlacePage> {
     if (response.statusCode == 200) {
       final List<dynamic> fetchedMedia = json.decode(response.body);
 
-      // Separate audio and other media types
       List<dynamic> processedMedia = [];
 
-      // Add other media types to processedMedia
       fetchedMedia.forEach((media) {
+        // Filter out audio types initially
         if (media['mediaType'] != 'audio') {
           processedMedia.add(media);
         }
       });
 
-      // Fetch audio separately
+      // Fetch audio separately and add it at the end
       await fetchAudio().then((audioUrl) {
         if (audioUrl != null) {
           processedMedia.add({'mediaType': 'audio', 'mediaContent': audioUrl});
+        }
+      });
+
+      // Sort media list: images first, then text, then audio, then video
+      processedMedia.sort((a, b) {
+        const mediaOrder = {'image': 0, 'text': 1, 'audio': 2, 'video': 3};
+
+        // Ensure a['mediaType'] and b['mediaType'] are non-null and exist in mediaOrder
+        final int? aTypeIndex = mediaOrder[a['mediaType']];
+        final int? bTypeIndex = mediaOrder[b['mediaType']];
+
+        // Handle cases where a['mediaType'] or b['mediaType'] might not be in mediaOrder
+        // Default behavior: if mediaType is not found in mediaOrder, sort it to the end
+        if (aTypeIndex != null && bTypeIndex != null) {
+          return aTypeIndex.compareTo(bTypeIndex);
+        } else if (aTypeIndex != null) {
+          return -1; // a is prioritized if b's mediaType is not in mediaOrder
+        } else if (bTypeIndex != null) {
+          return 1; // b is prioritized if a's mediaType is not in mediaOrder
+        } else {
+          return 0; // both a and b are considered equal if neither mediaType is in mediaOrder
         }
       });
 
@@ -198,9 +215,6 @@ class _PlacePageState extends State<PlacePage> {
     }
   }
 
-
-
-
   Future<void> initPlayer() async {
     player = AudioPlayer();
     player.onDurationChanged.listen((Duration d) {
@@ -216,7 +230,6 @@ class _PlacePageState extends State<PlacePage> {
     });
   }
 
-
   void playPause(String url) async {
     if (isPlaying) {
       player.pause();
@@ -228,13 +241,10 @@ class _PlacePageState extends State<PlacePage> {
     setState(() {});
   }
 
-
-
   Future<void> fetchLocationAndNavigate() async {
     final response = await http.get(
       Uri.parse(
-          'http://guideme.runasp.net/api/Place/${widget.place['name']}/${widget.touristName}/places/location'
-      ),
+          'http://guideme.runasp.net/api/Place/${widget.place['name']}/${widget.touristName}/places/location'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Accept': 'application/json',
@@ -261,12 +271,11 @@ class _PlacePageState extends State<PlacePage> {
     }
   }
 
-
   String decodeToken(String token) {
     Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
     print('Decoded token: $decodedToken');
     return decodedToken[
-    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
+            'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
         '';
   }
 
@@ -286,9 +295,7 @@ class _PlacePageState extends State<PlacePage> {
     try {
       final response = await http.get(
         Uri.parse(
-          'http://guideme.runasp.net/Rating/GetLatestRate?TouristName=${Uri
-              .encodeComponent(_touristName)}&PlaceName=${Uri.encodeComponent(
-              placeName)}',
+          'http://guideme.runasp.net/Rating/GetLatestRate?TouristName=${Uri.encodeComponent(_touristName)}&PlaceName=${Uri.encodeComponent(placeName)}',
         ),
         headers: {
           'accept': '/',
@@ -344,7 +351,6 @@ class _PlacePageState extends State<PlacePage> {
       ),
     );
   }
-
   Widget buildMediaWidget(dynamic media) {
     switch (media['mediaType']) {
       case 'image':
@@ -417,25 +423,39 @@ class _PlacePageState extends State<PlacePage> {
             SizedBox(height: 10),
           ],
         );
-      case 'audio':
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ElevatedButton(
-              onPressed: () => playPause(media['mediaContent']),
-              child: Text(isPlaying ? 'Pause Audio' : 'Play Audio'),
-            ),
-            SizedBox(height: 10),
-          ],
-        );
       case 'text':
         return TextWidget(textContent: media['mediaContent']);
+      case 'audio':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            SizedBox(height: 10),
+            AudioWidget(
+              audioUrl: media['mediaContent'],
+              playPause: playPause,
+              isPlaying: isPlaying,
+              duration: _duration,
+              position: _position,
+              player: player,
+            ),
+          ],
+        );
       case 'video':
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            VideoWidget(videoUrl: media['mediaContent']),
             SizedBox(height: 10),
+            Text('About the Video',
+                style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold)),
+            SizedBox(height: 10),
+            AspectRatio(
+              aspectRatio: 16 / 9,
+              child: VideoWidget(videoUrl: media['mediaContent']),
+            ),
           ],
         );
       default:
@@ -443,17 +463,10 @@ class _PlacePageState extends State<PlacePage> {
     }
   }
 
-
-
-
-
-
-
-
-
   @override
   Widget build(BuildContext context) {
-    final appLocalization = widget.appLocalization; // Access AppLocalization instance
+    final appLocalization =
+        widget.appLocalization; // Access AppLocalization instance
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.black),
@@ -476,12 +489,14 @@ class _PlacePageState extends State<PlacePage> {
                 children: [
                   Image.asset(
                     'assets/scan_icon.jpg',
-                    width: 34,  // Adjust the width as needed
+                    width: 34, // Adjust the width as needed
                     height: 24, // Adjust the height as needed
                     // color: Colors.white, // Apply color filter if necessary
                   ),
-                  SizedBox(height: 2), // Adjust the height as needed for spacing
-                  Text(appLocalization.translate('scan'), style: TextStyle(color: Colors.black, fontSize: 9)),
+                  SizedBox(
+                      height: 2), // Adjust the height as needed for spacing
+                  Text(appLocalization.translate('scan'),
+                      style: TextStyle(color: Colors.black, fontSize: 9)),
                 ],
               ),
             ),
@@ -490,23 +505,21 @@ class _PlacePageState extends State<PlacePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        ReviewPage(
-                          placeName: widget.place['name'],
-                          token: widget.token,
-                          appLocalization: widget.appLocalization, // Pass the localization instance
-                          locale: widget.locale,
-                        ),
+                    builder: (context) => ReviewPage(
+                      placeName: widget.place['name'],
+                      token: widget.token,
+                      appLocalization: widget
+                          .appLocalization, // Pass the localization instance
+                      locale: widget.locale,
+                    ),
                   ),
                 );
               },
               icon: Column(
                 children: [
-                  Icon(Icons.rate_review_rounded,
-                      color: Colors.black),
+                  Icon(Icons.rate_review_rounded, color: Colors.black),
                   // Replace with your reviews icon
-                  SizedBox(
-                      height: 2),
+                  SizedBox(height: 2),
                   // Adjust the height as needed for spacing
                   Text(appLocalization.translate('Reviews'),
                       style: TextStyle(color: Colors.black)),
@@ -520,13 +533,21 @@ class _PlacePageState extends State<PlacePage> {
       ),
       backgroundColor: Color.fromARGB(255, 246, 243, 177),
       body: ListView.builder(
-        itemCount: mediaList.length + 1,
-        // Increment itemCount by 1 to include the recommendation list
+        itemCount: mediaList.length +
+            2, // Increment itemCount by 2 to include recommendation header and media
         itemBuilder: (context, index) {
           if (index < mediaList.length) {
             return buildMediaWidget(mediaList[index]);
+          } else if (index == mediaList.length) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // buildRecommendationHeader(), // Add the recommendation header
+                buildRecommendationList(), // Add the horizontal recommendation list
+              ],
+            );
           } else {
-            return buildRecommendationList(); // Add the horizontal recommendation list
+            return SizedBox(); // Handle any additional cases here if necessary
           }
         },
       ),
@@ -560,8 +581,9 @@ class _PlacePageState extends State<PlacePage> {
                 recommendation: recommendation,
                 token: widget.token, // Pass the token to RecommendationCard
                 cityName: widget.cityName,
-                touristName:widget.touristName,
-                appLocalization: widget.appLocalization, // Pass the localization instanc
+                touristName: widget.touristName,
+                appLocalization:
+                    widget.appLocalization, // Pass the localization instanc
                 locale: widget.locale,
                 // Pass the cityName to RecommendationCard
               );
@@ -572,6 +594,7 @@ class _PlacePageState extends State<PlacePage> {
     );
   }
 }
+
 class RecommendationCard extends StatelessWidget {
   final Recommendation recommendation;
   final String cityName;
@@ -605,7 +628,8 @@ class RecommendationCard extends StatelessWidget {
                 'name': recommendation.placeName,
               },
               token: token,
-              appLocalization: appLocalization, // Pass the localization instance
+              appLocalization:
+                  appLocalization, // Pass the localization instance
               locale: locale,
             ),
           ),
@@ -671,11 +695,6 @@ class RecommendationCard extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
 
 class TextWidget extends StatelessWidget {
   final String textContent;
@@ -766,7 +785,6 @@ class AudioWidget extends StatelessWidget {
     );
   }
 }
-
 class VideoWidget extends StatefulWidget {
   final String videoUrl;
 
@@ -786,93 +804,72 @@ class _VideoWidgetState extends State<VideoWidget> {
   void initState() {
     super.initState();
     _controller = VideoPlayerController.network(widget.videoUrl)
-      ..addListener(_updateState)
       ..initialize().then((_) {
-        if (mounted) {
-          setState(() {
-            _isBuffering = false;
-          });
-        }
-      })
-      ..setLooping(true);
-  }
-
-  void _updateState() {
-    if (_controller.value.isBuffering != _isBuffering) {
-      setState(() {
-        _isBuffering = _controller.value.isBuffering;
+        setState(() {
+          _isBuffering = false;
+        });
       });
-    }
-  }
-
-  void _toggleMute() {
-    setState(() {
-      _isMuted = !_isMuted;
-      _controller.setVolume(_isMuted ? 0 : 1);
+    _controller.addListener(() {
+      if (_controller.value.isBuffering != _isBuffering) {
+        setState(() {
+          _isBuffering = _controller.value.isBuffering;
+        });
+      }
     });
-  }
-
-  void _togglePlayPause() {
-    if (_isPlaying) {
-      _controller.pause();
-    } else {
-      _controller.play();
-    }
-    setState(() {
-      _isPlaying = !_isPlaying;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final AppLocalization appLocalization = AppLocalization.of(context)!;
-
-    return ListTile(
-      title: Text(appLocalization.translate('video'),
-          style: TextStyle(
-              color: Colors.black, fontSize: 25, fontWeight: FontWeight.bold)),
-      subtitle: _controller.value.isInitialized
-          ? AspectRatio(
-        aspectRatio: _controller.value.aspectRatio,
-        child: Stack(
-          alignment: Alignment.bottomCenter,
-          children: <Widget>[
-            VideoPlayer(_controller),
-            _VideoProgressBar(_controller),
-            VideoProgressIndicator(_controller, allowScrubbing: true),
-            if (_isBuffering) CircularProgressIndicator(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                IconButton(
-                  icon: _isPlaying
-                      ? Icon(Icons.stop)
-                      : Icon(Icons.play_arrow),
-                  onPressed: _togglePlayPause,
-                  color: Colors.white,
-                ),
-                SizedBox(width: 20),
-                IconButton(
-                  icon:
-                  Icon(_isMuted ? Icons.volume_off : Icons.volume_up),
-                  onPressed: _toggleMute,
-                  color: Colors.white,
-                ),
-              ],
-            ),
-          ],
-        ),
-      )
-          : CircularProgressIndicator(),
-    );
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_updateState);
     _controller.dispose();
-
     super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 16 / 9, // Ensure the aspect ratio matches the image
+      child: Stack(
+        children: [
+          VideoPlayer(_controller),
+          if (_isBuffering)
+            Center(child: CircularProgressIndicator()),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Row(
+              children: [
+                IconButton(
+                  icon: Icon(
+                    _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      if (_controller.value.isPlaying) {
+                        _controller.pause();
+                      } else {
+                        _controller.play();
+                      }
+                    });
+                  },
+                ),
+                IconButton(
+                  icon: Icon(
+                    _isMuted ? Icons.volume_off : Icons.volume_up,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isMuted = !_isMuted;
+                      _controller.setVolume(_isMuted ? 0 : 1);
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -894,14 +891,12 @@ class _VideoProgressBar extends StatelessWidget {
   }
 }
 
-
-
 extension DurationExtensions on Duration {
   String get formattedDuration {
     String twoDigitMinutes =
-    this.inMinutes.remainder(60).toString().padLeft(2, '0');
+        this.inMinutes.remainder(60).toString().padLeft(2, '0');
     String twoDigitSeconds =
-    this.inSeconds.remainder(60).toString().padLeft(2, '0');
+        this.inSeconds.remainder(60).toString().padLeft(2, '0');
     return "$twoDigitMinutes:$twoDigitSeconds";
   }
 }

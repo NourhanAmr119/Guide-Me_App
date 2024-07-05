@@ -114,7 +114,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   },
                 ),
               ],
-              backgroundColor: Color.fromARGB(255, 21, 82, 113),
+              // backgroundColor: Color.fromARGB(255, 21, 82, 113),
             );
           },
         );
@@ -143,7 +143,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 },
               ),
             ],
-            backgroundColor: Color.fromARGB(255, 21, 82, 113),
+            // backgroundColor: Color.fromARGB(255, 21, 82, 113),
           );
         },
       );
@@ -461,7 +461,7 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
             suffixIcon: isPassword
                 ? IconButton(
-              icon: Icon(_isObscure ? Icons.visibility : Icons.visibility_off),
+              icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility),
               onPressed: toggleVisibility as void Function()?,
             )
                 : null,
