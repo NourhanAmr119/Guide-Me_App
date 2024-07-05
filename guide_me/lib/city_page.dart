@@ -271,7 +271,7 @@ class _CityPageState extends State<CityPage> {
                   context: context,
                   delegate:
                   CustomSearchDelegate(context: context, token: widget.token, cityName: widget.title, touristName: decodeToken(widget.token),appLocalization: widget.appLocalization, // Pass the localization instance
-                    locale: widget.locale),
+                      locale: widget.locale),
                 );
               },
             ),

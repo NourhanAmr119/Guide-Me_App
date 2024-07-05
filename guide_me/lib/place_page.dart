@@ -11,7 +11,7 @@ import 'AppLocalization.dart';
 
 class Recommendation {
   final String
-      placeName; // Assuming 'placeName' represents the name of the place
+  placeName; // Assuming 'placeName' represents the name of the place
   final String cityName;
   final String image;
   final double rate;
@@ -52,12 +52,12 @@ class PlacePage extends StatefulWidget {
 
   const PlacePage(
       {Key? key,
-      required this.touristName,
-      required this.cityName,
-      required this.place,
-      required this.token,
-      required this.appLocalization, // Add this line
-      this.locale})
+        required this.touristName,
+        required this.cityName,
+        required this.place,
+        required this.token,
+        required this.appLocalization, // Add this line
+        this.locale})
       : super(key: key);
 
   @override
@@ -101,9 +101,9 @@ class _PlacePageState extends State<PlacePage> {
       final response = await http.get(
         Uri.parse(
           'http://guideme.runasp.net/api/Recommendation/GetRecommendations'
-          '?touristName=${Uri.encodeComponent(widget.touristName)}'
-          '&cityName=${Uri.encodeComponent(widget.cityName)}'
-          '&placeName=${Uri.encodeComponent(widget.place['name'])}',
+              '?touristName=${Uri.encodeComponent(widget.touristName)}'
+              '&cityName=${Uri.encodeComponent(widget.cityName)}'
+              '&placeName=${Uri.encodeComponent(widget.place['name'])}',
         ),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
@@ -275,7 +275,7 @@ class _PlacePageState extends State<PlacePage> {
     Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
     print('Decoded token: $decodedToken');
     return decodedToken[
-            'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
+    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
         '';
   }
 
@@ -583,7 +583,7 @@ class _PlacePageState extends State<PlacePage> {
                 cityName: widget.cityName,
                 touristName: widget.touristName,
                 appLocalization:
-                    widget.appLocalization, // Pass the localization instanc
+                widget.appLocalization, // Pass the localization instanc
                 locale: widget.locale,
                 // Pass the cityName to RecommendationCard
               );
@@ -629,7 +629,7 @@ class RecommendationCard extends StatelessWidget {
               },
               token: token,
               appLocalization:
-                  appLocalization, // Pass the localization instance
+              appLocalization, // Pass the localization instance
               locale: locale,
             ),
           ),
@@ -894,9 +894,9 @@ class _VideoProgressBar extends StatelessWidget {
 extension DurationExtensions on Duration {
   String get formattedDuration {
     String twoDigitMinutes =
-        this.inMinutes.remainder(60).toString().padLeft(2, '0');
+    this.inMinutes.remainder(60).toString().padLeft(2, '0');
     String twoDigitSeconds =
-        this.inSeconds.remainder(60).toString().padLeft(2, '0');
+    this.inSeconds.remainder(60).toString().padLeft(2, '0');
     return "$twoDigitMinutes:$twoDigitSeconds";
   }
 }

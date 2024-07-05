@@ -37,7 +37,11 @@ class MyApp extends StatelessWidget {
           Locale('fr', 'FR'), // French
           Locale('it', 'IT'), // Italian
           Locale('ar', 'AR'), // Arabic
-          Locale('ru', 'RU'), // Russian
+          Locale('ru', 'RU'),
+          Locale('de', 'DE'),
+          Locale('zh', 'ZH'),
+          Locale('ja', 'JA'),
+          // Russian
         ],
         localizationsDelegates: const [
           AppLocalization.delegate,

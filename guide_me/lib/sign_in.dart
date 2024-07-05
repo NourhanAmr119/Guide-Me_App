@@ -85,6 +85,7 @@ class _SignInPageState extends State<SignInPage> {
                       controller: _passwordController,
                       labelText: 'Password',
                       prefixIcon: Icons.lock,
+                      isPassword: true, // Set isPassword to true
                       isObscure: _isObscure,
                       errorText: _errorStatus['password'] ?? false
                           ? 'Please enter your password'
@@ -103,6 +104,7 @@ class _SignInPageState extends State<SignInPage> {
                         return null;
                       },
                     ),
+
                     SizedBox(height: 70),
                     ElevatedButton(
                       onPressed: () {
@@ -221,7 +223,7 @@ class _SignInPageState extends State<SignInPage> {
     String? Function(String?)? validator,
     required void Function(String) onChanged,
     String? errorText,
-    bool isObscure = false, // Add this parameter to control the visibility of the password
+    bool isObscure = false,
   }) {
     String fieldHintText = 'Enter your $labelText';
 
@@ -234,7 +236,7 @@ class _SignInPageState extends State<SignInPage> {
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
-        obscureText: isPassword ? isObscure : false, // Use isObscure to control password visibility
+        obscureText: isPassword ? isObscure : false,
         onChanged: (value) {
           setState(() {
             _errorStatus[controller.toString()] = validator!(value) != null;
@@ -262,11 +264,11 @@ class _SignInPageState extends State<SignInPage> {
               ? IconButton(
             icon: Icon(
               isObscure ? Icons.visibility_off : Icons.visibility,
-              color: Colors.white, // Set icon color here
+              color: Colors.white,
             ),
             onPressed: () {
               setState(() {
-                _isObscure = !_isObscure; // Toggle password visibility
+                _isObscure = !_isObscure;
               });
             },
           )

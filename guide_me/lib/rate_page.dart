@@ -42,7 +42,7 @@ class _RatePageState extends State<RatePage> {
   Future<void> fetchSuggestions() async {
     final response = await http.get(
       Uri.parse(
-          'http://guideme.runasp.net/api/Rating/$rating/Rating/Suggestion'),
+          'http://guideme.runasp.net/api/Rating/$rating/$touristName/Rating/Suggestion'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -67,10 +67,36 @@ class _RatePageState extends State<RatePage> {
       }
     });
   }
+  void ratePlace() async {
+    try {
+      // Call API to submit rating
+      final responseRate = await http.post(
+        Uri.parse('http://guideme.runasp.net/api/Rating/RatePlace'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'placeName': widget.placeName,
+          'touristName': touristName,
+          'ratingNum': rating,
+        }),
+      );
+
+      if (responseRate.statusCode == 200) {
+        print('Rating submitted successfully');
+        await submitSuggestions(); // Call submitSuggestions if rating is successful
+      } else {
+        print('Failed to submit rating: ${responseRate.statusCode}');
+      }
+    } catch (e) {
+      print('Error submitting rating: $e');
+    }
+  }
 
   Future<void> submitSuggestions() async {
     final response = await http.post(
-      Uri.parse('http://guideme.runasp.net/api/Rating/Suggestion'),
+      Uri.parse('http://guideme.runasp.net/Rating/Suggestion'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Content-Type': 'application/json',
@@ -90,13 +116,13 @@ class _RatePageState extends State<RatePage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text(widget.appLocalization.translate('Thanks for rating')),
+            title: Text('Thanks for rating'),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text(widget.appLocalization.translate('OK')),
+                child: Text('OK'),
               ),
             ],
           );
@@ -107,34 +133,12 @@ class _RatePageState extends State<RatePage> {
     }
   }
 
-  void ratePlace() async {
-    // Call API to submit rating
-    final response = await http.post(
-      Uri.parse('http://guideme.runasp.net/api/Rating/RatePlace'),
-      headers: {
-        'Authorization': 'Bearer ${widget.token}',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'placeName': widget.placeName,
-        'touristName': touristName,
-        'ratingNum': rating,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      print('Rating submitted successfully');
-      await submitSuggestions();
-    } else {
-      print('Failed to submit rating: ${response.statusCode}');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.appLocalization.translate('Rate Place')),
+        title: Text(widget.appLocalization.translate('rate_place')),
         titleTextStyle: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
         backgroundColor: Color.fromARGB(255, 246, 243, 177),
         iconTheme: IconThemeData(color: Colors.black),
@@ -150,7 +154,7 @@ class _RatePageState extends State<RatePage> {
             children: <Widget>[
               Center(
                 child: Text(
-                  widget.appLocalization.translate('Your Rating '),
+                  widget.appLocalization.translate('your_rating'),
                   style: GoogleFonts.lato(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
@@ -179,8 +183,7 @@ class _RatePageState extends State<RatePage> {
                 }),
               ),
               SizedBox(height: 30),
-              Text(
-                widget.appLocalization.translate('If you like, share with us the reasons'),
+              Text(widget.appLocalization.translate('if_you_like'),
                 style: GoogleFonts.lato(
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
@@ -221,7 +224,7 @@ class _RatePageState extends State<RatePage> {
                   padding: EdgeInsets.symmetric(
                       horizontal: 30, vertical: 10), // Larger submit button
                 ),
-                child: Text(widget.appLocalization.translate('Submit Rating'),
+                child: Text(widget.appLocalization.translate('submit_rating'),
                     style: TextStyle(fontSize: 20)), // Larger text
               ),
             ],
