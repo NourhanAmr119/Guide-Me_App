@@ -166,9 +166,6 @@ class _HomePageState extends State<HomePage> {
                   token: widget.token,
                   touristName: decodeToken(widget.token),
                   appLocalization: _appLocalization,
-                  searchHint: _appLocalization.translate('search') ?? '',
-                  noResultsMessage:
-                  _appLocalization.translate('no_results') ?? '',
                   locale: _locale,
                 ),
               );
@@ -284,8 +281,6 @@ class CustomSearchDelegate extends SearchDelegate<String> {
   final String token;
   final String touristName;
   final AppLocalization appLocalization;
-  final String searchHint;
-  final String noResultsMessage;
   final Locale? locale; // Add locale here
 
   CustomSearchDelegate({
@@ -293,8 +288,6 @@ class CustomSearchDelegate extends SearchDelegate<String> {
     required this.token,
     required this.touristName,
     required this.appLocalization,
-    required this.searchHint,
-    required this.noResultsMessage,
     this.locale, // Include locale in constructor
   });
 
@@ -344,6 +337,9 @@ class CustomSearchDelegate extends SearchDelegate<String> {
     return _buildSearchResults(context);
   }
 
+  @override
+  String get searchFieldLabel => appLocalization.translate('search') ?? '';
+
   Widget _buildSearchResults(BuildContext context) {
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: _fetchSearchResults(query, touristName),
@@ -371,14 +367,15 @@ class CustomSearchDelegate extends SearchDelegate<String> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => CityPage(
-                        title: city['name'],
-                        token: token,
-                        locale: locale,
+                      title: city['name'],
+                      token: token,
+                      locale: locale,
                       appLocalization: appLocalization,
                     ),
                   ),
                 ),
                 child: Card(
+                  margin: EdgeInsets.all(8.0),
                   clipBehavior: Clip.antiAlias,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -386,9 +383,9 @@ class CustomSearchDelegate extends SearchDelegate<String> {
                       Expanded(
                         child: city['imagePath'] != null
                             ? Image.network(
-                                city['imagePath'],
-                                fit: BoxFit.cover,
-                              )
+                          city['imagePath'],
+                          fit: BoxFit.cover,
+                        )
                             : Container(),
                       ),
                       Padding(

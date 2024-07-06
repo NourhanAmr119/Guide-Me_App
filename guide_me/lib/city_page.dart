@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guide_me/scan_place.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:jwt_decode/jwt_decode.dart';
@@ -238,7 +239,11 @@ class _CityPageState extends State<CityPage> {
           actions: [
             IconButton(
               onPressed: () {
-                // Handle your scan action
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ScanPage(token: widget.token, cityName: widget.title,appLocalization: widget.appLocalization, // Pass the localization instance
+                      locale: widget.locale)),
+                );
               },
               icon: Column(
                 children: [
@@ -528,6 +533,9 @@ class CustomSearchDelegate extends SearchDelegate<String> {
     }
   }
 
+  @override
+  String get searchFieldLabel => appLocalization.translate('search') ?? '';
+
   Widget _buildSearchResults(BuildContext context) {
     return FutureBuilder<List<Map<String, dynamic>>>(
       future:searchPlace(query, cityName, touristName, token),
@@ -535,7 +543,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(child: Text(appLocalization.translate('no_results') ?? ''));
         } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
           final places = snapshot.data!;
 
@@ -549,7 +557,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
                     _onTapCard(place);
                   },
                   child:Card(
-                    margin: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                    margin: EdgeInsets.symmetric(vertical: 25, horizontal: 60),
                     clipBehavior: Clip.antiAlias,
                     child: SizedBox(
                       width: MediaQuery.of(context).size.width * 0.7, // Adjust the width as needed
@@ -559,7 +567,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
                           Image.network(
                             place['placeImage'] ?? '', // Ensure place['placeImage'] is not null
                             width: 50,
-                            height: 100,
+                            height: 130,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) => Placeholder(
                               fallbackWidth: 50,

@@ -45,6 +45,8 @@ dependencies:
   url_launcher: ^6.3.0
   flutter_map: ^7.0.1
   latlong2: ^0.9.1
+  cached_network_image: ^3.3.1
+  camera: ^0.11.0+1
   flutter_localizations:
     sdk: flutter
   intl: ^0.18.1
@@ -87,12 +89,16 @@ flutter:
 
   assets:
     - assets/background_image.jpg
+    - assets/default_image.png
     - assets/scan_icon.jpg
     - assets/i18n/en.json
     - assets/i18n/es.json
     - assets/i18n/ar.json
     - assets/i18n/it.json
     - assets/i18n/de.json
+    - assets/i18n/ru.json
+    - assets/i18n/ja.json
+    - assets/i18n/zh.json
 
 
 
