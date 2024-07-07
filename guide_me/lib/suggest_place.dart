@@ -126,10 +126,10 @@ class _SuggestionPageState extends State<SuggestionPage> {
 
       if (_latitude != null && _longitude != null) {
         apiUrl =
-        'http://guideme.somee.com/api/SuggestionPlaces?placeName=$placeName&latitude=$_latitude&longitude=$_longitude&touristName=$touristName';
+        'http://guideme.runasp.net/api/SuggestionPlaces?placeName=$placeName&latitude=$_latitude&longitude=$_longitude&touristName=$touristName';
       } else {
         apiUrl =
-        'http://guideme.somee.com/api/SuggestionPlaces?placeName=$placeName&address=$_address&touristName=$touristName';
+        'http://guideme.runasp.net/api/SuggestionPlaces?placeName=$placeName&address=$_address&touristName=$touristName';
       }
 
       try {
@@ -232,7 +232,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
                   children: [
                     TextFormField(
                       controller: _placeController,
-                      textAlign: TextAlign.center, // Center the text field
+                      textAlign: TextAlign.left,
                       decoration: InputDecoration(
                         labelText: widget.appLocalization.translate('PlaceName'),
                         labelStyle: TextStyle(
@@ -265,6 +265,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
                           ),
                           onPressed: _searchPlace,
                           child: Text(widget.appLocalization.translate('Search')),
+
                         ),
                       ),
                     ),

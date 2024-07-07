@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:jwt_decode/jwt_decode.dart';
 import 'AppLocalization.dart';
 import 'bottom_nav_bar.dart';
-
+import 'place_page.dart';
 class HistoryPage extends StatefulWidget {
   final String token;
   final Locale? locale;
@@ -32,6 +32,40 @@ class _HistoryPageState extends State<HistoryPage> {
     Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
     return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ?? '';
   }
+  void _onTapCard(Map<String, dynamic> place) async {
+    try {
+      final response = await http.post(
+        Uri.parse(
+            'http://guideme.runasp.net/api/TouristHistory?placename=${place['name']}&touristname=$touristName'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': '/',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print('Place added to history successfully');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PlacePage(
+              touristName: touristName,
+              cityName: '', // Pass the city name if needed
+              place: place,
+              token: widget.token,
+              appLocalization: widget.appLocalization,
+              locale: widget.locale,
+            ),
+          ),
+        );
+      } else {
+        print('Failed to add place to history: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception caught: $e');
+    }
+  }
+
 
   Future<void> fetchHistory() async {
     try {
@@ -110,7 +144,7 @@ class _HistoryPageState extends State<HistoryPage> {
                   var place = places[index];
                   return GestureDetector(
                     onTap: () {
-                      // Navigate to the place page if needed
+                      _onTapCard(place);
                     },
                     child: Card(
                       elevation: 5,

@@ -44,10 +44,19 @@
   "about_the_place": "عن المكان",
   "thanks_for_rating": "شكرا للتقييم",
   "your_rating": "تقييمك",
-  "if_you_like_,_share_with_us_the_reasons": "إذا أردت، شاركنا بالأسباب",
+  "if_you_like": "من فضلك، شاركنا بالأسباب",
   "submit_rating": "إرسال التقييم",
   "rate_place": "تقييم المكان",
   "History":"السجل",
   "Favorites":"المفضلة" ,
-  "Write your comment":"أكتب تعليقك"
+  "Write your comment":"أكتب تعليقك",
+  "Scan Place": "مسح المكان",
+  "Failed to scan the place.": "فشل في مسح المكان.",
+  "Error": "خطأ",
+  "Please wait...": "يرجى الانتظار...",
+  "Exception": "استثناء",
+  "Not Found": "لم يتم العثور على",
+  "No similar places found.": "لم يتم العثور على أماكن مشابهة.",
+  "Open Gallery": "افتح المعرض",
+  "Open Camera": "افتح الكاميرا"
 }

@@ -44,10 +44,20 @@
   "about_the_place": "О месте",
   "thanks_for_rating": "Спасибо за оценку",
   "your_rating": "Ваша оценка",
-  "if_you_like_,_share_with_us_the_reasons": "Если вам нравится, поделитесь с нами причинами",
+  "if_you_like": "Если вам нравится, поделитесь с нами причинами",
   "submit_rating": "Отправить оценку",
   "History": "История",
   "rate_place": "Оценить место",
   "Favorites": "Избранное",
-  "Write your comment": "Напишите свой комментарий"
+  "Write your comment": "Напишите свой комментарий",
+
+  "Scan Place": "Сканировать место",
+  "Failed to scan the place.": "Не удалось сканировать место.",
+  "Error": "Ошибка",
+  "Please wait...": "Пожалуйста, подождите...",
+  "Exception": "Исключение",
+  "Not Found": "Не найдено",
+  "No similar places found.": "Похожие места не найдены.",
+  "Open Gallery": "Открыть галерею",
+  "Open Camera": "Открыть камеру"
 }

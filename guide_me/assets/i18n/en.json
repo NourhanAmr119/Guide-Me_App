@@ -44,11 +44,20 @@
   "about_the_place": "About the place",
   "thanks_for_rating": "Thanks for rating",
   "your_rating": "Your Rating",
-  "if_you_like_,_share_with_us_the_reasons": "If you like, share with us the reasons",
+  "if_you_like": "If you like, share with us the reasons",
   "submit_rating": "Submit Rating",
   "History":"History",
   "rate_place":"Rate Place",
   "Favorites":"Favorites",
-  "Write your comment":"Write your comment"
-
+  "Write your comment":"Write your comment",
+  "Scan Place": "Scan Place",
+  "Failed to scan the place.": "Failed to scan the place.",
+  "Error": "Error",
+  "Please wait...": "Please wait...",
+  "Exception": "Exception",
+  "Not Found": "Not Found",
+  "No similar places found.": "No similar places found.",
+  "Open Gallery": "Open Gallery",
+  "Open Camera": "Open Camera"
 }
+

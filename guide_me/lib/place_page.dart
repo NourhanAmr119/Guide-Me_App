@@ -189,7 +189,7 @@ class _PlacePageState extends State<PlacePage> {
     try {
       final response = await http.post(
         Uri.parse(
-          'http://guideme.runasp.net/api/AudioTranslation/translate-audio/${widget.place['name']}/${widget.touristName}',
+          'http://guideme.runasp.net/audios/20240706_152504.mp3/${widget.place['name']}/${widget.touristName}',
         ),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
@@ -424,7 +424,9 @@ class _PlacePageState extends State<PlacePage> {
           ],
         );
       case 'text':
-        return TextWidget(textContent: media['mediaContent']);
+        return TextWidget(textContent: media['mediaContent'],appLocalization: widget
+            .appLocalization, // Pass the localization instance
+            locale: widget.locale);
       case 'audio':
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,7 +448,7 @@ class _PlacePageState extends State<PlacePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SizedBox(height: 10),
-            Text('About the Video',
+            Text(widget.appLocalization.translate('video'),
                 style: TextStyle(
                     color: Colors.black,
                     fontSize: 25,
@@ -695,16 +697,20 @@ class RecommendationCard extends StatelessWidget {
     );
   }
 }
-
 class TextWidget extends StatelessWidget {
   final String textContent;
+  final Locale? locale;
+  final AppLocalization appLocalization;
 
-  TextWidget({required this.textContent});
+  TextWidget({required this.textContent,required this.appLocalization, // Add this line
+    this.locale});
 
   @override
   Widget build(BuildContext context) {
+
+
     return ListTile(
-      title: Text('About the Place',
+      title: Text(appLocalization.translate('about_the_place'),
           style: TextStyle(
               color: Colors.black, fontSize: 25, fontWeight: FontWeight.bold)),
       subtitle: Container(

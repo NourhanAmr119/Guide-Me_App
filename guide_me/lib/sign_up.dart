@@ -41,7 +41,6 @@ class _SignUpPageState extends State<SignUpPage> {
       _errorStatus[field] = isValid;
     });
   }
-
   Future<void> _signUp() async {
     setState(() {
       _isLoading = true;
@@ -114,7 +113,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   },
                 ),
               ],
-              // backgroundColor: Color.fromARGB(255, 21, 82, 113),
+
             );
           },
         );
@@ -129,7 +128,7 @@ class _SignUpPageState extends State<SignUpPage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Error'),
-            content: Text('username already exists'),
+            content: Text('An error occurred: $e'),
             actions: <Widget>[
               TextButton(
                 child: Text(
@@ -149,7 +148,6 @@ class _SignUpPageState extends State<SignUpPage> {
       );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -231,11 +229,15 @@ class _SignUpPageState extends State<SignUpPage> {
                       if (!value.contains(RegExp(r'[0-9]'))) {
                         return 'Password must contain at least one digit';
                       }
+                      if (!value.contains(RegExp(r'[A-Z]'))) {
+                        return 'Password must contain at least one uppercase letter';
+                      }
                       if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
                         return 'Password must contain at least one special character';
                       }
                       return null;
                     },
+
                   ),
                   SizedBox(height: 30.0),
                   buildTextField(
@@ -282,7 +284,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         value: 'it',
                         child: Column(
                           children: [
-                            Text('Italy'),
+                            Text('Italian'),
                           ],
                         ),
                       ),
@@ -465,7 +467,7 @@ class _SignUpPageState extends State<SignUpPage> {
               onPressed: toggleVisibility as void Function()?,
             )
                 : null,
-            hintText: fieldHintText, // Use field-specific hint text
+            hintText: fieldHintText,
             hintStyle: TextStyle(color: Colors.grey),
           ),
         ),

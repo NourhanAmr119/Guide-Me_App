@@ -46,7 +46,7 @@ dependencies:
   flutter_map: ^7.0.1
   latlong2: ^0.9.1
   cached_network_image: ^3.3.1
-  camera: ^0.11.0+1
+
   flutter_localizations:
     sdk: flutter
   intl: ^0.18.1
@@ -99,6 +99,7 @@ flutter:
     - assets/i18n/ru.json
     - assets/i18n/ja.json
     - assets/i18n/zh.json
+    - assets/i18n/fr.json
 
 
 

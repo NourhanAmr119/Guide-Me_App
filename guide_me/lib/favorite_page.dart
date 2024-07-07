@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:jwt_decode/jwt_decode.dart';
 import 'package:provider/provider.dart';
 import 'AppLocalization.dart';
+import 'place_page.dart';
 import 'bottom_nav_bar.dart';
 import 'favorite_places_model.dart';
 
@@ -61,6 +62,40 @@ class _FavoritePageState extends State<FavoritePage> {
     'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
         '';
   }
+  void _onTapCard(Map<String, dynamic> place) async {
+    try {
+      final String touristName = decodeToken(widget.authToken);
+      final response = await http.post(
+        Uri.parse(
+            'http://guideme.runasp.net/api/TouristHistory?placename=${place['name']}&touristname=$touristName'),
+        headers: {
+          'Authorization': 'Bearer ${widget.authToken}',
+          'accept': '/',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print('Place added to history successfully');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PlacePage(
+              touristName: touristName,
+              cityName: '', // Pass the city name if needed
+              place: place,
+              token: widget.authToken,
+              appLocalization: widget.appLocalization,
+              locale: widget.locale,
+            ),
+          ),
+        );
+      } else {
+        print('Failed to add place to history: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception caught: $e');
+    }
+  }
 
   void removeFavorite(int index) async {
     try {
@@ -108,7 +143,7 @@ class _FavoritePageState extends State<FavoritePage> {
             final favorite = favorites[index];
             return GestureDetector(
               onTap: () {
-                // Handle tap event
+                _onTapCard(favorite);
               },
               child: Card(
                 clipBehavior: Clip.antiAlias,

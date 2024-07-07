@@ -44,10 +44,20 @@
   "about_the_place": "Über den Ort",
   "thanks_for_rating": "Danke für die Bewertung",
   "your_rating": "Ihre Bewertung",
-  "if_you_like_,_share_with_us_the_reasons": "Wenn Sie möchten, teilen Sie uns die Gründe mit",
+  "if_you_like": "Wenn Sie möchten, teilen Sie uns die Gründe mit",
   "submit_rating": "Bewertung abschicken",
   "History": "Geschichte",
   "rate_place": "Ort bewerten",
   "Favorites": "Favoriten",
-  "Write your comment": "Schreiben Sie Ihren Kommentar"
+  "Write your comment": "Schreiben Sie Ihren Kommentar",
+
+  "Scan Place": "Ort scannen",
+  "Failed to scan the place.": "Fehler beim Scannen des Ortes.",
+  "Error": "Fehler",
+  "Please wait...": "Bitte warten...",
+  "Exception": "Ausnahme",
+  "Not Found": "Nicht gefunden",
+  "No similar places found.": "Keine ähnlichen Orte gefunden.",
+  "Open Gallery": "Galerie öffnen",
+  "Open Camera": "Kamera öffnen"
 }

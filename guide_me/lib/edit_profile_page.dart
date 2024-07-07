@@ -296,7 +296,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     controller: _userNameController,
                     enabled: false, // Make it not editable
                     decoration: InputDecoration(
-                      labelText: 'Username',
+                      labelText: widget.appLocalization.translate('UserName'),
                       labelStyle: TextStyle(
                         color: Colors.black,
                         fontSize: 22,
@@ -460,8 +460,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       },
                       child: Icon(
                         _obscureTextCurrent
-                            ? Icons.visibility
-                            : Icons.visibility_off,
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                         color: Colors.black,
                       ),
                     ),
@@ -497,8 +497,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       },
                       child: Icon(
                         _obscureTextNew
-                            ? Icons.visibility
-                            : Icons.visibility_off,
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                         color: Colors.black,
                       ),
                     ),

@@ -44,10 +44,21 @@
   "about_the_place": "关于这个地方",
   "thanks_for_rating": "感谢您的评价",
   "your_rating": "您的评分",
-  "if_you_like_,_share_with_us_the_reasons": "如果您喜欢，请与我们分享原因",
+  "if_you_like": "如果您喜欢，请与我们分享原因",
   "submit_rating": "提交评分",
   "History": "历史",
   "rate_place": "评价地点",
   "Favorites": "收藏夹",
-  "Write your comment": "写下您的评论"
+  "Write your comment": "写下您的评论",
+
+  "Scan Place": "扫描地点",
+  "Failed to scan the place.": "扫描地点失败。",
+  "Error": "错误",
+  "Please wait...": "请稍候...",
+  "Exception": "例外",
+  "Not Found": "未找到",
+  "No similar places found.": "未找到类似的地方。",
+  "Open Gallery": "打开画廊",
+  "Open Camera": "打开相机"
+
 }

@@ -13,7 +13,7 @@
   "about_the_place": "riguardo al posto",
   "thanks_for_rating": "Grazie per la valutazione",
   "your_rating": "Il tuo punteggio",
-  "if_you_like_,_share_with_us_the_reasons": "Se ti va condividi con noi le ragioni",
+  "if_you_like": "Se ti va condividi con noi le ragioni",
   "rate_place": "Valuta il posto",
   "History":"Storia",
   "Favorites":"Preferiti",
@@ -53,7 +53,16 @@
   "FailedUpdate": "Impossibile aggiornare il profilo. Per favore riprova",
   "UnknownResponse": "Si è verificato un errore. Riprova più tardi",
   "ProfileSuccess": "Profilo aggiornato con successo",
-  "submit_rating": "Invia valutazione"
+  "submit_rating": "Invia valutazione",
 
-
+  "Scan Place": "Scansiona il luogo",
+  "Failed to scan the place.": "Impossibile scansionare il luogo.",
+  "Error": "Errore",
+  "Please wait...": "Per favore aspetta...",
+  "Exception": "Eccezione",
+  "Not Found": "Non trovato",
+  "No similar places found.": "Nessun luogo simile trovato.",
+  "Open Gallery": "Apri galleria",
+  "Open Camera": "Apri fotocamera"
 }
+

@@ -44,11 +44,22 @@
   "about_the_place": "場所について",
   "thanks_for_rating": "評価していただきありがとうございます",
   "your_rating": "あなたの評価",
-  "if_you_like_,_share_with_us_the_reasons": "気に入ったら、理由をお知らせください",
+  "if_you_like": "気に入ったら、理由をお知らせください",
   "submit_rating": "評価を送信",
   "History": "履歴",
   "rate_place": "場所を評価",
   "Favorites": "お気に入り",
-  "Write your comment": "コメントを書く"
+  "Write your comment": "コメントを書く",
+
+  "Scan Place": "場所をスキャンする",
+  "Failed to scan the place.": "場所をスキャンできませんでした。",
+  "Error": "エラー",
+  "Please wait...": "お待ちください...",
+  "Exception": "例外",
+  "Not Found": "見つかりません",
+  "No similar places found.": "類似の場所が見つかりませんでした。",
+  "Open Gallery": "ギャラリーを開く",
+  "Open Camera": "カメラを開く"
 }
+
 
