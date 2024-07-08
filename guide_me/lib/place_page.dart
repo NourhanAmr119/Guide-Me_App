@@ -189,7 +189,7 @@ class _PlacePageState extends State<PlacePage> {
     try {
       final response = await http.post(
         Uri.parse(
-          'http://guideme.runasp.net/audios/20240706_152504.mp3/${widget.place['name']}/${widget.touristName}',
+          'http://guideme.runasp.net/api/AudioTranslation/translate-audio/${widget.place['name']}/${widget.touristName}',
         ),
         headers: {
           'Authorization': 'Bearer ${widget.token}',

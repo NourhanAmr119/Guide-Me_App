@@ -51,7 +51,7 @@ class _ScanPageState extends State<ScanPage> {
       );
       request.headers['Authorization'] = 'Bearer ${widget.token}';
       request.files.add(await http.MultipartFile.fromPath('Image', _image!.path));
-      request.fields['CityName'] = widget.cityName;
+      request.fields['Name'] = widget.cityName;
 
       final response = await request.send();
 
