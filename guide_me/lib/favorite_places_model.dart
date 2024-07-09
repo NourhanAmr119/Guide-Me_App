@@ -10,12 +10,12 @@ class FavoritePlacesModel extends ChangeNotifier {
 
   void add(String placeName) {
     _favoritePlaces.add(placeName);
-    notifyListeners(); // Notify listeners when a place is added
+    notifyListeners();
   }
 
   void remove(String placeName) {
     _favoritePlaces.remove(placeName);
-    notifyListeners(); // Notify listeners when a place is removed
+    notifyListeners();
   }
 
 

@@ -24,7 +24,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  Future<Map<String, dynamic>?>? _touristInfo; // Nullable Future
+  Future<Map<String, dynamic>?>? _touristInfo;
 
   late SharedPreferences _prefs;
 
@@ -79,7 +79,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _logout() {
-    // Navigate to the start screen
+
     Navigator.pushReplacementNamed(context, '/start');
   }
 
@@ -217,7 +217,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             );
           } else {
-            // Handle case where _touristInfo is null or snapshot.data is null
+
             return Center(child: Text('User info not available yet'));
           }
         },

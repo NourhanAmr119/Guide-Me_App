@@ -81,7 +81,7 @@ class _FavoritePageState extends State<FavoritePage> {
           MaterialPageRoute(
             builder: (context) => PlacePage(
               touristName: touristName,
-              cityName: '', // Pass the city name if needed
+              cityName: '',
               place: place,
               token: widget.authToken,
               appLocalization: widget.appLocalization,
@@ -108,8 +108,8 @@ class _FavoritePageState extends State<FavoritePage> {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'PlaceName': favorites[index]['name'], // Assuming 'name' corresponds to 'PlaceName'
-          'TouristName': userName, // Assuming 'userName' corresponds to 'TouristName'
+          'PlaceName': favorites[index]['name'],
+          'TouristName': userName,
           'placeId': favorites[index]['id'],
         }),
       );
@@ -186,7 +186,7 @@ class _FavoritePageState extends State<FavoritePage> {
                       child: IconButton(
                         icon: Icon(Icons.favorite, color: Colors.white),
                         onPressed: () {
-                          removeFavorite(index); // Call removeFavorite method
+                          removeFavorite(index);
                         },
                       ),
                     ),

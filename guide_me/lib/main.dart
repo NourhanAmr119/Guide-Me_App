@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
       create: (context) => FavoritePlacesModel(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Guide Me', // App title
+        title: 'Guide Me',
         theme: ThemeData(
           primaryColor: const Color.fromARGB(255, 21, 82, 113),
           colorScheme: const ColorScheme.dark().copyWith(
@@ -32,11 +32,11 @@ class MyApp extends StatelessWidget {
           ),
         ),
         supportedLocales: const [
-          Locale('en', 'US'), // English
-          Locale('es', 'ES'), // Spanish
-          Locale('fr', 'FR'), // French
-          Locale('it', 'IT'), // Italian
-          Locale('ar', 'AR'), // Arabic
+          Locale('en', 'US'),
+          Locale('es', 'ES'),
+          Locale('fr', 'FR'),
+          Locale('it', 'IT'),
+          Locale('ar', 'AR'),
           Locale('ru', 'RU'),
           Locale('de', 'DE'),
           Locale('zh', 'ZH'),
@@ -50,18 +50,18 @@ class MyApp extends StatelessWidget {
           GlobalCupertinoLocalizations.delegate,
         ],
         localeResolutionCallback: (locale, supportedLocales) {
-          // Ensure the selected locale is one of the supported locales
+
           for (var supportedLocale in supportedLocales) {
             if (supportedLocale.languageCode == locale?.languageCode &&
                 supportedLocale.countryCode == locale?.countryCode) {
               return supportedLocale;
             }
           }
-          return supportedLocales.first; // Fallback to the first supported locale
+          return supportedLocales.first;
         },
-        home: const StartScreen(), // Initial screen of the app is HomePage
+        home: const StartScreen(),
         routes: {
-          '/sign_up': (context) => SignUpPage(), // Named routes
+          '/sign_up': (context) => SignUpPage(),
           '/sign_in': (context) => SignInPage(),
           '/start': (context) => const StartScreen(),
         },

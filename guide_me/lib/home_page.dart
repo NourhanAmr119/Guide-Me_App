@@ -61,15 +61,15 @@ class _HomePageState extends State<HomePage> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         String userLanguage = data['language']
-            .toLowerCase(); // Language code like 'es', 'fr', 'ar', 'en'
+            .toLowerCase();
 
         setState(() {
           _locale = Locale(userLanguage);
           _appLocalization = AppLocalization(_locale!);
         });
 
-        await _appLocalization.load(); // Load localized strings
-// Load localized strings
+        await _appLocalization.load();
+
       } else {
         throw Exception('Failed to fetch tourist info');
       }
@@ -116,22 +116,10 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // // Example implementation of decodeToken function
-  // String decodeToken(String token) {
-  //   // Your logic to decode the JWT token and extract touristName
-  //   // For example:
-  //   // final payload = token.split('.')[1];
-  //   // final decoded = utf8.decode(base64Url.decode(base64Url.normalize(payload)));
-  //   // final touristName = json.decode(decoded)['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
-  //   // return touristName;
-  //
-  //   // Placeholder return value, replace with actual logic
-  //   return "touristName";
-  // }
   @override
   Widget build(BuildContext context) {
     if (_appLocalization == null) {
-      // Show loading indicator or handle uninitialized state
+
       return Scaffold(
         body: Center(
           child: CircularProgressIndicator(),
@@ -259,7 +247,7 @@ class _HomePageState extends State<HomePage> {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    city['name'] ?? '', // Provide default value if null
+                    city['name'] ?? '',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 22,
@@ -281,14 +269,14 @@ class CustomSearchDelegate extends SearchDelegate<String> {
   final String token;
   final String touristName;
   final AppLocalization appLocalization;
-  final Locale? locale; // Add locale here
+  final Locale? locale;
 
   CustomSearchDelegate({
     required this.context,
     required this.token,
     required this.touristName,
     required this.appLocalization,
-    this.locale, // Include locale in constructor
+    this.locale,
   });
 
   @override
@@ -426,7 +414,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
         final dynamic data = json.decode(response.body);
 
         if (data is List) {
-          // Case when API returns an array of objects
+
           return data.map<Map<String, dynamic>>((city) {
             return {
               'id': city['id'],
@@ -435,7 +423,7 @@ class CustomSearchDelegate extends SearchDelegate<String> {
             };
           }).toList();
         } else if (data is Map<String, dynamic>) {
-          // Case when API returns a single object
+
           return [
             {
               'id': data['id'],

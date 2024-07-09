@@ -16,7 +16,7 @@ class EditProfilePage extends StatefulWidget {
   final AppLocalization appLocalization;
 
 
-  EditProfilePage({required this.token, required this.initialData,required this.appLocalization, // Add this line
+  EditProfilePage({required this.token, required this.initialData,required this.appLocalization,
     this.locale});
 
   @override
@@ -62,10 +62,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
           _defaultPhotoUrl = responseData['defaultPhotoUrl'];
         });
       } else {
-        // Handle error response
+
       }
     } catch (e) {
-      // Handle network error
+
     }
   }
 
@@ -141,8 +141,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         ),
                       ),
                       onPressed: () {
-                        Navigator.of(context).pop(); // Dismiss the dialog
-                        Navigator.pop(context); // Close the edit profile page
+                        Navigator.of(context).pop();
+                        Navigator.pop(context);
                       },
                     ),
                   ],
@@ -150,10 +150,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
               },
             );
           } else {
-            _showCustomDialog(responseBody); // Show the success message
+            _showCustomDialog(responseBody);
           }
         } else {
-          _showCustomDialog(response.body); // Show the actual error message from the API
+          _showCustomDialog(response.body);
         }
       } catch (e) {
         print('Error updating profile: $e');
@@ -170,7 +170,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         'userName': _userNameController.text,
         'email': _emailController.text,
         'language': _languageController.text,
-        // Add other fields as needed
+
       }),
     );
   }
@@ -207,7 +207,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 ),
               ),
               onPressed: () {
-                Navigator.of(context).pop(); // Dismiss the dialog
+                Navigator.of(context).pop();
               },
             ),
           ],
@@ -245,7 +245,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     alignment: Alignment.center,
                     children: <Widget>[
                       Container(
-                        width: 120, // Size of the circle
+                        width: 120,
                         height: 120,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
@@ -263,7 +263,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         )
                             : Icon(
                           Icons.person,
-                          size: 120, // Icon size
+                          size: 120,
                           color: Colors.black,
                         ),
                       ),
@@ -273,7 +273,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         child: Container(
                           decoration: BoxDecoration(
                             color: Color.fromARGB(255, 246, 243,
-                                177), // Optional: may adjust if background contrast needed
+                                177),
                             shape: BoxShape.circle,
                           ),
                           child: IconButton(
@@ -289,12 +289,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 Container(
                   decoration: BoxDecoration(
                     border: Border(
-                      bottom: BorderSide(color: Colors.grey, width: 1.0), // Grey bottom border, 1 pixel thick
+                      bottom: BorderSide(color: Colors.grey, width: 1.0),
                     ),
                   ),
                   child: TextFormField(
                     controller: _userNameController,
-                    enabled: false, // Make it not editable
+                    enabled: false,
                     decoration: InputDecoration(
                       labelText: widget.appLocalization.translate('UserName'),
                       labelStyle: TextStyle(
@@ -302,11 +302,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
-                      border: InputBorder.none, // Remove the default border
-                      focusedBorder: InputBorder.none, // Remove the focused border
+                      border: InputBorder.none,
+                      focusedBorder: InputBorder.none,
                     ),
                     style: TextStyle(
-                      color: Colors.grey, // Black text color
+                      color: Colors.grey,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -513,7 +513,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
-                    _updateProfile(context); // Ensure context is passed correctly if needed
+                    _updateProfile(context);
                   },
                   child: Text(
                     widget.appLocalization.translate('UpdateProfile'),

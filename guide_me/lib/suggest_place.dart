@@ -31,13 +31,13 @@ class _SuggestionPageState extends State<SuggestionPage> {
       final String placeName = _placeController.text;
 
       try {
-        // Fetch latitude, longitude, and address from OpenStreetMap
+
         final response = await http.get(
           Uri.parse(
               'https://nominatim.openstreetmap.org/search?q=$placeName+Egypt&format=json'),
         );
 
-        print('OpenStreetMap response: ${response.body}'); // Debug statement
+        print('OpenStreetMap response: ${response.body}');
 
         if (response.statusCode == 200) {
           final List<dynamic> data = json.decode(response.body);
@@ -55,7 +55,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
               widget.appLocalization.translate('Failed to fetch location from OpenStreetMap'));
         }
       } catch (e) {
-        print('Error: $e'); // Debug statement
+        print('Error: $e');
         _showAlertDialog(widget.appLocalization.translate('An error occurred'), e.toString());
       }
     }
@@ -88,7 +88,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
             TextButton(
               child: Text(
                 widget.appLocalization.translate('Cancel'),
-                style: TextStyle(color: Colors.white), // Keep original color
+                style: TextStyle(color: Colors.white),
               ),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -97,7 +97,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
             TextButton(
               child: Text(
                 widget.appLocalization.translate('Confirm'),
-                style: TextStyle(color: Colors.white), // Change color to white
+                style: TextStyle(color: Colors.white),
               ),
               onPressed: () {
                 if (_manualAddressController.text.isNotEmpty) {
@@ -133,7 +133,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
       }
 
       try {
-        // Send the suggestion to the API
+
         final apiResponse = await http.post(
           Uri.parse(apiUrl),
           headers: {
@@ -142,7 +142,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
           },
         );
 
-        print('API response: ${apiResponse.body}'); // Debug statement
+        print('API response: ${apiResponse.body}');
 
         if (apiResponse.statusCode == 200) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -153,7 +153,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
 
         }
       } catch (e) {
-        print('Error: $e'); // Debug statement
+        print('Error: $e');
         _showAlertDialog('An error occurred', e.toString());
       }
     }
@@ -240,11 +240,11 @@ class _SuggestionPageState extends State<SuggestionPage> {
                           fontWeight: FontWeight.bold,
                           fontSize: 22,
                         ),
-                        // Added bottom black border
+
                         enabledBorder: UnderlineInputBorder(
                           borderSide: BorderSide(color: Colors.black),
                         ),
-                        // Removed background color and border
+
                       ),
                       style: TextStyle(color: Colors.black),
                       validator: (value) {
@@ -257,7 +257,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
                     SizedBox(height: 26),
                     Center(
                       child: SizedBox(
-                        width: 150, // Set the width to your desired value
+                        width: 150,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black,
@@ -283,15 +283,15 @@ class _SuggestionPageState extends State<SuggestionPage> {
                         _address!,
                         style: TextStyle(color: Colors.black, fontSize: 22),
                       ),
-                      SizedBox(height: 26), // Added space after address
+                      SizedBox(height: 26),
                       Center(
                         child: SizedBox(
-                          width: 150, // Set the width to your desired value
+                          width: 150,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black,
                               foregroundColor: Colors.white,
-                              minimumSize: Size(40, 40), // Set smaller button size
+                              minimumSize: Size(40, 40),
                             ),
                             onPressed: _confirmSuggestion,
                             child: Text(widget.appLocalization.translate('Confirm')),
