@@ -32,7 +32,7 @@ class CityPage extends StatefulWidget {
   _CityPageState createState() => _CityPageState();
 }
 
-class _CityPageState extends State<CityPage> {
+class _CityPageState extends State<CityPage>  with TickerProviderStateMixin {
   final Locale? locale; // Add locale property
   _CityPageState({this.locale}); // Update constructor to accept locale
   List<dynamic> places = [];
@@ -40,6 +40,8 @@ class _CityPageState extends State<CityPage> {
   int _currentIndex = 0;
   ScrollController _scrollController = ScrollController();
   bool _showAppbarColor = false;
+  final Map<String, ScrollController> _scrollControllers = {};
+
 
   @override
   void initState() {
@@ -66,6 +68,12 @@ class _CityPageState extends State<CityPage> {
               .map<String>((place) => place['category'].toString())
               .toSet()
               .toList();
+          for (var category in categories) {
+            _scrollControllers[category] = ScrollController()
+              ..addListener(() {
+                _onScroll();
+              });
+          }
         });
       } else {
         print('Failed to load data: ${response.statusCode}');
@@ -78,16 +86,14 @@ class _CityPageState extends State<CityPage> {
 
 
   void _onScroll() {
-    if (_scrollController.offset > 50 && !_showAppbarColor) {
+    bool shouldShowAppbarColor = _scrollControllers.values.any((controller) => controller.offset > 50);
+    if (shouldShowAppbarColor != _showAppbarColor) {
       setState(() {
-        _showAppbarColor = true;
-      });
-    } else if (_scrollController.offset <= 50 && _showAppbarColor) {
-      setState(() {
-        _showAppbarColor = false;
+        _showAppbarColor = shouldShowAppbarColor;
       });
     }
   }
+
 
   void _onTapCard(Map<String, dynamic> place, String token) async {
     try {
@@ -295,22 +301,16 @@ class _CityPageState extends State<CityPage> {
               fit: BoxFit.cover,
             ),
           ),
-          child: NotificationListener<ScrollNotification>(
-            onNotification: (scrollNotification) {
-              _onScroll();
-              return true;
-            },
-            child: categories.isNotEmpty
-                ? TabBarView(
-              children: categories
-                  .map((category) => ListView(
-                controller: _scrollController,
+          child: categories.isNotEmpty
+              ? TabBarView(
+            children: categories.map((category) {
+              return ListView(
+                controller: _scrollControllers[category],
                 children: buildCategoryCards(category),
-              ))
-                  .toList(),
-            )
-                : Center(child: CircularProgressIndicator()),
-          ),
+              );
+            }).toList(),
+          )
+              : Center(child: CircularProgressIndicator()),
         ),
         bottomNavigationBar: BottomNavBar(
           token: widget.token,
