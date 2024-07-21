@@ -86,10 +86,13 @@ class _CityPageState extends State<CityPage>  with TickerProviderStateMixin {
 
 
   void _onScroll() {
-    bool shouldShowAppbarColor = _scrollControllers.values.any((controller) => controller.offset > 50);
-    if (shouldShowAppbarColor != _showAppbarColor) {
+    if (_scrollController.offset > 50 && !_showAppbarColor) {
       setState(() {
-        _showAppbarColor = shouldShowAppbarColor;
+        _showAppbarColor = true;
+      });
+    } else if (_scrollController.offset <= 50 && _showAppbarColor) {
+      setState(() {
+        _showAppbarColor = false;
       });
     }
   }
@@ -305,12 +308,13 @@ class _CityPageState extends State<CityPage>  with TickerProviderStateMixin {
               ? TabBarView(
             children: categories.map((category) {
               return ListView(
-                controller: _scrollControllers[category],
+                controller: _scrollController,
                 children: buildCategoryCards(category),
               );
             }).toList(),
           )
               : Center(child: CircularProgressIndicator()),
+
         ),
         bottomNavigationBar: BottomNavBar(
           token: widget.token,

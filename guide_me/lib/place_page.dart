@@ -483,25 +483,7 @@ class _PlacePageState extends State<PlacePage> {
               ),
             ),
             Spacer(), // This will push the icons to the right
-            IconButton(
-              onPressed: () {
-                // Handle your scan action
-              },
-              icon: Column(
-                children: [
-                  Image.asset(
-                    'assets/scan_icon.jpg',
-                    width: 34, // Adjust the width as needed
-                    height: 24, // Adjust the height as needed
-                    // color: Colors.white, // Apply color filter if necessary
-                  ),
-                  SizedBox(
-                      height: 2), // Adjust the height as needed for spacing
-                  Text(appLocalization.translate('scan'),
-                      style: TextStyle(color: Colors.black, fontSize: 9)),
-                ],
-              ),
-            ),
+
             IconButton(
               onPressed: () {
                 Navigator.push(
